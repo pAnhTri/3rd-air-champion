@@ -1,0 +1,222 @@
+import gql from "graphql-tag";
+
+const generalDefs = gql`
+  type Query {
+    greetings: String
+  }
+`;
+
+const hostDefs = gql`
+  type Host {
+    id: ID!
+    email: String!
+    password: String!
+    name: String!
+    rooms: [ID]
+    calendar: ID
+    guests: [ID]
+    cohosts: [ID]
+    createdAt: String
+    updatedAt: String
+  }
+
+  type Query {
+    hosts: [Host]
+    host(_id: String!): Host!
+  }
+
+  type Mutation {
+    createHost(email: String!, name: String!, password: String!): Host!
+    updateHost(
+      _id: String!
+      email: String
+      name: String
+      password: String
+    ): Host!
+    deleteCohosts(_id: String!, cohostIds: [String]!): Host!
+    deleteGuests(_id: String!, guestIds: [String!]!): Host!
+    deleteRooms(_id: String!, roomIds: [String!]!): Host!
+  }
+`;
+
+const cohostDefs = gql`
+  type Cohost {
+    id: ID!
+    email: String!
+    password: String!
+    name: String!
+    host: ID!
+    createdAt: String
+    updatedAt: String
+  }
+
+  type Query {
+    cohosts: [Cohost]
+    cohost(_id: String!): Cohost!
+  }
+
+  type Mutation {
+    createCohost(
+      email: String!
+      name: String!
+      password: String!
+      host: String!
+    ): Cohost!
+    updateCohost(
+      _id: String!
+      email: String
+      name: String
+      password: String
+    ): Cohost!
+  }
+`;
+
+const calendarDefs = gql`
+  type Calendar {
+    id: ID!
+    host: ID!
+    createdAt: String
+    updatedAt: String
+  }
+
+  type Query {
+    calendars: [Calendar]
+    calendar(_id: String!): Calendar!
+  }
+
+  type Mutation {
+    createCalendar(host: String!): Calendar!
+  }
+`;
+
+const guestDefs = gql`
+  type Guest {
+    id: ID!
+    name: String!
+    email: String
+    phone: String!
+    numberOfGuests: Int
+    returning: Boolean
+    notes: String
+    host: ID!
+    createdAt: String
+    updatedAt: String
+  }
+
+  type Query {
+    guests: [Guest]
+    guest(_id: String!): Guest!
+  }
+
+  type Mutation {
+    createGuest(
+      name: String!
+      email: String
+      phone: String!
+      numberOfGuests: Int
+      returning: Boolean
+      notes: String
+      host: String!
+    ): Guest!
+    updateGuest(
+      _id: String!
+      name: String
+      email: String
+      phone: String
+      numberOfGuests: Int
+      returning: Boolean
+      notes: String
+    ): Guest!
+  }
+`;
+
+const roomDefs = gql`
+  type Room {
+    id: ID!
+    host: ID!
+    name: String!
+    price: Float!
+    createdAt: String
+    updatedAt: String
+  }
+
+  type Query {
+    rooms: [Room]
+    room(_id: String!): Room!
+  }
+
+  type Mutation {
+    createRoom(host: String!, name: String!, price: Float!): Room!
+    updateRoom(_id: String!, name: String, price: Float): Room!
+  }
+`;
+
+const dayDefs = gql`
+  scalar Date
+
+  type Day {
+    id: ID!
+    calendar: ID!
+    date: Date!
+    isAirBnB: Boolean
+    isBlocked: Boolean
+    room: ID
+    guest: ID
+    createdAt: String
+    updatedAt: String
+  }
+
+  type Query {
+    days: [Day]
+    day(_id: String!): Day!
+  }
+
+  type Mutation {
+    blockDay(calendar: String!, date: String!): Day!
+    blockManyDays(calendar: String!, dates: [String!]!): [Day!]!
+    blockRange(calendar: String!, startDate: String!, endDate: String!): [Day!]!
+    unblockDay(calendar: String!, date: String!): Day
+    unblockManyDays(calendar: String!, dates: [String!]!): [Day]
+    unblockRange(calendar: String!, startDate: String!, endDate: String!): [Day]
+    updateDay(
+      _id: String!
+      isAirBnB: Boolean
+      isBlocked: Boolean
+      room: String
+      guest: String
+    ): Day!
+  }
+`;
+
+const authenticationDefs = gql`
+  type Account {
+    hostId: ID!
+    cohostId: ID
+    role: String!
+  }
+
+  type Query {
+    login(email: String!, password: String!): Account!
+  }
+
+  type Mutation {
+    registerHost(email: String!, password: String!, name: String!): Account!
+    registerCohost(
+      host: String!
+      email: String!
+      password: String!
+      name: String!
+    ): Account!
+  }
+`;
+
+export const typeDefs = [
+  generalDefs,
+  hostDefs,
+  cohostDefs,
+  calendarDefs,
+  guestDefs,
+  roomDefs,
+  dayDefs,
+  authenticationDefs,
+];
