@@ -163,9 +163,8 @@ guestSchema.post("findOneAndDelete", async function (doc) {
   );
 
   await Day.updateMany(
-    { guest: doc._id },
-    { $unset: { guest: "", room: "" } },
-    { new: true }
+    { "bookings.guest": doc._id }, // Match bookings with the deleted guest
+    { $pull: { bookings: { guest: doc._id } } } // Remove bookings with the deleted guest
   );
 });
 
@@ -176,13 +175,20 @@ guestSchema.post("deleteMany", async function (doc) {
   );
 
   await Day.updateMany(
-    { guest: { $in: toBeDeletedGuestIds } }, // Match any `guest` in the array
-    { $unset: { guest: "", room: "" } }, // Unset `guest` and `room` fields
-    { new: true }
+    { "bookings.guest": { $in: toBeDeletedGuestIds } }, // Match any booking containing the deleted guests
+    { $pull: { bookings: { guest: { $in: toBeDeletedGuestIds } } } } // Remove all bookings with the deleted guests
   );
 });
 
-guestSchema.index({ email: 1, host: 1 }, { unique: true });
+guestSchema.index(
+  { email: 1, host: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      email: { $type: "string" },
+    },
+  }
+);
 guestSchema.index({ phone: 1, host: 1 }, { unique: true });
 guestSchema.index({ returning: 1 });
 guestSchema.index({ notes: 1 }, { sparse: true });

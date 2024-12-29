@@ -154,14 +154,25 @@ const roomDefs = gql`
 const dayDefs = gql`
   scalar Date
 
+  type Bookings {
+    guest: Guest
+    room: Room
+    description: String
+    duration: Int
+    numberOfGuests: Int
+    startDate: Date
+    endDate: Date
+  }
+
   type Day {
     id: ID!
     calendar: ID!
     date: Date!
     isAirBnB: Boolean
     isBlocked: Boolean
-    room: ID
-    guest: ID
+    bookings: [Bookings]
+    numberOfGuests: Int
+    blockedRooms: [Room]
     createdAt: String
     updatedAt: String
   }
@@ -169,15 +180,44 @@ const dayDefs = gql`
   type Query {
     days: [Day]
     day(_id: String!): Day!
+    hostDays(calendarId: String!): [Day]
   }
 
   type Mutation {
     blockDay(calendar: String!, date: String!): Day!
     blockManyDays(calendar: String!, dates: [String!]!): [Day!]!
-    blockRange(calendar: String!, startDate: String!, endDate: String!): [Day!]!
+    blockRange(calendar: String!, date: String!, duration: Int!): [Day!]!
+
+    blockRoom(
+      calendar: String!
+      room: String!
+      date: String!
+      duration: Int!
+    ): [Day]
+
     unblockDay(calendar: String!, date: String!): Day
     unblockManyDays(calendar: String!, dates: [String!]!): [Day]
     unblockRange(calendar: String!, startDate: String!, endDate: String!): [Day]
+
+    bookDays(
+      calendar: String!
+      date: String!
+      guest: String!
+      isAirBnB: Boolean!
+      numberOfGuests: Int!
+      room: String!
+      duration: Int!
+    ): [Day]
+
+    bookAirBnB(
+      calendar: String!
+      date: String!
+      guest: String!
+      description: String!
+      room: String!
+      duration: Int!
+    ): [Day]
+
     updateDay(
       _id: String!
       isAirBnB: Boolean

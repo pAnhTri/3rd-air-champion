@@ -11,12 +11,34 @@ import authorizationRoute from "./route/authenticationRoute";
 import guestRoute from "./route/guestRoute";
 import roomRoute from "./route/roomRoute";
 import dayRoute from "./route/dayRoute";
+import hostRoute from "./route/hostRoute";
+import syncRoute from "./route/syncRoute";
 import { authenticateToken } from "./middleware/authenticateJWT";
+import cors from "cors";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 const MONGO_URI = process.env.MONGO_URI || "";
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+
+const corsOptions = {
+  origin: (origin: any, callback: any) => {
+    // Allow requests with no origin (e.g., server-to-server requests or curl)
+    if (
+      !origin ||
+      CLIENT_ORIGIN.includes(origin) ||
+      origin === `http://localhost:${PORT}`
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error(`${origin}: Not allowed by CORS`));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
+  credentials: true, // Allow cookies and credentials
+};
 
 const startServer = async () => {
   try {
@@ -43,9 +65,14 @@ const startServer = async () => {
 
     await server.start();
 
-    app.use(express.json()), // Middleware for parsing JSON requests
-      // Use Apollo Server Middleware
-      app.use("/graphql", expressMiddleware(server) as any);
+    app.use(express.json()); // Middleware for parsing JSON requests
+    app.use(cors(corsOptions));
+    // Use Apollo Server Middleware
+    app.use(
+      "/graphql",
+      cors<cors.CorsRequest>(corsOptions),
+      expressMiddleware(server) as any
+    );
 
     // Landing route
     app.get("/", (req: Request, res: Response) => {
@@ -58,10 +85,12 @@ const startServer = async () => {
     // Authenticate all paths from now on
     app.use(authenticateToken as any);
 
-    // Guest route
+    // Protected Routes
+    app.use("/host", hostRoute);
     app.use("/guest", guestRoute);
     app.use("/room", roomRoute);
     app.use("/day", dayRoute);
+    app.use("/airbnb", syncRoute);
 
     console.log(`Express server ready at http://localhost:${PORT}/`);
 

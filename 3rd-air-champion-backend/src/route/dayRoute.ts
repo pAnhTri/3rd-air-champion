@@ -10,11 +10,40 @@ router.get("/get", async (req: Request, res: any) => {
   const query = `
         query Days {
           days {
-            room
-            isBlocked
-            isAirBnB
-            guest
+            id
+            calendar
             date
+            isAirBnB
+            isBlocked
+            blockedRooms {
+              host
+              id
+              name
+              price
+            }
+            bookings {
+              guest {
+                id
+                name
+                email
+                phone
+                numberOfGuests
+                returning
+                notes
+                host
+              }
+              room {
+                id
+                host
+                name
+                price
+              }
+              duration
+              description
+              numberOfGuests
+              startDate
+              endDate
+            }
           }
         }`;
 
@@ -32,7 +61,7 @@ router.get("/get", async (req: Request, res: any) => {
     });
 });
 
-router.get("/get/one", async (req: Request, res: any) => {
+router.post("/get/one", async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });
 
@@ -42,10 +71,24 @@ router.get("/get/one", async (req: Request, res: any) => {
         query Day($id: String!) {
           day(_id: $id) {
             date
-            guest
+            guests {
+              id
+              email
+              name
+              notes
+              numberOfGuests
+              phone
+              returning
+            }
+            numberOfGuests
+            duration
             isAirBnB
             isBlocked
-            room
+            rooms {
+              id
+              name
+              price
+            }
           }
         }`;
 
@@ -63,6 +106,66 @@ router.get("/get/one", async (req: Request, res: any) => {
     });
 });
 
+router.post("/get/host", async (req: Request, res: any) => {
+  if (!("user" in req))
+    return res.status(401).json({ error: "Invalid or expired token" });
+
+  const { calendarId } = req.body;
+
+  const query = `
+        query HostDays($calendarId: String!) {
+          hostDays(calendarId: $calendarId) {
+            id
+            calendar
+            date
+            isAirBnB
+            isBlocked
+            blockedRooms {
+              host
+              id
+              name
+              price
+            }
+            bookings {
+              guest {
+                id
+                name
+                email
+                phone
+                numberOfGuests
+                returning
+                notes
+                host
+              }
+              room {
+                id
+                host
+                name
+                price
+              }
+              description
+              duration
+              numberOfGuests
+              startDate
+              endDate
+            }
+          }
+        }`;
+
+  sendGraphQLRequest(query, { calendarId })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      // Send the successful login response
+      res.status(200).json(result.data.hostDays);
+    })
+    .catch((error: any) => {
+      // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
 router.post(["/block", "/block/one"], async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });
@@ -70,7 +173,7 @@ router.post(["/block", "/block/one"], async (req: Request, res: any) => {
   const { calendar, date } = req.body;
 
   const query = `
-        mutation BlockDay($calendar: String!, $date: Date!) {
+        mutation BlockDay($calendar: String!, $date: String!) {
             blockDay(calendar: $calendar, date: $date) {
                 date
             }
@@ -172,33 +275,6 @@ router.post("/unblock/many", async (req: Request, res: any) => {
     });
 });
 
-router.post("/block/range", async (req: Request, res: any) => {
-  if (!("user" in req))
-    return res.status(401).json({ error: "Invalid or expired token" });
-
-  const { calendar, startDate, endDate } = req.body;
-
-  const query = `
-        mutation BlockRange($calendar: String!, $startDate: Date!, $endDate: Date!) {
-          blockRange(calendar: $calendar, startDate: $startDate, endDate: $endDate) {
-            date
-          }
-        }`;
-
-  sendGraphQLRequest(query, { calendar, startDate, endDate })
-    .then((result: any) => {
-      if (result.errors) {
-        return res.status(400).json({ errors: result.errors[0].message });
-      }
-      // Send the successful login response
-      res.status(200).json(result.data.blockRange);
-    })
-    .catch((error: any) => {
-      // Handle errors from the helper function
-      res.status(500).json({ error: error.message });
-    });
-});
-
 router.post("/unblock/range", async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });
@@ -227,31 +303,100 @@ router.post("/unblock/range", async (req: Request, res: any) => {
     });
 });
 
+router.post("/book/range", async (req: Request, res: any) => {
+  if (!("user" in req))
+    return res.status(401).json({ error: "Invalid or expired token" });
+
+  const { calendar, date, guest, isAirBnB, numberOfGuests, room, duration } =
+    req.body;
+
+  const query = `
+        mutation BookDays($calendar: String!, $date: String!, $guest: String!, $isAirBnB: Boolean!, $numberOfGuests: Int!, $room: String!, $duration: Int!) {
+          bookDays(calendar: $calendar, date: $date, guest: $guest, isAirBnB: $isAirBnB, numberOfGuests: $numberOfGuests, room: $room, duration: $duration) {
+            id
+            calendar
+            date
+            isAirBnB
+            isBlocked
+            blockedRooms {
+              host
+              id
+              name
+              price
+            }
+            bookings {
+              guest {
+                id
+                name
+                email
+                phone
+                numberOfGuests
+                returning
+                notes
+                host
+              }
+              room {
+                id
+                host
+                name
+                price
+              }
+                description
+              duration
+              numberOfGuests
+              startDate
+              endDate
+            }
+          }
+        }`;
+
+  sendGraphQLRequest(query, {
+    calendar,
+    date,
+    guest,
+    isAirBnB,
+    numberOfGuests,
+    room,
+    duration,
+  })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      // Send the successful login response
+      res.status(200).json(result.data.bookDays);
+    })
+    .catch((error: any) => {
+      // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
 router.put("/update", async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });
 
-  const { id, isAirBnB, isBlocked, room, guest } = req.body;
+  const { id, isAirBnB, isBlocked, rooms, guests } = req.body;
   const variables: {
     id: string;
     isAirBnB?: boolean;
     isBlocked?: boolean;
-    room?: string;
-    guest?: string;
+    rooms?: string[];
+    guests?: string[];
   } = { id };
   if (typeof isAirBnB !== "undefined") variables.isAirBnB = isAirBnB;
   if (typeof isBlocked !== "undefined") variables.isBlocked = isBlocked;
-  if (room) variables.room = room;
-  if (guest) variables.guest = guest;
+  if (rooms) variables.rooms = rooms;
+  if (guests) variables.guests = guests;
 
   const query = `
         mutation UpdateDay($id: String!, $isAirBnB: Boolean, $isBlocked: Boolean, $room: String, $guest: String) {
           updateDay(_id: $id, isAirBnB: $isAirBnB, isBlocked: $isBlocked, room: $room, guest: $guest) {
             date
-            guest
+            guests
             isAirBnB
             isBlocked
-            room
+            rooms
           }
         }`;
 

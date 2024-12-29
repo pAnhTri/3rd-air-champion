@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { startOfDay, isBefore, isEqual, startOfToday } from "date-fns";
+import { isBefore, startOfToday } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
 const daySchema = new mongoose.Schema(
@@ -12,8 +12,18 @@ const daySchema = new mongoose.Schema(
     date: { type: Date, required: true },
     isAirBnB: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
-    room: { type: mongoose.Schema.ObjectId, ref: "Room" },
-    guest: { type: mongoose.Schema.ObjectId, ref: "Guest" },
+    bookings: [
+      {
+        room: { type: mongoose.Schema.ObjectId, ref: "Room" },
+        guest: { type: mongoose.Schema.ObjectId, ref: "Guest" },
+        description: { type: String, default: "" },
+        duration: { type: Number, default: 1 },
+        numberOfGuests: { type: Number, default: 0 },
+        startDate: { type: Date },
+        endDate: { type: Date },
+      },
+    ],
+    blockedRooms: [{ type: mongoose.Schema.ObjectId, ref: "Room" }],
   },
   { timestamps: true }
 );
@@ -28,7 +38,7 @@ daySchema.pre("validate", function (next) {
   const currentDate = startOfToday();
   const inputDate = toZonedTime(this.date, timeZone);
 
-  if (isBefore(inputDate, currentDate) || isEqual(inputDate, currentDate)) {
+  if (isBefore(inputDate, currentDate)) {
     return next(new Error("Date cannot be in the past."));
   }
 
@@ -47,7 +57,7 @@ daySchema.pre(
       typeof dayUpdate === "object" &&
       !Array.isArray(dayUpdate)
     ) {
-      if ("guest" in dayUpdate || "room" in dayUpdate) {
+      if ("bookings" in dayUpdate) {
         if (day.isBlocked)
           return next(
             new Error("A blocked day cannot have a guest or a room assigned.")
@@ -60,10 +70,7 @@ daySchema.pre(
         const currentDate = startOfToday();
         const inputDate = toZonedTime(dayUpdate.date, timeZone);
 
-        if (
-          isBefore(inputDate, currentDate) ||
-          isEqual(inputDate, currentDate)
-        ) {
+        if (isBefore(inputDate, currentDate)) {
           return next(new Error("Date cannot be in the past."));
         }
       }
@@ -77,7 +84,7 @@ daySchema.pre("save", function (next) {
     this.date = toZonedTime(this.date, timeZone);
   }
 
-  if (this.isBlocked && (this.guest || this.room)) {
+  if (this.isBlocked && this.bookings.length > 0) {
     return next(
       new Error("A blocked day cannot have a guest or a room assigned.")
     );

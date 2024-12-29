@@ -65,7 +65,7 @@ describe("Day Schema - Test Suite", () => {
         calendar: calendar._id,
         date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow's date
         isBlocked: true,
-        guest: guest._id,
+        bookings: { guest: [guest._id] },
       };
 
       const day = new Day(dayData);
@@ -90,7 +90,7 @@ describe("Day Schema - Test Suite", () => {
         calendar: calendar._id,
         date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow's date
         isBlocked: true,
-        room: room._id,
+        bookings: { room: [room._id] },
       };
 
       const day = new Day(dayData);
@@ -174,7 +174,7 @@ describe("Day Schema - Test Suite", () => {
         calendar: calendar._id,
         date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow's date
         isBlocked: true,
-        guest: guest._id,
+        bookings: [{ guest: [guest._id] }],
       };
 
       const day = new Day(dayData);
@@ -197,7 +197,7 @@ describe("Day Schema - Test Suite", () => {
         calendar: calendar._id,
         date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow's date
         isBlocked: true,
-        room: room._id,
+        bookings: [{ rooms: [room._id] }],
       };
 
       const day = new Day(dayData);
@@ -385,7 +385,7 @@ describe("Day Schema - Test Suite", () => {
       await expect(
         Day.findByIdAndUpdate(
           savedDay._id,
-          { guest: guest._id },
+          { bookings: [{ guest: guest._id }] },
           { new: true, runValidators: true }
         )
       ).rejects.toThrow(

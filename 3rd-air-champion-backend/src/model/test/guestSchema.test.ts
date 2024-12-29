@@ -857,16 +857,16 @@ describe("Guest Schema - Deletion", () => {
     const day = new Day({
       calendar: new mongoose.Types.ObjectId(),
       date: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      guest: savedGuest._id,
-      room: new mongoose.Types.ObjectId(),
+      bookings: [
+        { guest: savedGuest._id, room: new mongoose.Types.ObjectId() },
+      ],
     });
     const savedDay = await day.save();
 
     // Verify the Day document before Guest deletion
     let dayBefore = await Day.findById(savedDay._id).orFail();
     expect(dayBefore).toBeDefined();
-    expect(dayBefore.guest?.toString()).toBe(savedGuest._id.toString());
-    expect(dayBefore.room).toBeDefined();
+    expect(dayBefore.bookings.length).toBeGreaterThan(0);
 
     // Delete the Guest
     await Guest.findByIdAndDelete(savedGuest._id);
@@ -874,8 +874,7 @@ describe("Guest Schema - Deletion", () => {
     // Verify the Day document after Guest deletion
     const dayAfter = await Day.findById(savedDay._id).orFail();
     expect(dayAfter).toBeDefined();
-    expect(dayAfter.guest).toBeUndefined();
-    expect(dayAfter.room).toBeUndefined();
+    expect(dayAfter.bookings.length).toBe(0);
   });
 
   it("should remove guest references from hosts when guests are deleted in bulk", async () => {
@@ -937,15 +936,13 @@ describe("Guest Schema - Deletion", () => {
     const day1 = await new Day({
       calendar: new mongoose.Types.ObjectId(),
       date: new Date("2025-12-01"),
-      guest: guest1._id,
-      room: new mongoose.Types.ObjectId(),
+      bookings: [{ guest: guest1._id, room: new mongoose.Types.ObjectId() }],
     }).save();
 
     const day2 = await new Day({
       calendar: new mongoose.Types.ObjectId(),
       date: new Date("2025-12-02"),
-      guest: guest2._id,
-      room: new mongoose.Types.ObjectId(),
+      bookings: [{ guest: guest2._id, room: new mongoose.Types.ObjectId() }],
     }).save();
 
     // Bulk delete guests
@@ -956,10 +953,8 @@ describe("Guest Schema - Deletion", () => {
     const updatedDay1 = await Day.findById(day1._id);
     const updatedDay2 = await Day.findById(day2._id);
 
-    expect(updatedDay1?.guest).toBeUndefined();
-    expect(updatedDay1?.room).toBeUndefined();
-    expect(updatedDay2?.guest).toBeUndefined();
-    expect(updatedDay2?.room).toBeUndefined();
+    expect(updatedDay1?.bookings.length).toBe(0);
+    expect(updatedDay2?.bookings.length).toBe(0);
   });
 });
 

@@ -85,9 +85,13 @@ roomSchema.post("findOneAndDelete", async function (doc) {
   );
 
   await Day.updateMany(
-    { room: doc._id },
-    { $unset: { guest: "", room: "" } },
-    { new: true }
+    { "bookings.room": doc._id }, // Match bookings with the deleted room
+    { $pull: { bookings: { room: doc._id } } } // Remove bookings with the deleted room
+  );
+
+  await Day.updateMany(
+    { blockedRooms: doc._id }, // Match bookings with the deleted room
+    { $pull: { blockedRooms: doc._id } } // Remove bookings with the deleted room
   );
 });
 
@@ -97,7 +101,17 @@ roomSchema.post("deleteMany", async function (doc) {
   );
 
   await Day.updateMany(
-    { room: { $in: toBeDeletedRoomsIds } }, // Match any `guest` in the array
+    { "bookings.room": { $in: toBeDeletedRoomsIds } }, // Match any booking containing the deleted room
+    { $pull: { bookings: { room: { $in: toBeDeletedRoomsIds } } } } // Remove all bookings with the deleted room
+  );
+
+  await Day.updateMany(
+    { blockedRooms: { $in: toBeDeletedRoomsIds } }, // Match any booking containing the deleted room
+    { $pull: { blockedRooms: { $in: toBeDeletedRoomsIds } } } // Remove all bookings with the deleted room
+  );
+
+  await Day.updateMany(
+    { room: { $in: toBeDeletedRoomsIds } }, // Match any `room` in the array
     { $unset: { guest: "", room: "" } }, // Unset `guest` and `room` fields
     { new: true }
   );

@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.react-calendar__month-view__weekdays {
+  display: none !important;
+}
+
+.react-calendar__custom_tile {
+  @apply hover:bg-slate-500 h-[76px] border border-gray-300;
+}
+
+.react-calendar__custom_tile_today {
+  @apply border-2 border-solid border-yellow-500;
+}
+
+.react-calendar__custom_tile_blocked {
+  @apply bg-slate-700;
+}
+
+.react-calendar__custom_tile_full {
+  @apply border-2 border-solid border-red-500;
+}

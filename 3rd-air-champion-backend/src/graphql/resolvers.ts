@@ -202,7 +202,7 @@ const guestResolver = {
 const roomResolver = {
   Query: {
     rooms: async () => {
-      return await Room.find();
+      return await Room.find().sort({ name: 1 });
     },
     room: async (_: unknown, { _id }: any) => {
       return await Room.findById(_id);
@@ -232,10 +232,22 @@ const dayResolver = {
   Date: GraphQLDate,
   Query: {
     days: async () => {
-      return await Day.find();
+      return await Day.find()
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
     },
     day: async (_: unknown, { _id }: any) => {
-      return await Day.findById(_id);
+      return await Day.findById(_id)
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
+    },
+    hostDays: async (_: unknown, { calendarId }: any) => {
+      return await Day.find({ calendar: calendarId })
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
     },
   },
   Mutation: {
@@ -296,36 +308,24 @@ const dayResolver = {
       await Day.bulkWrite(bulkOps, { ordered: false });
       return await Day.find();
     },
-    blockRange: async (_: unknown, { calendar, startDate, endDate }: any) => {
-      const datesInRange = [];
-
+    blockRange: async (_: unknown, { calendar, date, duration }: any) => {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const localStartDate = toZonedTime(startDate, timeZone);
-      const localEndDate = toZonedTime(endDate, timeZone);
+      const localDate = toZonedTime(date, timeZone);
 
-      const today = startOfToday();
-      let currentDate = localStartDate;
-
-      if (isBefore(currentDate, today) || isEqual(currentDate, today))
-        currentDate = addDays(today, 1);
-
-      // Loop through dates
-      while (isBefore(currentDate, addDays(localEndDate, 1))) {
-        datesInRange.push(currentDate);
-        currentDate = addDays(currentDate, 1);
+      if (isBefore(localDate, startOfToday())) {
+        throw new Error("Cannot block past days");
       }
 
-      const bulkOps = datesInRange.map((date: Date) => ({
+      const dates: Date[] = [];
+      for (let i = 0; i < duration; i++) {
+        dates.push(addDays(localDate, i));
+      }
+
+      const bulkOps = dates.map((date: Date) => ({
         updateOne: {
           filter: {
             calendar: calendar,
             date: date,
-            $or: [
-              { guest: { $exists: false } },
-              { guest: null },
-              { room: { $exists: false } },
-              { room: null },
-            ],
           },
           update: {
             $set: { isBlocked: true },
@@ -334,8 +334,8 @@ const dayResolver = {
         },
       }));
 
-      await Day.bulkWrite(bulkOps, { ordered: false });
-      return await Day.find();
+      await Day.bulkWrite(bulkOps);
+      return await Day.find({ date: { $in: dates } });
     },
     unblockDay: async (_: unknown, { calendar, date }: any) => {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -400,22 +400,213 @@ const dayResolver = {
       await Day.bulkWrite(bulkOps, { ordered: false });
       return await Day.find({ calendar, date: { $in: datesInRange } });
     },
+    blockRoom: async (_: unknown, { calendar, room, date, duration }: any) => {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const localDate = toZonedTime(date.split("T")[0], timeZone);
+
+      if (isBefore(localDate, startOfToday())) {
+        throw new Error("Cannot block past days");
+      }
+
+      const dates: Date[] = [];
+      for (let i = 0; i < duration; i++) {
+        dates.push(addDays(localDate, i));
+      }
+
+      const conflictingDays = await Day.find({
+        calendar,
+        date: { $in: dates },
+        $or: [
+          {
+            bookings: {
+              $elemMatch: {
+                room,
+              },
+            },
+          },
+        ],
+      });
+
+      if (conflictingDays.length > 0) {
+        const conflictingDates = conflictingDays.map((day) => day.date);
+        throw new Error(
+          `The following dates are unavailable: ${conflictingDates.join(", ")}`
+        );
+      }
+
+      const bulkOperation = dates.map((bookingDate) => ({
+        updateOne: {
+          filter: { calendar, date: bookingDate },
+          update: {
+            $addToSet: {
+              blockedRooms: room,
+            },
+          },
+          upsert: true,
+        },
+      }));
+
+      await Day.bulkWrite(bulkOperation);
+
+      return await Day.find({ calendar, date: { $in: dates } })
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
+    },
+    bookDays: async (
+      _: unknown,
+      { calendar, date, guest, isAirBnB, numberOfGuests, room, duration }: any
+    ) => {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const localDate = toZonedTime(date.split("T")[0], timeZone);
+
+      if (isBefore(localDate, startOfToday())) {
+        throw new Error("Cannot book past days");
+      }
+
+      const dates: Date[] = [];
+      for (let i = 0; i < duration; i++) {
+        dates.push(addDays(localDate, i));
+      }
+
+      const conflictingDays = await Day.find({
+        calendar,
+        date: { $in: dates },
+        $or: [
+          { isBlocked: true }, // The day is blocked
+          {
+            bookings: {
+              $elemMatch: {
+                room, // Check if the room is already assigned
+                "guest.name": { $ne: "AirBnB" }, // Only conflict if it's not "AirBnB"
+              },
+            },
+          },
+          {
+            blockedRooms: room, // Check if the room is in the blockedRooms array
+          },
+        ],
+      });
+
+      if (conflictingDays.length > 0) {
+        const conflictingDates = conflictingDays.map((day) => day.date);
+        throw new Error(
+          `The following dates are unavailable: ${conflictingDates.join(", ")}`
+        );
+      }
+
+      const bulkOperation = dates.map((bookingDate) => ({
+        updateOne: {
+          filter: { calendar, date: bookingDate },
+          update: {
+            $set: {
+              isAirBnB,
+            },
+            $addToSet: {
+              bookings: {
+                guest,
+                room,
+                duration,
+                numberOfGuests,
+                startDate: dates[0],
+                endDate: dates[dates.length - 1],
+              },
+            },
+          },
+          upsert: true,
+        },
+      }));
+
+      await Day.bulkWrite(bulkOperation);
+
+      return await Day.find({ calendar, date: { $in: dates } })
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
+    },
+    bookAirBnB: async (
+      _: unknown,
+      { calendar, date, guest, description, room, duration }: any
+    ) => {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const localDate = toZonedTime(date.split("T")[0], timeZone);
+
+      if (isBefore(localDate, startOfToday())) {
+        throw new Error("Cannot book past days");
+      }
+
+      const dates: Date[] = [];
+
+      // Fetch all existing bookings for the specified calendar and room in the date range
+      const existingBookings = await Day.find({
+        calendar,
+        "bookings.room": room,
+        date: { $gte: localDate, $lte: addDays(localDate, duration - 1) },
+      });
+
+      // Extract existing booked dates
+      const existingDates = new Set(
+        existingBookings.map((booking) => booking.date.toISOString())
+      );
+
+      // Iterate through the duration
+      for (let i = 0; i < duration; i++) {
+        const bookingDate = addDays(localDate, i);
+
+        // Check if the current date is already booked
+        if (existingDates.has(bookingDate.toISOString())) continue;
+
+        dates.push(bookingDate);
+      }
+
+      // Assume no day conflicts (Handled by AirBnB)
+
+      const bulkOperation = dates.map((bookingDate) => ({
+        updateOne: {
+          filter: { calendar, date: bookingDate },
+          update: {
+            $set: {
+              isAirBnB: true,
+            },
+            $addToSet: {
+              bookings: {
+                guest,
+                room,
+                description,
+                duration,
+                numberOfGuests: 1,
+                startDate: dates[0],
+                endDate: dates[dates.length - 1],
+              },
+            },
+          },
+          upsert: true,
+        },
+      }));
+
+      await Day.bulkWrite(bulkOperation);
+
+      return await Day.find({ calendar, date: { $in: dates } })
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
+    },
     updateDay: async (
       _: unknown,
-      { _id, isAirBnB, isBlocked, room, guest }: any
+      { _id, isAirBnB, isBlocked, rooms, guests }: any
     ) => {
       const updatedData: {
         isAirBnB?: boolean;
         isBlocked?: boolean;
-        room?: string;
-        guest?: string;
+        rooms?: string;
+        guests?: string;
       } = {};
       if (typeof isAirBnB !== "undefined" || isAirBnB !== null)
         updatedData.isAirBnB = isAirBnB;
       if (typeof isBlocked !== "undefined" || isBlocked !== null)
         updatedData.isBlocked = isBlocked;
-      if (room) updatedData.room = room;
-      if (guest) updatedData.guest = guest;
+      if (rooms) updatedData.rooms = rooms;
+      if (guests) updatedData.guests = guests;
 
       return await Day.findByIdAndUpdate(_id, updatedData, {
         runValidators: true,

@@ -27,6 +27,7 @@ router.post("/create", async (req: Request, res: any) => {
   const query = `
     mutation CreateGuest($name: String!, $phone: String!, $host: String!, $numberOfGuests: Int, $returning: Boolean, $notes: String, $email: String) {
         createGuest(name: $name, phone: $phone, host: $host, numberOfGuests: $numberOfGuests, returning: $returning, notes: $notes, email: $email) {
+            id
             phone
             numberOfGuests
             notes
@@ -138,6 +139,7 @@ router.get("/get", async (req: Request, res: any) => {
   const query = `
     query Guests {
         guests {
+            id
             name
             notes
             numberOfGuests
@@ -161,7 +163,7 @@ router.get("/get", async (req: Request, res: any) => {
     });
 });
 
-router.get("/get/one", async (req: Request, res: any) => {
+router.post("/get/one", async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });
 
@@ -170,6 +172,7 @@ router.get("/get/one", async (req: Request, res: any) => {
   const query = `
       query Guest ($id: String!) {
           guest (_id: $id) {
+              id
               name
               notes
               numberOfGuests

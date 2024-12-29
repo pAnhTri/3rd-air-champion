@@ -13,6 +13,7 @@ router.post("/create", async (req: Request, res: any) => {
   const query = `
         mutation CreateRoom($host: String!, $name: String!, $price: Float!) {
             createRoom(host: $host, name: $name, price: $price) {
+                id
                 name
                 price
             }
@@ -39,6 +40,7 @@ router.get("/get", async (req: Request, res: any) => {
   const query = `
         query Rooms {
             rooms {
+                id
                 name
                 price
             }
@@ -58,7 +60,7 @@ router.get("/get", async (req: Request, res: any) => {
     });
 });
 
-router.get("/get/one", async (req: Request, res: any) => {
+router.post("/get/one", async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });
 
@@ -67,6 +69,7 @@ router.get("/get/one", async (req: Request, res: any) => {
   const query = `
           query Room ($id: String!) {
               room (_id: $id) {
+                  id
                   name
                   price
               }

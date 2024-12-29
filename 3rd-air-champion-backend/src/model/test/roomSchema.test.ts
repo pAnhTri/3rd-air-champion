@@ -711,16 +711,14 @@ describe("Room Schema - Test Suite", () => {
     const day = new Day({
       calendar: new mongoose.Types.ObjectId(),
       date: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      guest: new mongoose.Types.ObjectId(),
-      room: savedRoom._id,
+      bookings: [{ guest: new mongoose.Types.ObjectId(), room: savedRoom._id }],
     });
     const savedDay = await day.save();
 
     // Verify the Day document before Room deletion
     let dayBefore = await Day.findById(savedDay._id).orFail();
     expect(dayBefore).toBeDefined();
-    expect(dayBefore.room?.toString()).toBe(savedRoom._id.toString());
-    expect(dayBefore.guest).toBeDefined();
+    expect(dayBefore.bookings?.length).toBeGreaterThan(0);
 
     // Delete the Room
     await Room.findByIdAndDelete(savedRoom._id);
@@ -728,8 +726,7 @@ describe("Room Schema - Test Suite", () => {
     // Verify the Day document after Room deletion
     const dayAfter = await Day.findById(savedDay._id).orFail();
     expect(dayAfter).toBeDefined();
-    expect(dayAfter.guest).toBeUndefined();
-    expect(dayAfter.room).toBeUndefined();
+    expect(dayAfter.bookings.length).toBe(0);
   });
 
   it("should remove room references from hosts when rooms are deleted in bulk", async () => {
@@ -795,15 +792,13 @@ describe("Room Schema - Test Suite", () => {
     await new Day({
       calendar: new mongoose.Types.ObjectId(),
       date: new Date("2025-12-01"),
-      room: room1._id,
-      guest: new mongoose.Types.ObjectId(),
+      bookings: [{ guest: new mongoose.Types.ObjectId(), room: room1._id }],
     }).save();
 
     await new Day({
       calendar: new mongoose.Types.ObjectId(),
       date: new Date("2025-12-02"),
-      room: room2._id,
-      guest: new mongoose.Types.ObjectId(),
+      bookings: [{ guest: new mongoose.Types.ObjectId(), room: room2._id }],
     }).save();
 
     // Bulk delete rooms
@@ -813,8 +808,8 @@ describe("Room Schema - Test Suite", () => {
     // Verify Day documents are updated
     const days = await Day.find({});
     days.forEach((day) => {
-      expect(day.room).toBeUndefined();
-      expect(day.guest).toBeUndefined();
+      expect(day.bookings.length).toBe(0);
+      expect(day.bookings.length).toBe(0);
     });
   });
 });
