@@ -1,15 +1,11 @@
 import axios from "axios";
 
-const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
-const BACKEND_ENDPOINT_MOBILE =
-  import.meta.env.VITE_BACKEND_ENDPOINT_MOBILE || "";
-const isMobile = window.location.hostname !== "localhost";
-const endpoint = isMobile ? BACKEND_ENDPOINT_MOBILE : BACKEND_ENDPOINT;
+const BACKEND_ENDPOINT = import.meta.env.VITE_PRODUCTION_BACKEND_ENDPOINT || "";
 
 export const fetchGuest = async (id: string, token: string) => {
   return axios
     .post(
-      `${endpoint}/guest/get/one`,
+      `${BACKEND_ENDPOINT}/guest/get/one`,
       { id },
       {
         headers: {
@@ -30,7 +26,7 @@ export const fetchGuest = async (id: string, token: string) => {
 export const fetchGuests = async (host: string, token: string) => {
   return axios
     .post(
-      `${endpoint}/guest/get/host`,
+      `${BACKEND_ENDPOINT}/guest/get/host`,
       { host },
       {
         headers: {
@@ -54,7 +50,7 @@ export const createGuest = async (
 ) => {
   return axios
     .post(
-      `${endpoint}/guest/create`,
+      `${BACKEND_ENDPOINT}/guest/create`,
       { ...guestObject },
       {
         headers: {

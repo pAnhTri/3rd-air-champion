@@ -1,16 +1,12 @@
 import axios from "axios";
 
-const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
-const BACKEND_ENDPOINT_MOBILE =
-  import.meta.env.VITE_BACKEND_ENDPOINT_MOBILE || "";
-const isMobile = window.location.hostname !== "localhost";
-const endpoint = isMobile ? BACKEND_ENDPOINT_MOBILE : BACKEND_ENDPOINT;
+const BACKEND_ENDPOINT = import.meta.env.VITE_PRODUCTION_BACKEND_ENDPOINT || "";
 
 export const fetchDays = async (calendarId: string, token: string) => {
   return axios
 
     .post(
-      `${endpoint}/day/get/host`,
+      `${BACKEND_ENDPOINT}/day/get/host`,
       { calendarId: calendarId },
       {
         headers: {
@@ -36,7 +32,7 @@ export const blockDay = async (
   return axios
 
     .post(
-      `${endpoint}/day/block/one`,
+      `${BACKEND_ENDPOINT}/day/block/one`,
       { calendar: calendarId, date },
       {
         headers: {
@@ -62,7 +58,7 @@ export const unblockDay = async (
   return axios
 
     .post(
-      `${endpoint}/day/unblock/one`,
+      `${BACKEND_ENDPOINT}/day/unblock/one`,
       { calendar: calendarId, date },
       {
         headers: {

@@ -1,9 +1,5 @@
 import axios from "axios";
-const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
-const BACKEND_ENDPOINT_MOBILE =
-  import.meta.env.VITE_BACKEND_ENDPOINT_MOBILE || "";
-const isMobile = window.location.hostname !== "localhost";
-const endpoint = isMobile ? BACKEND_ENDPOINT_MOBILE : BACKEND_ENDPOINT;
+const BACKEND_ENDPOINT = import.meta.env.VITE_PRODUCTION_BACKEND_ENDPOINT || "";
 
 export const postBooking = async (
   request: {
@@ -18,7 +14,7 @@ export const postBooking = async (
   token: string
 ) => {
   return axios
-    .post(`${endpoint}/day/book/range`, request, {
+    .post(`${BACKEND_ENDPOINT}/day/book/range`, request, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -31,10 +31,8 @@ const GuestViewDesktop = ({
             cursor="pointer"
             onClick={onLeftClick}
           />
-          <span>
-            {currentBookings[currentPage].guest.name === "AirBnB"
-              ? `${currentBookings[currentPage].guest.name} (${currentBookings[currentPage].room.name})`
-              : currentBookings[currentPage].guest.name}
+          <span className="font-bold">
+            {`${currentBookings[currentPage].guest.name} (${currentBookings[currentPage].room.name})`}
           </span>
           <FaArrowRight
             className="text-slate-600 hover:text-slate-700"
@@ -60,7 +58,7 @@ const GuestViewDesktop = ({
       <div className="flex-1 flex items-center justify-center h-full">
         {currentBookings[currentPage].description === "" ? (
           <button
-            className="h-[40px] w-[76px] flex items-center justify-center bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 transition-colors text-white font-semibold"
+            className="h-[40px] w-[76px] flex items-center justify-center bg-black rounded-lg shadow-md transition-colors text-white font-semibold"
             onClick={() => {
               const phone = currentBookings[currentPage].guest.phone;
               window.location.href = `sms:${phone}`;
@@ -70,7 +68,7 @@ const GuestViewDesktop = ({
           </button>
         ) : (
           <button
-            className="h-[40px] w-auto flex items-center justify-center bg-green-500 rounded-lg shadow-md hover:bg-green-600 transition-colors text-white font-semibold p-2"
+            className="h-[40px] w-auto flex items-center justify-center bg-black rounded-lg shadow-md transition-colors text-white font-semibold p-2"
             onClick={() => {
               const url = currentBookings[currentPage].description.match(
                 /https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/\S+/

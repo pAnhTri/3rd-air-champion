@@ -1,16 +1,12 @@
 import axios from "axios";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 
-const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
-const BACKEND_ENDPOINT_MOBILE =
-  import.meta.env.VITE_BACKEND_ENDPOINT_MOBILE || "";
-const isMobile = window.location.hostname !== "localhost";
-const endpoint = isMobile ? BACKEND_ENDPOINT_MOBILE : BACKEND_ENDPOINT;
+const BACKEND_ENDPOINT = import.meta.env.VITE_PRODUCTION_BACKEND_ENDPOINT || "";
 
 export const fetchHost = async (id: string, token: string) => {
   return axios
     .post(
-      `${endpoint}/host/get/one`,
+      `${BACKEND_ENDPOINT}/host/get/one`,
       { id }, // Payload
       {
         headers: {
@@ -36,7 +32,7 @@ export const updateSync = async (
 ) => {
   return axios
     .post(
-      `${endpoint}/host/update/sync`,
+      `${BACKEND_ENDPOINT}/host/update/sync`,
       { id, airbnbsync }, // Payload
       {
         headers: {

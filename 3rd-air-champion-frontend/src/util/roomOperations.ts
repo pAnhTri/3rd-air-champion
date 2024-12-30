@@ -1,15 +1,11 @@
 import axios from "axios";
 
-const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
-const BACKEND_ENDPOINT_MOBILE =
-  import.meta.env.VITE_BACKEND_ENDPOINT_MOBILE || "";
-const isMobile = window.location.hostname !== "localhost";
-const endpoint = isMobile ? BACKEND_ENDPOINT_MOBILE : BACKEND_ENDPOINT;
+const BACKEND_ENDPOINT = import.meta.env.VITE_PRODUCTION_BACKEND_ENDPOINT || "";
 
 export const fetchRooms = async (host: string, token: string) => {
   return axios
     .post(
-      `${endpoint}/room/get/host`,
+      `${BACKEND_ENDPOINT}/room/get/host`,
       { host },
       {
         headers: {
@@ -33,7 +29,7 @@ export const createRoom = async (
 ) => {
   return axios
     .post(
-      `${endpoint}/room/create`,
+      `${BACKEND_ENDPOINT}/room/create`,
       { ...roomObject },
       {
         headers: {
