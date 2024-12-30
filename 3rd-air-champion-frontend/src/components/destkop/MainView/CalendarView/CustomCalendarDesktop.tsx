@@ -100,9 +100,9 @@ const CustomCalendar = ({
           blue: JSX.Element;
           green: JSX.Element;
         } = {
-          red: <div />,
-          blue: <div />,
-          green: <div />,
+          red: <div className="h-full" />, // Ensure full height
+          blue: <div className="h-full" />,
+          green: <div className="h-full" />,
         };
 
         // Fill the placeholders based on room name
@@ -111,7 +111,7 @@ const CustomCalendar = ({
             gridContent.red = (
               <div
                 key="red"
-                className="text-white bg-red-500 text-[0.65rem] truncate px-1"
+                className="text-white bg-red-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
               >
                 {booking.guest.name}
               </div>
@@ -120,7 +120,7 @@ const CustomCalendar = ({
             gridContent.blue = (
               <div
                 key="blue"
-                className="text-white bg-blue-500 text-[0.65rem] truncate px-1"
+                className="text-white bg-blue-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
               >
                 {booking.guest.name}
               </div>
@@ -129,7 +129,7 @@ const CustomCalendar = ({
             gridContent.green = (
               <div
                 key="green"
-                className="text-white bg-green-500 text-[0.65rem] truncate px-1"
+                className="text-white bg-green-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
               >
                 {booking.guest.name}
               </div>
@@ -139,11 +139,11 @@ const CustomCalendar = ({
 
         // Render the three grid rows
         return (
-          <>
-            <div className="row-span-1">{gridContent.red}</div>
-            <div className="row-span-1">{gridContent.blue}</div>
-            <div className="row-span-1">{gridContent.green}</div>
-          </>
+          <div className="mt-1">
+            <div className="row-span-1 h-full">{gridContent.red}</div>
+            <div className="row-span-1 h-full">{gridContent.blue}</div>
+            <div className="row-span-1 h-full">{gridContent.green}</div>
+          </div>
         );
       }
     }
