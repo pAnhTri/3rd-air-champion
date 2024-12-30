@@ -112,6 +112,7 @@ const guestDefs = gql`
 
   type Query {
     guests: [Guest]
+    guestsHost(host: String!): [Guest]
     guest(_id: String!): Guest!
   }
 
@@ -149,6 +150,7 @@ const roomDefs = gql`
 
   type Query {
     rooms: [Room]
+    roomsHost(host: String!): [Room]
     room(_id: String!): Room!
   }
 

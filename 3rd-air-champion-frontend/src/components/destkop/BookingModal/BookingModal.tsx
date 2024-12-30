@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { guestType } from "../../../util/types/guestType";
 import { roomType } from "../../../util/types/roomType";
-import { createGuest, fetchGuests } from "../../../util/guestOperations";
-import { createRoom, fetchRooms } from "../../../util/roomOperations";
+import { createGuest } from "../../../util/guestOperations";
+import { createRoom } from "../../../util/roomOperations";
 import GuestAddPane from "./GuestAddPane";
 import GuestInput from "./GuestInput";
 import RoomAddPane from "./RoomAddPane";
@@ -15,8 +15,15 @@ import { dayType } from "../../../util/types/dayType";
 interface BookingModalProps {
   calendarId: string;
   guests: guestType[];
-  onBooking: (bookedDays: dayType[]) => void;
+  rooms: roomType[];
+  onBooking: (
+    roomName: string,
+    date: Date,
+    duration: number,
+    bookedDays: dayType[]
+  ) => void;
   setGuests: React.Dispatch<React.SetStateAction<guestType[]>>;
+  setRooms: React.Dispatch<React.SetStateAction<roomType[]>>;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -24,11 +31,12 @@ const BookingModal = ({
   calendarId,
   guests,
   setGuests,
+  rooms,
+  setRooms,
   onBooking,
   setIsModalOpen,
 }: BookingModalProps) => {
   const token = localStorage.getItem("token");
-  const [rooms, setRooms] = useState<roomType[]>([]);
   const [showAddPane, setShowAddPane] = useState<"guest" | "room" | null>(null);
 
   const [bookingErrorMessage, setBookingErrorMessage] = useState("");
@@ -40,25 +48,10 @@ const BookingModal = ({
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<bookDaySchema>({ resolver: zodResolver(bookDaysZodObject) });
-
-  useEffect(() => {
-    fetchGuests(token as string)
-      .then((result) => {
-        setGuests(result);
-      })
-      .catch((err) => {
-        console.error("Error fetching guests:", err);
-      });
-
-    fetchRooms(token as string)
-      .then((result) => {
-        setRooms(result);
-      })
-      .catch((err) => {
-        console.error("Error fetching rooms:", err);
-      });
-  }, []);
+  } = useForm<bookDaySchema>({
+    resolver: zodResolver(bookDaysZodObject),
+    defaultValues: { numberOfGuests: 1 },
+  });
 
   const onAddGuest = (guestObject: { name: string; phone: string }) => {
     createGuest(guestObject, token as string)
@@ -93,7 +86,7 @@ const BookingModal = ({
 
     postBooking(request, token as string)
       .then((result) => {
-        onBooking(result);
+        onBooking(data.room, data.date, data.duration, result);
         setIsModalOpen(false); // On success close
       })
       .catch((err) => {

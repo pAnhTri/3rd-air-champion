@@ -19,7 +19,6 @@ const RoomAddPane = ({ roomErrorMessage, onAddRoom }: RoomAddPaneProps) => {
   });
 
   const onSubmit: SubmitHandler<roomAddSchema> = (data) => {
-    console.log(data);
     onAddRoom(data);
   };
 

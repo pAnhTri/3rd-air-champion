@@ -117,48 +117,14 @@ router.post("/sync", async (req: Request, res: any) => {
         }
     }`;
 
-  const blockQuery = `
-        mutation BlockRoom($calendar: String!, $room: String!, $date: String!, $duration: Int!) {
-            blockRoom(calendar: $calendar, room: $room, date: $date, duration: $duration) {
-                id
-                calendar
-                date
-                isAirBnB
-                isBlocked
-                bookings {
-                guest {
-                    id
-                    name
-                    email
-                    phone
-                    numberOfGuests
-                    returning
-                    notes
-                    host
-                }
-                room {
-                    id
-                    host
-                    name
-                    price
-                }
-                description
-                duration
-                numberOfGuests
-                endDate
-                startDate
-                }
-                numberOfGuests
-                blockedRooms {
-                id
-                host
-                name
-                price
-                }
-                createdAt
-                updatedAt
-            }
-        }`;
+  // Transform blocked data into the desired structure
+  const blockedData = finalResult.reduce(
+    (acc: Record<string, any[]>, roomData) => {
+      acc[roomData.room] = roomData.blocked; // Group blocked data by room
+      return acc;
+    },
+    {}
+  );
 
   // Process booking requests
   const bookingRequests = finalResult.flatMap((roomData) =>
@@ -182,42 +148,19 @@ router.post("/sync", async (req: Request, res: any) => {
     })
   );
 
-  // Process blocking requests
-  const blockingRequests = finalResult.flatMap((roomData) =>
-    roomData.blocked.map((blockedRoom) => {
-      const blockQueryBody = {
-        room: roomData.room,
-        calendar: variables.calendar,
-        date: blockedRoom.start,
-        duration: blockedRoom.duration,
-      };
-
-      return sendGraphQLRequest(blockQuery, blockQueryBody).then(
-        (result: any) => {
-          if (result.errors) {
-            throw new Error(result.errors[0].message); // Propagate the error
-          }
-          return { type: "blocked", data: result.data.blockRoom }; // Mark result as blocked
-        }
-      );
-    })
-  );
-
   // Combine both booking and blocking requests
-  const allRequests = [...bookingRequests, ...blockingRequests];
+  const allRequests = [...bookingRequests];
 
   // Execute all requests and handle results
   Promise.all(allRequests)
     .then((results) => {
-      // Aggregate results by type
       const reservedResults = results.filter((r) => r.type === "reserved");
-      const blockedResults = results.filter((r) => r.type === "blocked");
 
       // Send response
       res.status(200).json({
         success: true,
         reserved: reservedResults.map((r) => r.data),
-        blocked: blockedResults.map((r) => r.data),
+        blocked: blockedData,
       });
     })
     .catch((error) => {

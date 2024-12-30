@@ -16,7 +16,6 @@ const GuestAddPane = ({ guestErrorMessage, onAddGuest }: GuestAddPaneProps) => {
   } = useForm<guestAddSchema>({ resolver: zodResolver(guestAddZodObject) });
 
   const onSubmit: SubmitHandler<guestAddSchema> = (data) => {
-    console.log(data);
     onAddGuest(data as { name: string; phone: string });
   };
 

@@ -2,20 +2,16 @@ import { useEffect, useState } from "react";
 
 interface CalendarNavigatorProps {
   currentMonth: Date;
-  mode: string;
   onSync: () => void;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setMode: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const CalendarNavigator = ({
   currentMonth,
-  mode,
   onSync,
   setIsModalOpen,
   setIsSyncModalOpen,
-  setMode,
 }: CalendarNavigatorProps) => {
   const [isSyncEnabled, setIsSyncEnabled] = useState(false);
 
@@ -29,16 +25,6 @@ const CalendarNavigator = ({
     year: "numeric",
     month: "long",
   });
-
-  const handleModeChange = (newMode: string) => {
-    if (mode === newMode) {
-      // If clicking the same button, reset to null
-      setMode("");
-    } else {
-      // Switch to the new mode
-      setMode(newMode);
-    }
-  };
 
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
@@ -74,45 +60,18 @@ const CalendarNavigator = ({
             Sync
           </button>
         </div>
-
-        {/* Block and Unblock Buttons */}
-        {/* <div className="flex justify-center gap-1 sm:gap-2 md:gap-4"> */}
-        {/* Block Button */}
-        {/* <button
-            className={`text-xs px-2 py-1 rounded-lg shadow-md font-semibold transition-all sm:text-sm md:text-base sm:px-4 sm:py-2 ${
-              mode === "blocked"
-                ? "bg-red-500 text-white"
-                : "bg-gray-200 text-black hover:bg-red-100"
-            }`}
-            onClick={() => handleModeChange("blocked")}
-          >
-            Block
-          </button> */}
-
-        {/* Unblock Button */}
-        {/* <button
-            className={`text-xs px-2 py-1 rounded-lg shadow-md font-semibold transition-all sm:text-sm md:text-base sm:px-4 sm:py-2 ${
-              mode === "unblocked"
-                ? "bg-green-500 text-white"
-                : "bg-gray-200 text-black hover:bg-green-100"
-            }`}
-            onClick={() => handleModeChange("unblocked")}
-          >
-            Unblock
-          </button> */}
-        {/* </div> */}
       </div>
 
       {/* Bottom Section: Days of the Week */}
       <div className="grid grid-cols-7 gap-1 text-center sm:gap-2">
         {[
+          "Sunday",
           "Monday",
           "Tuesday",
           "Wednesday",
           "Thursday",
           "Friday",
           "Saturday",
-          "Sunday",
         ].map((day, index) => (
           <abbr
             key={index}

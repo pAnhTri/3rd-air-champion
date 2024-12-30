@@ -196,4 +196,37 @@ router.post("/get/one", async (req: Request, res: any) => {
     });
 });
 
+router.post("/get/host", async (req: Request, res: any) => {
+  if (!("user" in req))
+    return res.status(401).json({ error: "Invalid or expired token" });
+
+  const { host } = req.body;
+
+  const query = `
+      query GuestsHost($host: String!) {
+        guestsHost(host: $host) {
+          id
+          name
+          notes
+          numberOfGuests
+          phone
+          returning
+          email  
+        }
+      }`;
+
+  sendGraphQLRequest(query, { host })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      // Send the successful login response
+      res.status(200).json(result.data.guestsHost);
+    })
+    .catch((error: any) => {
+      // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
 export default router;

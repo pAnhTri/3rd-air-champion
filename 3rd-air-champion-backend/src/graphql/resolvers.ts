@@ -154,6 +154,9 @@ const guestResolver = {
     guests: async () => {
       return await Guest.find();
     },
+    guestsHost: async (_: unknown, { host }: any) => {
+      return await Guest.find({ host });
+    },
     guest: async (_: unknown, { _id }: any) => {
       return await Guest.findById(_id);
     },
@@ -213,6 +216,9 @@ const roomResolver = {
   Query: {
     rooms: async () => {
       return await Room.find().sort({ name: 1 });
+    },
+    roomsHost: async (_: unknown, { host }: any) => {
+      return await Room.find({ host }).sort({ name: 1 });
     },
     room: async (_: unknown, { _id }: any) => {
       return await Room.findById(_id);
@@ -664,6 +670,13 @@ const authenticationResolver = {
 
       // Assign a calendar to the host
       await new Calendar({ host: newHost._id }).save();
+
+      // Assign a new AirBnB guest to the host
+      await new Guest({
+        host: newHost._id,
+        name: "AirBnB",
+        phone: "5555555555",
+      }).save();
 
       return {
         hostId: newHost._id,

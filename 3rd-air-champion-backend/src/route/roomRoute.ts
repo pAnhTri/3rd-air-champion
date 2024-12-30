@@ -60,6 +60,35 @@ router.get("/get", async (req: Request, res: any) => {
     });
 });
 
+router.post("/get/host", async (req: Request, res: any) => {
+  if (!("user" in req))
+    return res.status(401).json({ error: "Invalid or expired token" });
+
+  const { host } = req.body;
+
+  const query = `
+        query RoomsHost($host: String!) {
+          roomsHost(host: $host) {
+            id
+            name
+            price
+          }
+        }`;
+
+  sendGraphQLRequest(query, { host })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      // Send the successful login response
+      res.status(200).json(result.data.roomsHost);
+    })
+    .catch((error: any) => {
+      // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
 router.post("/get/one", async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });

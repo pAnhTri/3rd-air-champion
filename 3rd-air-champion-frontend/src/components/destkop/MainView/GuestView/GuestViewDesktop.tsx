@@ -31,7 +31,11 @@ const GuestViewDesktop = ({
             cursor="pointer"
             onClick={onLeftClick}
           />
-          <span>{currentBookings[currentPage].guest.name}</span>
+          <span>
+            {currentBookings[currentPage].guest.name === "AirBnB"
+              ? `${currentBookings[currentPage].guest.name} (${currentBookings[currentPage].room.name})`
+              : currentBookings[currentPage].guest.name}
+          </span>
           <FaArrowRight
             className="text-slate-600 hover:text-slate-700"
             cursor="pointer"

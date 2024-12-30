@@ -27,13 +27,17 @@ export const fetchGuest = async (id: string, token: string) => {
     });
 };
 
-export const fetchGuests = async (token: string) => {
+export const fetchGuests = async (host: string, token: string) => {
   return axios
-    .get(`${endpoint}/guest/get`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    .post(
+      `${endpoint}/guest/get/host`,
+      { host },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
     .then((result) => result.data)
     .catch((err) => {
       if (err.response && err.response.data && err.response.data.errors) {

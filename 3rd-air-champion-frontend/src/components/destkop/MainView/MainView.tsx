@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import CalendarNavigator from "./CalendarView/CalendarNavigatorDesktop";
 import CustomCalendar from "./CalendarView/CustomCalendarDesktop";
 import { dayType } from "../../../util/types/dayType";
-import { blockDay, fetchDays, unblockDay } from "../../../util/dayOperations";
+import { fetchDays } from "../../../util/dayOperations";
 import BookingModal from "../BookingModal/BookingModal";
 import { bookingType } from "../../../util/types/bookingType";
 import GuestViewDesktop from "./GuestView/GuestViewDesktop";
-import { isSameDay } from "date-fns";
+import { addDays, isWithinInterval } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { roomType } from "../../../util/types/roomType";
 import { fetchRooms } from "../../../util/roomOperations";
@@ -32,7 +32,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [rooms, setRooms] = useState<roomType[]>([]);
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [mode, setMode] = useState<string>(""); // 'blocked' or 'unblocked'
 
   const [isCalendarLoading, setIsCalendarLoading] = useState(true); // Track loading state
   const [calendarErrorMessage, setCalendarErrorMessage] = useState<string>(""); // Track errors
@@ -40,82 +39,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (airbnbsync) {
-      localStorage.setItem("syncData", JSON.stringify(airbnbsync));
-    }
-    fetchGuests(token as string)
-      .then((result) => {
-        setGuests(result);
-      })
-      .catch((err) => {
-        console.error("Error fetching guests:", err);
-      });
-
-    fetchDays(calendarId, token as string)
-      .then((result) => {
-        setDays(result);
-      })
-      .catch((err) => {
-        console.error("Error fetching days:", err);
-        setCalendarErrorMessage("Failed to fetch days. Please try again.");
-      });
-
-    fetchRooms(token as string)
-      .then((result) => {
-        setRooms(result);
-        setIsCalendarLoading(false); // Data fetched, stop loading
-      })
-      .catch((err) => {
-        console.error("Error fetching rooms:", err);
-        setCalendarErrorMessage("Failed to fetch rooms. Please try again.");
-        setIsCalendarLoading(false);
-      });
-  }, [isCalendarLoading]);
-
-  const onBooking = (bookedDays: dayType[]) => {
-    setDays([...days, ...bookedDays]);
-  };
-
-  const onBlock = (date: string) => {
-    blockDay(calendarId, date, token as string)
-      .then((result) => {
-        setDays(
-          days.map((day) => {
-            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const localDate = toZonedTime(day.date, timeZone);
-            const resultDate = toZonedTime(result.date, timeZone);
-
-            return isSameDay(resultDate, localDate)
-              ? { ...day, isBlocked: true }
-              : day;
-          })
-        );
-      })
-      .catch((err) => {
-        console.error("Error blocking days:", err);
-      });
-  };
-
-  const onUnblock = (date: string) => {
-    unblockDay(calendarId, date, token as string)
-      .then((result) => {
-        setDays(
-          days.map((day) => {
-            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const localDate = toZonedTime(day.date, timeZone);
-            const resultDate = toZonedTime(result.date, timeZone);
-
-            return isSameDay(resultDate, localDate)
-              ? { ...day, isBlocked: false }
-              : day;
-          })
-        );
-      })
-      .catch((err) => {
-        console.error("Error unblocking days:", err);
-      });
-  };
+  const [blockedAirBnBDates, setIsBlockedAirBnBDates] = useState<{
+    room: { duration: number; start: string }[];
+  }>();
 
   const onSync = () => {
     alert("Synchronizing with Airbnb");
@@ -141,10 +67,104 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       token as string
     )
       .then((result) => {
-        console.log(result);
+        setIsBlockedAirBnBDates(result.blocked);
         setIsCalendarLoading(true);
       })
       .catch((err) => console.error("Error syncing calendars:", err));
+  };
+
+  useEffect(() => {
+    if (airbnbsync) {
+      localStorage.setItem("syncData", JSON.stringify(airbnbsync));
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGuests(hostId, token as string)
+      .then((result) => {
+        setGuests(result);
+      })
+      .catch((err) => {
+        console.error("Error fetching guests:", err);
+      });
+
+    fetchDays(calendarId, token as string)
+      .then((result) => {
+        setDays(result);
+      })
+      .catch((err) => {
+        console.error("Error fetching days:", err);
+        setCalendarErrorMessage("Failed to fetch days. Please try again.");
+      });
+
+    fetchRooms(hostId, token as string)
+      .then((result) => {
+        setRooms(result);
+        setIsCalendarLoading(false); // Data fetched, stop loading
+      })
+      .catch((err) => {
+        console.error("Error fetching rooms:", err);
+        setCalendarErrorMessage("Failed to fetch rooms. Please try again.");
+        setIsCalendarLoading(false);
+      });
+  }, [isCalendarLoading]);
+
+  const onBooking = (
+    roomName: string,
+    date: Date,
+    duration: number,
+    bookedDays: dayType[]
+  ) => {
+    // Ensure the roomName exists in blockedAirBnBDates and calculate the date ranges
+    if (blockedAirBnBDates && roomName in blockedAirBnBDates) {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Map over the blocked dates and calculate start and end dates
+      const dateRanges = blockedAirBnBDates[
+        roomName as keyof typeof blockedAirBnBDates
+      ].map((dateRange: { start: string; duration: number }) => {
+        const start = toZonedTime(dateRange.start, timeZone); // Parse start date
+        const end = addDays(start, dateRange.duration - 1); // Calculate end date
+        return { start, end };
+      });
+
+      // Calculate the end date for the booking
+      const bookingStart = toZonedTime(
+        date.toISOString().split("T")[0],
+        timeZone
+      );
+      const bookingEnd = addDays(bookingStart, duration - 1);
+
+      // Check if the booking date range overlaps with any blocked date ranges
+      const isBlocked = dateRanges.some(({ start, end }) => {
+        if (
+          isWithinInterval(bookingEnd, { start, end }) ||
+          isWithinInterval(bookingStart, { start, end })
+        ) {
+          console.log(
+            `${bookingStart.toISOString().split("T")[0]} to ${
+              bookingEnd.toISOString().split("T")[0]
+            } is within ${start.toISOString().split("T")[0]} to ${
+              end.toISOString().split("T")[0]
+            }`
+          );
+          return true;
+        }
+      });
+
+      if (isBlocked) console.log("Dates are blocked on AirBnB Calendar");
+
+      const room = rooms.find((room) => room.id === roomName);
+      if (!isBlocked) {
+        alert(
+          `Please block ${date.toISOString().split("T")[0]} to ${
+            bookingEnd.toISOString().split("T")[0]
+          } for Room: ${room?.name}`
+        );
+      }
+    }
+
+    setDays([...days, ...bookedDays]);
   };
 
   return (
@@ -162,11 +182,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <>
             <CalendarNavigator
               currentMonth={currentMonth}
-              mode={mode}
               onSync={onSync}
               setIsModalOpen={setIsModalOpen}
               setIsSyncModalOpen={setIsSyncModalOpen}
-              setMode={setMode}
             />
             {isSyncModalOpen && (
               <RoomLinkModal
@@ -179,9 +197,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             )}
             <CustomCalendar
               currentMonth={currentMonth}
-              mode={mode}
-              onBlock={onBlock}
-              onUnblock={onUnblock}
               rooms={rooms}
               setCurrentBookings={setCurrentBookings}
               setCurrentPage={setCurrentPage}
@@ -194,6 +209,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 calendarId={calendarId}
                 guests={guests}
                 setGuests={setGuests}
+                rooms={rooms}
+                setRooms={setRooms}
                 onBooking={onBooking}
                 setIsModalOpen={setIsModalOpen}
               />

@@ -9,9 +9,6 @@ import { roomType } from "../../../../util/types/roomType";
 interface CustomCalendarProps {
   currentMonth: Date;
   days: dayType[];
-  mode: string;
-  onBlock: (date: string) => void;
-  onUnblock: (date: string) => void;
   rooms: roomType[];
   setDays: React.Dispatch<React.SetStateAction<dayType[]>>;
   setCurrentBookings: React.Dispatch<
@@ -24,9 +21,6 @@ interface CustomCalendarProps {
 const CustomCalendar = ({
   currentMonth,
   days,
-  mode,
-  onBlock,
-  onUnblock,
   rooms,
   setCurrentBookings,
   setCurrentPage,
@@ -133,18 +127,12 @@ const CustomCalendar = ({
   };
 
   const getDayContent = (date: Date) => {
-    if (mode === "") {
-      setCurrentPage(0); // Reset to first page
-      const day = monthMap.get(date.toISOString().split("T")[0]);
+    setCurrentPage(0); // Reset to first page
+    const day = monthMap.get(date.toISOString().split("T")[0]);
 
-      if (day && day.bookings) {
-        setCurrentBookings(day.bookings);
-      } else setCurrentBookings(null);
-    } else if (mode === "blocked") {
-      onBlock(date.toISOString().split("T")[0]);
-    } else {
-      onUnblock(date.toISOString().split("T")[0]);
-    }
+    if (day && day.bookings) {
+      setCurrentBookings(day.bookings);
+    } else setCurrentBookings(null);
   };
 
   return (

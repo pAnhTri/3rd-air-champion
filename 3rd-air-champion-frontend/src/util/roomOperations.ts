@@ -6,13 +6,17 @@ const BACKEND_ENDPOINT_MOBILE =
 const isMobile = window.location.hostname !== "localhost";
 const endpoint = isMobile ? BACKEND_ENDPOINT_MOBILE : BACKEND_ENDPOINT;
 
-export const fetchRooms = async (token: string) => {
+export const fetchRooms = async (host: string, token: string) => {
   return axios
-    .get(`${endpoint}/room/get`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    .post(
+      `${endpoint}/room/get/host`,
+      { host },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
     .then((result) => result.data)
     .catch((err) => {
       if (err.response && err.response.data && err.response.data.errors) {
