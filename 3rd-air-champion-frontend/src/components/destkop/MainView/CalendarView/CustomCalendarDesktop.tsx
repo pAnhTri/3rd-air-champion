@@ -89,38 +89,63 @@ const CustomCalendar = ({
   const customTileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view === "month") {
       const day = monthMap.get(date.toISOString().split("T")[0]);
-      return day ? (
-        <>
-          {day.bookings.map((booking, index) => (
-            <div
-              key={index}
-              className={`text-[0.65rem] ${
-                booking.room.name === "Cozy"
-                  ? "text-white bg-red-500"
-                  : booking.room.name === "Cute"
-                  ? "text-white bg-blue-500"
-                  : "text-white bg-green-500"
-              }`}
-            >
-              <span className="truncate px-1">{booking.guest.name}</span>
-            </div>
-          ))}
-          {day.blockedRooms.map((blockedRoom, index) => (
-            <div
-              key={index}
-              className={`text-[0.65rem] ${
-                blockedRoom.name === "Cozy"
-                  ? "text-white bg-red-500"
-                  : blockedRoom.name === "Cute"
-                  ? "text-white bg-blue-500"
-                  : "text-white bg-green-500"
-              }`}
-            >
-              <span className="truncate px-1">Blocked</span>
-            </div>
-          ))}
-        </>
-      ) : null;
+      if (day) {
+        day.bookings.sort((a, b) => {
+          return a.room.name.localeCompare(b.room.name);
+        });
+
+        // Initialize placeholders for the three rows
+        const gridContent: {
+          red: JSX.Element;
+          blue: JSX.Element;
+          green: JSX.Element;
+        } = {
+          red: <div />,
+          blue: <div />,
+          green: <div />,
+        };
+
+        // Fill the placeholders based on room name
+        day.bookings.forEach((booking) => {
+          if (booking.room.name === "Cozy") {
+            gridContent.red = (
+              <div
+                key="red"
+                className="text-white bg-red-500 text-[0.65rem] truncate px-1"
+              >
+                {booking.guest.name}
+              </div>
+            );
+          } else if (booking.room.name === "Cute") {
+            gridContent.blue = (
+              <div
+                key="blue"
+                className="text-white bg-blue-500 text-[0.65rem] truncate px-1"
+              >
+                {booking.guest.name}
+              </div>
+            );
+          } else {
+            gridContent.green = (
+              <div
+                key="green"
+                className="text-white bg-green-500 text-[0.65rem] truncate px-1"
+              >
+                {booking.guest.name}
+              </div>
+            );
+          }
+        });
+
+        // Render the three grid rows
+        return (
+          <>
+            <div className="row-span-1">{gridContent.red}</div>
+            <div className="row-span-1">{gridContent.blue}</div>
+            <div className="row-span-1">{gridContent.green}</div>
+          </>
+        );
+      }
     }
 
     return null;
