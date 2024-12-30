@@ -53,16 +53,26 @@ function App() {
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    alert("Logged out!");
+  };
+
   // Render the host data once it's fetched
   return (
     host && (
       <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
         {/* Navbar */}
-        <NavBarDesktop name={host?.name} />
+        <NavBarDesktop handleLogout={handleLogout} name={host?.name} />
 
         {/* Main Content Area */}
         <div className="grid grid-cols-5 overflow-hidden">
-          <MainView calendarId={host.calendar}></MainView>
+          <MainView
+            calendarId={host.calendar}
+            hostId={host.id}
+            airbnbsync={host.airbnbsync}
+          ></MainView>
         </div>
       </div>
     )

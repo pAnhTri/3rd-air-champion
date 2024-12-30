@@ -17,9 +17,11 @@ import { syncCalendars } from "../../../util/syncOperations";
 
 interface MainViewProps {
   calendarId: string;
+  hostId: string;
+  airbnbsync: { room: string; link: string }[] | undefined;
 }
 
-const MainView = ({ calendarId }: MainViewProps) => {
+const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const token = localStorage.getItem("token");
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [currentBookings, setCurrentBookings] = useState<
@@ -39,6 +41,9 @@ const MainView = ({ calendarId }: MainViewProps) => {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   useEffect(() => {
+    if (airbnbsync) {
+      localStorage.setItem("syncData", JSON.stringify(airbnbsync));
+    }
     fetchGuests(token as string)
       .then((result) => {
         setGuests(result);
@@ -165,6 +170,9 @@ const MainView = ({ calendarId }: MainViewProps) => {
             />
             {isSyncModalOpen && (
               <RoomLinkModal
+                hostId={hostId}
+                airbnbsync={airbnbsync}
+                token={token as string}
                 setIsSyncModalOpen={setIsSyncModalOpen}
                 rooms={rooms}
               />

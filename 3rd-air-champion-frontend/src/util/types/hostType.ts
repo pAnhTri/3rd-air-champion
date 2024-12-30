@@ -3,6 +3,7 @@ export interface hostType {
   guests?: string[];
   email: string;
   rooms?: string[];
+  airbnbsync?: { room: string; link: string }[];
   name: string;
   cohosts?: string[];
   calendar: string;

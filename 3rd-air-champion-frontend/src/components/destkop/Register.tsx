@@ -1,35 +1,36 @@
-import { useForm, SubmitHandler } from "react-hook-form";
-import { loginSchema, loginZodObject } from "../../util/zodLogin";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authorizeUser } from "../../util/authorizeUser";
+import { registerZodObject, registerZodSchema } from "../../util/zodRegister";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { registerUser } from "../../util/authorizeUser";
 
-interface LoginProps {
+interface RegisterProps {
   setIsLogin: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Login = ({ setIsLogin }: LoginProps) => {
+const Register = ({ setIsLogin }: RegisterProps) => {
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<loginSchema>({ resolver: zodResolver(loginZodObject) });
+  } = useForm<registerZodSchema>({ resolver: zodResolver(registerZodObject) });
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const navigate = useNavigate();
 
-  const onSubmit: SubmitHandler<loginSchema> = (data) => {
+  const onSubmit: SubmitHandler<registerZodSchema> = (data) => {
     setIsLoading(true);
-    authorizeUser({
+    registerUser({
       email: data.email,
+      name: data.name,
       password: data.password,
     })
       .then((result) => {
-        console.log("Login success:", result.account);
+        console.log("register success:", result.account);
         localStorage.setItem("token", result.token);
         setIsLoading(false);
         navigate("/");
@@ -59,6 +60,18 @@ const Login = ({ setIsLogin }: LoginProps) => {
           <span className="text-red-500 text-sm">{errors.email.message}</span>
         )}
         <div className="flex flex-col p-1">
+          <label htmlFor="name">Name</label>
+          <input
+            className="shadow-inner bg-[rgba(246,246,246,1)] p-2"
+            id="name"
+            type="text"
+            {...register("name")}
+          />
+        </div>
+        {errors.name && (
+          <span className="text-red-500 text-sm">{errors.name.message}</span>
+        )}
+        <div className="flex flex-col p-1">
           <label htmlFor="password">Password</label>
           <input
             className="shadow-inner bg-[rgba(246,246,246,1)] p-2"
@@ -83,11 +96,11 @@ const Login = ({ setIsLogin }: LoginProps) => {
             Submit
           </button>
           <button
-            type="button"
+            type="submit"
             className="bg-green-400 drop-shadow rounded-md mt-2 p-2"
-            onClick={() => setIsLogin(false)}
+            onClick={() => setIsLogin(true)}
           >
-            Register
+            Login
           </button>
         </div>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
@@ -96,4 +109,4 @@ const Login = ({ setIsLogin }: LoginProps) => {
   );
 };
 
-export default Login;
+export default Register;

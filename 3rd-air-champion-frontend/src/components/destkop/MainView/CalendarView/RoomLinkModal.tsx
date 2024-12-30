@@ -1,20 +1,39 @@
 import { useState, useEffect } from "react";
 import { roomType } from "../../../../util/types/roomType";
+import { updateSync } from "../../../../util/hostOperations";
 
 interface RoomLinkModalProps {
   setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  airbnbsync: { room: string; link: string }[] | undefined;
+  hostId: string;
   rooms: roomType[]; // Replace with your room type
+  token: string;
 }
 
-const RoomLinkModal = ({ setIsSyncModalOpen, rooms }: RoomLinkModalProps) => {
+const RoomLinkModal = ({
+  setIsSyncModalOpen,
+  airbnbsync,
+  hostId,
+  rooms,
+  token,
+}: RoomLinkModalProps) => {
   const [room, setRoom] = useState("");
   const [link, setLink] = useState("");
-  const [data, setData] = useState<{ room: string; link: string }[]>([]);
+  const [data, setData] = useState<{ room: string; link: string }[]>(
+    airbnbsync ? airbnbsync : []
+  );
 
   // Load existing data from localStorage when modal opens
   useEffect(() => {
-    const savedData = JSON.parse(localStorage.getItem("syncData") || "[]");
-    setData(savedData);
+    const savedData = localStorage.getItem("syncData");
+    if (savedData) {
+      setData(JSON.parse(savedData));
+      updateSync(hostId, savedData, token)
+        .then((result) => {
+          console.log(result);
+        })
+        .catch((err) => console.error("Error syncing calendars:", err));
+    }
   }, []);
 
   const handleAddEntry = () => {
@@ -29,6 +48,11 @@ const RoomLinkModal = ({ setIsSyncModalOpen, rooms }: RoomLinkModalProps) => {
     // Save updated data to state and localStorage
     setData(updatedData);
     localStorage.setItem("syncData", JSON.stringify(updatedData));
+    updateSync(hostId, JSON.stringify(updatedData), token)
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((err) => console.error("Error syncing calendars:", err));
 
     // Clear input fields
     setRoom("");

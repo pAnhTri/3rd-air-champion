@@ -40,13 +40,23 @@ const hostResolvers = {
       const host = new Host({ email, name, password });
       return await host.save();
     },
-    updateHost: async (_: unknown, { _id, email, name, password }: any) => {
-      const updateData: { email?: string; name?: string; password?: string } =
-        {};
+    updateHost: async (
+      _: unknown,
+      { _id, email, name, password, airbnbsync }: any
+    ) => {
+      const updateData: {
+        email?: string;
+        name?: string;
+        password?: string;
+        airbnbsync?: string;
+      } = {};
       if (email) updateData.email = email;
       if (name) updateData.name = name;
       if (password) {
         updateData.password = password;
+      }
+      if (airbnbsync) {
+        updateData.airbnbsync = JSON.parse(airbnbsync);
       }
 
       // Perform the update

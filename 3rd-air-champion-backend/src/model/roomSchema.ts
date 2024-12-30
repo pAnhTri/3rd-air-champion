@@ -80,7 +80,7 @@ roomSchema.post("save", async function (doc) {
 roomSchema.post("findOneAndDelete", async function (doc) {
   await Host.findByIdAndUpdate(
     doc.host,
-    { $pull: { rooms: doc._id } },
+    { $pull: { rooms: doc._id, airbnbsync: { room: doc._id } } },
     { new: true }
   );
 
@@ -98,6 +98,18 @@ roomSchema.post("findOneAndDelete", async function (doc) {
 roomSchema.post("deleteMany", async function (doc) {
   const toBeDeletedRoomsIds = (this as any).toBeDeletedRooms.map(
     (room: any) => room._id
+  );
+
+  // Remove the deleted rooms from the `rooms` array and `airbnbsync` array in the Host collection
+  await Host.updateMany(
+    { rooms: { $in: toBeDeletedRoomsIds } }, // Match hosts with rooms to be deleted
+    {
+      $pull: {
+        rooms: { $in: toBeDeletedRoomsIds }, // Remove from `rooms` array
+        airbnbsync: { room: { $in: toBeDeletedRoomsIds } }, // Remove from `airbnbsync` array
+      },
+    },
+    { new: true }
   );
 
   await Day.updateMany(

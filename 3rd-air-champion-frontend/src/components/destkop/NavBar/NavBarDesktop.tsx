@@ -1,10 +1,11 @@
 import ProfileDesktop from "./ProfileDesktop";
 
 interface NavBarDesktopProps {
+  handleLogout: () => void;
   name: string;
 }
 
-const NavBarDesktop = ({ name }: NavBarDesktopProps) => {
+const NavBarDesktop = ({ handleLogout, name }: NavBarDesktopProps) => {
   return (
     <div className="relative flex items-center w-full h-[80px] bg-white drop-shadow-md z-50 lg:h-[120px]">
       {/* Centered Navigation Buttons */}
@@ -31,7 +32,7 @@ const NavBarDesktop = ({ name }: NavBarDesktopProps) => {
 
       {/* Profile Section */}
       <div className="ml-auto pr-2">
-        <ProfileDesktop>{name}</ProfileDesktop>
+        <ProfileDesktop handleLogout={handleLogout}>{name}</ProfileDesktop>
       </div>
     </div>
   );

@@ -21,6 +21,12 @@ const hostSchema = new mongoose.Schema(
     calendar: { type: mongoose.Schema.ObjectId, ref: "Calendar" },
     guests: [{ type: mongoose.Schema.ObjectId, ref: "Guest" }],
     cohosts: [{ type: mongoose.Schema.ObjectId, ref: "Cohost" }],
+    airbnbsync: [
+      {
+        room: { type: mongoose.Schema.ObjectId, ref: "Room" },
+        link: { type: String, default: "" },
+      },
+    ],
   },
   { timestamps: true }
 );

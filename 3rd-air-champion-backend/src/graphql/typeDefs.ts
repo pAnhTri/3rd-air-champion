@@ -7,12 +7,18 @@ const generalDefs = gql`
 `;
 
 const hostDefs = gql`
+  type AirBnBSync {
+    room: ID
+    link: String
+  }
+
   type Host {
     id: ID!
     email: String!
     password: String!
     name: String!
     rooms: [ID]
+    airbnbsync: [AirBnBSync]
     calendar: ID
     guests: [ID]
     cohosts: [ID]
@@ -32,6 +38,7 @@ const hostDefs = gql`
       email: String
       name: String
       password: String
+      airbnbsync: String
     ): Host!
     deleteCohosts(_id: String!, cohostIds: [String]!): Host!
     deleteGuests(_id: String!, guestIds: [String!]!): Host!
