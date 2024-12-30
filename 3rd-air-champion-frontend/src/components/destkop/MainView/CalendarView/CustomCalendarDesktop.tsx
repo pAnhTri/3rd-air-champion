@@ -140,9 +140,21 @@ const CustomCalendar = ({
         // Render the three grid rows
         return (
           <div className="mt-1">
-            <div className="row-span-1 h-full">{gridContent.red}</div>
-            <div className="row-span-1 h-full">{gridContent.blue}</div>
-            <div className="row-span-1 h-full">{gridContent.green}</div>
+            {gridContent.red === <div className="h-full" /> ? (
+              <div className="row-span-1 h-full">{gridContent.red}</div>
+            ) : (
+              gridContent.red
+            )}
+            {gridContent.blue === <div className="h-full" /> ? (
+              <div className="row-span-1 h-full">{gridContent.blue}</div>
+            ) : (
+              gridContent.blue
+            )}
+            {gridContent.green === <div className="h-full" /> ? (
+              <div className="row-span-1 h-full">{gridContent.green}</div>
+            ) : (
+              gridContent.green
+            )}
           </div>
         );
       }
