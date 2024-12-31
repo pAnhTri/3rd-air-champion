@@ -5,7 +5,7 @@ import { dayType } from "../../../util/types/dayType";
 import { fetchDays } from "../../../util/dayOperations";
 import BookingModal from "../BookingModal/BookingModal";
 import { bookingType } from "../../../util/types/bookingType";
-import { addDays, isWithinInterval } from "date-fns";
+import { addDays, isWithinInterval, startOfToday } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { roomType } from "../../../util/types/roomType";
 import { fetchRooms } from "../../../util/roomOperations";
@@ -14,6 +14,7 @@ import { guestType } from "../../../util/types/guestType";
 import { fetchGuests } from "../../../util/guestOperations";
 import { syncCalendars } from "../../../util/syncOperations";
 import GuestView from "./GuestView/GuestView";
+import BookButton from "../BookButton";
 
 interface MainViewProps {
   calendarId: string;
@@ -35,11 +36,14 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [calendarErrorMessage, setCalendarErrorMessage] = useState<string>(""); // Track errors
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   const [blockedAirBnBDates, setIsBlockedAirBnBDates] = useState<{
     room: { duration: number; start: string }[];
   }>();
+
+  const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
 
   const onSync = () => {
     alert("Synchronizing with Airbnb");
@@ -198,6 +202,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               rooms={rooms}
               setCurrentBookings={setCurrentBookings}
               setCurrentMonth={setCurrentMonth}
+              setIsMobileModalOpen={setIsMobileModalOpen}
+              setSelectedDate={setSelectedDate}
               days={days}
               setDays={setDays}
             />
@@ -207,6 +213,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 guests={guests}
                 setGuests={setGuests}
                 rooms={rooms}
+                selectedDate={selectedDate}
                 setRooms={setRooms}
                 onBooking={onBooking}
                 setIsModalOpen={setIsModalOpen}
@@ -218,30 +225,46 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
       <div className="hidden bg-white border-l sm:block">
         {currentBookings && currentBookings.length > 0 ? (
-          <GuestView currentBookings={currentBookings} />
+          <GuestView currentBookings={currentBookings} rooms={rooms}>
+            <BookButton setIsModalOpen={setIsModalOpen} />
+          </GuestView>
         ) : (
-          <h1>Guest View</h1>
+          <div className="flex items-center justify-center h-full w-full">
+            <BookButton setIsModalOpen={setIsModalOpen} />
+          </div>
         )}
       </div>
 
       {/* Guest View for Small Screens */}
-      {currentBookings && currentBookings.length > 0 && (
+      {
         <div
           className={`fixed bottom-0 left-0 w-full bg-white p-1 border-t border-gray-300 z-50 sm:hidden transition-transform duration-300 ${
-            currentBookings ? "translate-y-0" : "translate-y-full"
+            isMobileModalOpen ? "translate-y-0" : "translate-y-full"
           }`}
           style={{ height: "calc(100% - 15rem)" }} // Leaves a 4px margin at the top
         >
           {/* Close Button */}
           <button
-            className=" text-gray-700 font-bold text-[1.5rem]"
-            onClick={() => setCurrentBookings(null)} // Close the modal
+            className="text-gray-700 font-bold text-[1.5rem]"
+            onClick={() => {
+              setCurrentBookings(null);
+              setIsMobileModalOpen(false);
+            }} // Close the modal
           >
             &times;
           </button>
-          <GuestView currentBookings={currentBookings} />
+
+          {currentBookings && currentBookings.length > 0 ? (
+            <GuestView currentBookings={currentBookings} rooms={rooms}>
+              <BookButton setIsModalOpen={setIsModalOpen} />
+            </GuestView>
+          ) : (
+            <div className="flex w-full h-full justify-center items-center">
+              <BookButton setIsModalOpen={setIsModalOpen} />
+            </div>
+          )}
         </div>
-      )}
+      }
     </>
   );
 };

@@ -15,6 +15,8 @@ interface CustomCalendarProps {
     React.SetStateAction<bookingType[] | null | undefined>
   >;
   setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
+  setIsMobileModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
 }
 
 const CustomCalendar = ({
@@ -23,6 +25,8 @@ const CustomCalendar = ({
   rooms,
   setCurrentBookings,
   setCurrentMonth,
+  setIsMobileModalOpen,
+  setSelectedDate,
 }: CustomCalendarProps) => {
   const [months, setMonths] = useState<Date[]>([]);
   const [monthMap, setMonthMap] = useState<Map<string, dayType>>(new Map());
@@ -150,6 +154,9 @@ const CustomCalendar = ({
   };
 
   const getDayContent = (date: Date) => {
+    // select the date
+    setSelectedDate(date);
+    setIsMobileModalOpen(true);
     const day = monthMap.get(date.toISOString().split("T")[0]);
 
     if (day && day.bookings) {

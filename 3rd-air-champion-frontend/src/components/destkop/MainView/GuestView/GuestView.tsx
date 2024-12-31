@@ -1,11 +1,14 @@
 import { format, parseISO } from "date-fns";
 import { bookingType } from "../../../../util/types/bookingType";
+import { roomType } from "../../../../util/types/roomType";
 
 interface GuestViewProps {
+  children: JSX.Element;
   currentBookings: bookingType[];
+  rooms: roomType[];
 }
 
-const GuestView = ({ currentBookings }: GuestViewProps) => {
+const GuestView = ({ children, currentBookings, rooms }: GuestViewProps) => {
   const formatDate = (dateString: string) => {
     // Parse the input string into a Date object
     const date = parseISO(dateString);
@@ -13,6 +16,8 @@ const GuestView = ({ currentBookings }: GuestViewProps) => {
     // Format the date as mm/dd/yy
     return format(date, "MM/dd/yy");
   };
+
+  const remainingNumberOfRooms = rooms.length - currentBookings.length;
 
   return (
     <div className={`grid grid-rows-3 h-full px-2`}>
@@ -73,6 +78,18 @@ const GuestView = ({ currentBookings }: GuestViewProps) => {
                 )}
               </div>
             </div>
+          </div>
+        );
+      })}
+
+      {/* Remaining rooms to book */}
+      {Array.from({ length: remainingNumberOfRooms }).map((_, index) => {
+        return (
+          <div
+            key={index}
+            className="flex items-center justify-center border-b border-solid h-full w-full"
+          >
+            {children}
           </div>
         );
       })}

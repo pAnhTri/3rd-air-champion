@@ -11,11 +11,13 @@ import { bookDaySchema, bookDaysZodObject } from "../../../util/zodBookDays";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { postBooking } from "../../../util/bookingOperations";
 import { dayType } from "../../../util/types/dayType";
+import { format } from "date-fns";
 
 interface BookingModalProps {
   calendarId: string;
   guests: guestType[];
   rooms: roomType[];
+  selectedDate: Date;
   onBooking: (
     roomName: string,
     date: Date,
@@ -30,8 +32,9 @@ interface BookingModalProps {
 const BookingModal = ({
   calendarId,
   guests,
-  setGuests,
   rooms,
+  selectedDate,
+  setGuests,
   setRooms,
   onBooking,
   setIsModalOpen,
@@ -199,6 +202,7 @@ const BookingModal = ({
               id="bookingDate"
               type="date"
               className="border border-gray-300 rounded px-2 py-1 w-full"
+              defaultValue={selectedDate && format(selectedDate, "yyyy-MM-dd")}
               {...register("date", { valueAsDate: true })}
             />
             {errors.date && (
