@@ -1,15 +1,28 @@
-import { useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { fetchHost, getHost } from "./util/hostOperations";
 import { hostType } from "./util/types/hostType";
 import { useNavigate } from "react-router";
 import NavBarDesktop from "./components/destkop/NavBar/NavBarDesktop";
 import MainView from "./components/destkop/MainView/MainView";
 
+interface SyncModalContextType {
+  isSyncModalOpen: boolean;
+  setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  shouldCallOnSync: boolean;
+  setShouldCallOnSync: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const isSyncModalOpenContext =
+  createContext<SyncModalContextType | null>(null);
+
 function App() {
   const [host, setHost] = useState<hostType | null>(null); // Track host data
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [isLoading, setIsLoading] = useState(true); // Track loading state
   const [errorMessage, setErrorMessage] = useState<string>(""); // Track errors
+
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [shouldCallOnSync, setShouldCallOnSync] = useState(false);
 
   const navigate = useNavigate();
 
@@ -62,19 +75,28 @@ function App() {
   // Render the host data once it's fetched
   return (
     host && (
-      <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
-        {/* Navbar */}
-        <NavBarDesktop handleLogout={handleLogout} name={host?.name} />
+      <isSyncModalOpenContext.Provider
+        value={{
+          isSyncModalOpen,
+          setIsSyncModalOpen,
+          shouldCallOnSync,
+          setShouldCallOnSync,
+        }}
+      >
+        <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
+          {/* Navbar */}
+          <NavBarDesktop handleLogout={handleLogout} name={host?.name} />
 
-        {/* Main Content Area */}
-        <div className="grid grid-cols-5 overflow-hidden">
-          <MainView
-            calendarId={host.calendar}
-            hostId={host.id}
-            airbnbsync={host.airbnbsync}
-          ></MainView>
+          {/* Main Content Area */}
+          <div className="grid grid-cols-5 overflow-hidden">
+            <MainView
+              calendarId={host.calendar}
+              hostId={host.id}
+              airbnbsync={host.airbnbsync}
+            ></MainView>
+          </div>
         </div>
-      </div>
+      </isSyncModalOpenContext.Provider>
     )
   );
 }

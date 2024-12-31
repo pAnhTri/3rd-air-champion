@@ -31,7 +31,7 @@ const GuestView = ({ children, currentBookings, rooms }: GuestViewProps) => {
             <div className="basis-4/5">
               <div className="h-full w-full grid grid-rows-3">
                 {/* Name */}
-                <p className="flex h-full items-center">
+                <p className="flex h-full items-center font-bold text-lg">
                   {booking.guest.name} ({booking.room.name})
                 </p>
 

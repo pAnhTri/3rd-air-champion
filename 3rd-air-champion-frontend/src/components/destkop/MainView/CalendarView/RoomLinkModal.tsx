@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { roomType } from "../../../../util/types/roomType";
 import { updateSync } from "../../../../util/hostOperations";
+import { isSyncModalOpenContext } from "../../../../App";
 
 interface RoomLinkModalProps {
-  setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   airbnbsync: { room: string; link: string }[] | undefined;
   hostId: string;
   rooms: roomType[]; // Replace with your room type
@@ -11,12 +11,18 @@ interface RoomLinkModalProps {
 }
 
 const RoomLinkModal = ({
-  setIsSyncModalOpen,
   airbnbsync,
   hostId,
   rooms,
   token,
 }: RoomLinkModalProps) => {
+  const context = useContext(isSyncModalOpenContext) as {
+    isSyncModalOpen: boolean;
+    setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  };
+
+  const { setIsSyncModalOpen } = context;
+
   const [room, setRoom] = useState("");
   const [link, setLink] = useState("");
   const [data, setData] = useState<{ room: string; link: string }[]>(

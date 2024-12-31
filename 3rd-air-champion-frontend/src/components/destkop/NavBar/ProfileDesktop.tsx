@@ -1,5 +1,6 @@
 import { FaUserCircle } from "react-icons/fa";
 import { useState } from "react";
+import DropDownMenu from "./DropDown/DropDownMenu";
 
 interface ProfileDesktopProps {
   handleLogout: () => void;
@@ -14,30 +15,21 @@ const ProfileDesktop = ({ children, handleLogout }: ProfileDesktopProps) => {
   return (
     <div className="relative">
       <div
-        className="hidden sm:flex items-center gap-x-2 cursor-pointer"
+        className="flex items-center cursor-pointer space-x-2"
         onClick={toggleDropdown}
       >
-        <span className="text-[1.25rem] hidden sm:block">{children}</span>
-        <FaUserCircle size={76} />
-      </div>
-      <div
-        className="md:hidden items-center cursor-pointer"
-        onClick={toggleDropdown}
-      >
-        <FaUserCircle size={48} />
+        <span
+          className={`${
+            window.screen.availWidth > 640 ? "text-[1.25rem]" : "hidden"
+          }`}
+        >
+          {children}
+        </span>
+        <FaUserCircle size={window.screen.availWidth > 640 ? 76 : 44} />
       </div>
 
       {/* Dropdown Menu */}
-      {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
-          <button
-            onClick={handleLogout}
-            className="w-full px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600"
-          >
-            Logout
-          </button>
-        </div>
-      )}
+      {isDropdownOpen && <DropDownMenu handleLogout={handleLogout} />}
     </div>
   );
 };

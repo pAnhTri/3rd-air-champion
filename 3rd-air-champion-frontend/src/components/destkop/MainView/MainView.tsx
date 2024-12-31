@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import CalendarNavigator from "./CalendarView/CalendarNavigatorDesktop";
 import CustomCalendar from "./CalendarView/CustomCalendarDesktop";
 import { dayType } from "../../../util/types/dayType";
@@ -15,6 +15,7 @@ import { fetchGuests } from "../../../util/guestOperations";
 import { syncCalendars } from "../../../util/syncOperations";
 import GuestView from "./GuestView/GuestView";
 import BookButton from "../BookButton";
+import { isSyncModalOpenContext } from "../../../App";
 
 interface MainViewProps {
   calendarId: string;
@@ -24,6 +25,16 @@ interface MainViewProps {
 
 const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const token = localStorage.getItem("token");
+
+  const context = useContext(isSyncModalOpenContext) as {
+    isSyncModalOpen: boolean;
+    setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    shouldCallOnSync: boolean;
+    setShouldCallOnSync: React.Dispatch<React.SetStateAction<boolean>>;
+  };
+
+  const { isSyncModalOpen, shouldCallOnSync, setShouldCallOnSync } = context;
+
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [currentBookings, setCurrentBookings] = useState<
     bookingType[] | null
@@ -37,7 +48,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
-  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   const [blockedAirBnBDates, setIsBlockedAirBnBDates] = useState<{
     room: { duration: number; start: string }[];
@@ -111,6 +121,13 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       });
   }, [isCalendarLoading]);
 
+  useEffect(() => {
+    if (shouldCallOnSync) {
+      onSync();
+      setShouldCallOnSync(false);
+    }
+  }, [shouldCallOnSync]);
+
   const onBooking = (
     roomName: string,
     date: Date,
@@ -182,17 +199,12 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           </div>
         ) : (
           <>
-            <CalendarNavigator
-              currentMonth={currentMonth}
-              onSync={onSync}
-              setIsSyncModalOpen={setIsSyncModalOpen}
-            />
+            <CalendarNavigator currentMonth={currentMonth} />
             {isSyncModalOpen && (
               <RoomLinkModal
                 hostId={hostId}
                 airbnbsync={airbnbsync}
                 token={token as string}
-                setIsSyncModalOpen={setIsSyncModalOpen}
                 rooms={rooms}
               />
             )}
