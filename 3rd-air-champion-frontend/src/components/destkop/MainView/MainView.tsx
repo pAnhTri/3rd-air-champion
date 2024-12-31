@@ -5,7 +5,6 @@ import { dayType } from "../../../util/types/dayType";
 import { fetchDays } from "../../../util/dayOperations";
 import BookingModal from "../BookingModal/BookingModal";
 import { bookingType } from "../../../util/types/bookingType";
-import GuestViewDesktop from "./GuestView/GuestViewDesktop";
 import { addDays, isWithinInterval } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { roomType } from "../../../util/types/roomType";
@@ -14,6 +13,7 @@ import RoomLinkModal from "./CalendarView/RoomLinkModal";
 import { guestType } from "../../../util/types/guestType";
 import { fetchGuests } from "../../../util/guestOperations";
 import { syncCalendars } from "../../../util/syncOperations";
+import GuestView from "./GuestView/GuestView";
 
 interface MainViewProps {
   calendarId: string;
@@ -30,8 +30,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [days, setDays] = useState<dayType[]>([]);
   const [guests, setGuests] = useState<guestType[]>([]);
   const [rooms, setRooms] = useState<roomType[]>([]);
-
-  const [currentPage, setCurrentPage] = useState(0);
 
   const [isCalendarLoading, setIsCalendarLoading] = useState(true); // Track loading state
   const [calendarErrorMessage, setCalendarErrorMessage] = useState<string>(""); // Track errors
@@ -199,7 +197,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               currentMonth={currentMonth}
               rooms={rooms}
               setCurrentBookings={setCurrentBookings}
-              setCurrentPage={setCurrentPage}
               setCurrentMonth={setCurrentMonth}
               days={days}
               setDays={setDays}
@@ -218,13 +215,10 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           </>
         )}
       </div>
+
       <div className="hidden bg-white border-l sm:block">
         {currentBookings && currentBookings.length > 0 ? (
-          <GuestViewDesktop
-            currentBookings={currentBookings}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-          />
+          <GuestView currentBookings={currentBookings} />
         ) : (
           <h1>Guest View</h1>
         )}
@@ -233,7 +227,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       {/* Guest View for Small Screens */}
       {currentBookings && currentBookings.length > 0 && (
         <div
-          className={`fixed bottom-0 left-0 w-full bg-white p-4 border-t border-gray-300 z-50 sm:hidden transition-transform duration-300 ${
+          className={`fixed bottom-0 left-0 w-full bg-white p-1 border-t border-gray-300 z-50 sm:hidden transition-transform duration-300 ${
             currentBookings ? "translate-y-0" : "translate-y-full"
           }`}
           style={{ height: "calc(100% - 15rem)" }} // Leaves a 4px margin at the top
@@ -245,12 +239,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           >
             &times;
           </button>
-
-          <GuestViewDesktop
-            currentBookings={currentBookings}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-          />
+          <GuestView currentBookings={currentBookings} />
         </div>
       )}
     </>

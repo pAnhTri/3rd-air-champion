@@ -14,7 +14,6 @@ interface CustomCalendarProps {
   setCurrentBookings: React.Dispatch<
     React.SetStateAction<bookingType[] | null | undefined>
   >;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
 }
 
@@ -23,7 +22,6 @@ const CustomCalendar = ({
   days,
   rooms,
   setCurrentBookings,
-  setCurrentPage,
   setCurrentMonth,
 }: CustomCalendarProps) => {
   const [months, setMonths] = useState<Date[]>([]);
@@ -152,7 +150,6 @@ const CustomCalendar = ({
   };
 
   const getDayContent = (date: Date) => {
-    setCurrentPage(0); // Reset to first page
     const day = monthMap.get(date.toISOString().split("T")[0]);
 
     if (day && day.bookings) {
