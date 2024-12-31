@@ -185,7 +185,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             <CalendarNavigator
               currentMonth={currentMonth}
               onSync={onSync}
-              setIsModalOpen={setIsModalOpen}
               setIsSyncModalOpen={setIsSyncModalOpen}
             />
             {isSyncModalOpen && (
@@ -256,11 +255,17 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
           {currentBookings && currentBookings.length > 0 ? (
             <GuestView currentBookings={currentBookings} rooms={rooms}>
-              <BookButton setIsModalOpen={setIsModalOpen} />
+              <BookButton
+                setIsModalOpen={setIsModalOpen}
+                setIsMobileModalOpen={setIsMobileModalOpen}
+              />
             </GuestView>
           ) : (
             <div className="flex w-full h-full justify-center items-center">
-              <BookButton setIsModalOpen={setIsModalOpen} />
+              <BookButton
+                setIsModalOpen={setIsModalOpen}
+                setIsMobileModalOpen={setIsMobileModalOpen}
+              />
             </div>
           )}
         </div>

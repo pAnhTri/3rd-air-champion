@@ -53,7 +53,7 @@ const BookingModal = ({
     formState: { errors },
   } = useForm<bookDaySchema>({
     resolver: zodResolver(bookDaysZodObject),
-    defaultValues: { numberOfGuests: 1 },
+    defaultValues: { numberOfGuests: 1, duration: 1 },
   });
 
   const onAddGuest = (guestObject: { name: string; phone: string }) => {

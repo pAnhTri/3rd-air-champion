@@ -3,14 +3,12 @@ import { useEffect, useState } from "react";
 interface CalendarNavigatorProps {
   currentMonth: Date;
   onSync: () => void;
-  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const CalendarNavigator = ({
   currentMonth,
   onSync,
-  setIsModalOpen,
   setIsSyncModalOpen,
 }: CalendarNavigatorProps) => {
   const [isSyncEnabled, setIsSyncEnabled] = useState(false);
@@ -34,14 +32,6 @@ const CalendarNavigator = ({
         <div className="text-xs font-semibold text-gray-700 sm:text-sm md:text-lg text-center">
           {formattedDate}
         </div>
-
-        {/* Book Button */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-500 text-white text-xs py-1 px-2 rounded-lg hover:bg-blue-600 shadow-md transition-all sm:text-sm sm:py-2 sm:px-4 md:text-base"
-        >
-          Book
-        </button>
 
         {/* Room Sync Button */}
         <button
