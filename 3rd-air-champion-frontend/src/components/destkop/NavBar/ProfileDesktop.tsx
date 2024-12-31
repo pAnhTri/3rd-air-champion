@@ -18,6 +18,7 @@ const ProfileDesktop = ({ children, handleLogout }: ProfileDesktopProps) => {
         className="flex items-center cursor-pointer space-x-2"
         onClick={toggleDropdown}
       >
+        <FaUserCircle size={window.screen.availWidth > 640 ? 76 : 44} />
         <span
           className={`${
             window.screen.availWidth > 640 ? "text-[1.25rem]" : "hidden"
@@ -25,7 +26,6 @@ const ProfileDesktop = ({ children, handleLogout }: ProfileDesktopProps) => {
         >
           {children}
         </span>
-        <FaUserCircle size={window.screen.availWidth > 640 ? 76 : 44} />
       </div>
 
       {/* Dropdown Menu */}

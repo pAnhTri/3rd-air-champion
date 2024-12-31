@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { isSyncModalOpenContext } from "../../../../App";
+import { FaSync } from "react-icons/fa";
 
 const AirBnBSyncButton = () => {
   const context = useContext(isSyncModalOpenContext) as {
@@ -18,13 +19,16 @@ const AirBnBSyncButton = () => {
 
   return (
     <button
-      className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-200 disabled:hover:bg-gray-300 text-white py-1 px-2"
+      className="w-full disabled:bg-gray-200 disabled:hover:bg-gray-300 py-1 px-2"
       disabled={!isSyncEnabled}
       onClick={() => {
         setShouldCallOnSync(true);
       }}
     >
-      Sync
+      <div className="flex w-full items-center justify-center space-x-2">
+        <FaSync />
+        <span>Sync</span>
+      </div>
     </button>
   );
 };

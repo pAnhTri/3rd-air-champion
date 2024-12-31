@@ -12,7 +12,7 @@ const RoomSyncButton = () => {
   return (
     <button
       onClick={() => setIsSyncModalOpen(true)}
-      className="w-full px-2 py-1 text-white bg-blue-500 hover:bg-blue-600"
+      className="w-full px-2 py-1"
     >
       Link AirBnB
     </button>
