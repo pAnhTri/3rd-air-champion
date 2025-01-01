@@ -10,10 +10,7 @@ const RoomSyncButton = () => {
   const { setIsSyncModalOpen } = context;
 
   return (
-    <button
-      onClick={() => setIsSyncModalOpen(true)}
-      className="w-full px-2 py-1"
-    >
+    <button onClick={() => setIsSyncModalOpen(true)} className="px-2 py-1">
       Link AirBnB
     </button>
   );
