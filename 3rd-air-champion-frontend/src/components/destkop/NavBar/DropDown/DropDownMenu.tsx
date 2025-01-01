@@ -1,4 +1,5 @@
 import { FaDatabase, FaSync } from "react-icons/fa";
+import { ImExit } from "react-icons/im";
 import AirBnBSyncButton from "./AirBnBSyncButton";
 import LogoutButton from "./LogoutButton";
 import RoomSyncButton from "./RoomSyncButton";
@@ -27,8 +28,13 @@ const DropDownMenu = ({ handleLogout }: LogoutButtonProps) => {
           <RoomSyncButton />
         </div>
       </div>
-      <div className="border-b border-solid w-full hover:bg-[#D9D9D9] text-center">
-        <LogoutButton handleLogout={handleLogout} />
+      <div className="flex items-center border-b border-solid w-full hover:bg-[#D9D9D9]">
+        <div className="basis-1/5 flex w-full items-center justify-center">
+          <ImExit />
+        </div>
+        <div className="basis-4/5">
+          <LogoutButton handleLogout={handleLogout} />
+        </div>
       </div>
     </div>
   );
