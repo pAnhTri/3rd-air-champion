@@ -164,7 +164,11 @@ const dayDefs = gql`
   scalar Date
 
   type Bookings {
+    id: ID
+    alias: String
+    price: Float
     guest: Guest
+    notes: String
     room: Room
     description: String
     duration: Int
@@ -225,6 +229,13 @@ const dayDefs = gql`
       description: String!
       room: String!
       duration: Int!
+    ): [Day]
+
+    updateBookingGuest(
+      _id: String!
+      alias: String
+      notes: String
+      numberOfGuests: Int
     ): [Day]
 
     updateDay(

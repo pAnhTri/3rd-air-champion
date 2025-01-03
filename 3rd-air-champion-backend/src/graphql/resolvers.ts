@@ -511,6 +511,12 @@ const dayResolver = {
         );
       }
 
+      const currentRoom = await Room.findById(room);
+      const roomPrice = currentRoom?.price;
+
+      const currentGuest = await Guest.findById(guest);
+      const notes = currentGuest?.name !== "AirBnB" ? currentGuest?.notes : "";
+
       const bulkOperation = dates.map((bookingDate) => ({
         updateOne: {
           filter: { calendar, date: bookingDate },
@@ -522,6 +528,8 @@ const dayResolver = {
               bookings: {
                 guest,
                 room,
+                notes: notes,
+                price: roomPrice,
                 duration,
                 numberOfGuests,
                 startDate: dates[0],
@@ -576,6 +584,8 @@ const dayResolver = {
       }
 
       // Assume no day conflicts (Handled by AirBnB)
+      const currentRoom = await Room.findById(room);
+      const roomPrice = currentRoom?.price;
 
       const bulkOperation = dates.map((bookingDate) => ({
         updateOne: {
@@ -588,6 +598,7 @@ const dayResolver = {
               bookings: {
                 guest,
                 room,
+                price: roomPrice,
                 description,
                 duration,
                 numberOfGuests: 1,
@@ -603,6 +614,90 @@ const dayResolver = {
       await Day.bulkWrite(bulkOperation);
 
       return await Day.find({ calendar, date: { $in: dates } })
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
+    },
+    updateBookingGuest: async (
+      _: unknown,
+      { _id, alias, notes, numberOfGuests }: any
+    ) => {
+      const updateBody: {
+        "bookings.$[matchingBooking].alias"?: string;
+        "bookings.$[matchingBooking].price"?: number;
+        "bookings.$[matchingBooking].notes"?: string;
+        "bookings.$[matchingBooking].numberOfGuests"?: number;
+      } = {};
+
+      if (alias) updateBody["bookings.$[matchingBooking].alias"] = alias;
+      if (notes) updateBody["bookings.$[matchingBooking].notes"] = notes;
+      if (numberOfGuests)
+        updateBody["bookings.$[matchingBooking].numberOfGuests"] =
+          numberOfGuests;
+
+      const dayOfBooking = await Day.findOne({ "bookings._id": _id });
+      const calendar = dayOfBooking?.calendar;
+      const currentBooking = dayOfBooking?.bookings.find(
+        (booking) => booking.id === _id
+      );
+
+      const startDate = currentBooking?.startDate;
+      const endDate = currentBooking?.endDate;
+
+      const currentGuest = await Guest.findById(currentBooking?.guest);
+      if (currentGuest?.name !== "AirBnB" && notes) {
+        await Guest.findByIdAndUpdate(
+          currentBooking?.guest,
+          { notes },
+          { runValidators: true }
+        );
+
+        await Day.updateMany(
+          {
+            calendar,
+            "bookings.guest": currentBooking?.guest,
+            "bookings.room": currentBooking?.room,
+          },
+          {
+            $set: { "bookings.$[matchingBooking].notes": notes },
+          },
+          {
+            arrayFilters: [
+              {
+                "matchingBooking.guest": currentBooking?.guest,
+                "matchingBooking.room": currentBooking?.room,
+              },
+            ],
+            runValidators: true,
+          }
+        );
+      }
+
+      await Day.updateMany(
+        {
+          calendar,
+          date: { $gte: startDate, $lte: endDate },
+          "bookings.guest": currentBooking?.guest,
+          "bookings.room": currentBooking?.room,
+        },
+        {
+          $set: updateBody,
+        },
+        {
+          arrayFilters: [
+            {
+              "matchingBooking.guest": currentBooking?.guest,
+              "matchingBooking.room": currentBooking?.room,
+            },
+          ],
+          runValidators: true,
+        }
+      );
+
+      return await Day.find({
+        calendar,
+        date: { $gte: startDate, $lte: endDate },
+      })
         .populate("bookings.guest")
         .populate("bookings.room")
         .populate("blockedRooms");

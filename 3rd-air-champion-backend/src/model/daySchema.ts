@@ -14,8 +14,11 @@ const daySchema = new mongoose.Schema(
     isBlocked: { type: Boolean, default: false },
     bookings: [
       {
+        alias: { type: String, default: "" },
+        notes: { type: String, default: "" },
         room: { type: mongoose.Schema.ObjectId, ref: "Room" },
         guest: { type: mongoose.Schema.ObjectId, ref: "Guest" },
+        price: { type: Number, default: "0" },
         description: { type: String, default: "" },
         duration: { type: Number, default: 1 },
         numberOfGuests: { type: Number, default: 0 },

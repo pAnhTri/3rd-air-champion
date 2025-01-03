@@ -16,6 +16,8 @@ import { syncCalendars } from "../../../util/syncOperations";
 import GuestView from "./GuestView/GuestView";
 import BookButton from "../BookButton";
 import { isSyncModalOpenContext } from "../../../App";
+import DetailsModal from "./GuestView/DetailsModal";
+import { updateBookingGuest } from "../../../util/bookingOperations";
 
 interface MainViewProps {
   calendarId: string;
@@ -54,6 +56,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   }>();
 
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
+  const [selectedBooking, setSelectedBooking] = useState<bookingType | null>(
+    null
+  );
 
   const onSync = () => {
     alert("Synchronizing with Airbnb");
@@ -186,6 +191,22 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     setDays([...days, ...bookedDays]);
   };
 
+  const onUpdateGuest = (data: {
+    id: string;
+    alias: string;
+    numberOfGuests: number;
+    notes?: string;
+  }) => {
+    updateBookingGuest(data, token as string)
+      .then((result) => {
+        console.log(result);
+        setIsCalendarLoading(true);
+      })
+      .catch((err) => {
+        console.error("Error updating booked guest:", err);
+      });
+  };
+
   return (
     <>
       <div className="col-span-5 bg-gray-100 overflow-hidden sm:col-span-4">
@@ -236,7 +257,15 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
       <div className="hidden bg-white border-l sm:block">
         {currentBookings && currentBookings.length > 0 ? (
-          <GuestView currentBookings={currentBookings} rooms={rooms}>
+          <GuestView
+            currentBookings={currentBookings}
+            rooms={rooms}
+            setSelectedBooking={
+              setSelectedBooking as React.Dispatch<
+                React.SetStateAction<bookingType>
+              >
+            }
+          >
             <BookButton setIsModalOpen={setIsModalOpen} />
           </GuestView>
         ) : (
@@ -247,41 +276,54 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       </div>
 
       {/* Guest View for Small Screens */}
-      {
-        <div
-          className={`fixed bottom-0 left-0 w-full bg-white p-1 border-t border-gray-300 z-50 sm:hidden transition-transform duration-300 ${
-            isMobileModalOpen ? "translate-y-0" : "translate-y-full"
-          }`}
-          style={{ height: "calc(100% - 15rem)" }} // Leaves a 4px margin at the top
+      <div
+        className={`fixed bottom-0 left-0 w-full bg-white p-1 border-t border-gray-300 z-50 overflow-y-scroll sm:hidden transition-transform duration-300 ${
+          isMobileModalOpen ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{ height: "calc(100% - 15rem)" }} // Leaves a 4px margin at the top
+      >
+        {/* Close Button */}
+        <button
+          className="text-gray-700 font-bold text-[1.5rem]"
+          onClick={() => {
+            setCurrentBookings(null);
+            setIsMobileModalOpen(false);
+          }} // Close the modal
         >
-          {/* Close Button */}
-          <button
-            className="text-gray-700 font-bold text-[1.5rem]"
-            onClick={() => {
-              setCurrentBookings(null);
-              setIsMobileModalOpen(false);
-            }} // Close the modal
-          >
-            &times;
-          </button>
+          &times;
+        </button>
 
-          {currentBookings && currentBookings.length > 0 ? (
-            <GuestView currentBookings={currentBookings} rooms={rooms}>
-              <BookButton
-                setIsModalOpen={setIsModalOpen}
-                setIsMobileModalOpen={setIsMobileModalOpen}
-              />
-            </GuestView>
-          ) : (
-            <div className="flex w-full h-full justify-center items-center">
-              <BookButton
-                setIsModalOpen={setIsModalOpen}
-                setIsMobileModalOpen={setIsMobileModalOpen}
-              />
-            </div>
-          )}
-        </div>
-      }
+        {currentBookings && currentBookings.length > 0 ? (
+          <GuestView
+            currentBookings={currentBookings}
+            rooms={rooms}
+            setSelectedBooking={
+              setSelectedBooking as React.Dispatch<
+                React.SetStateAction<bookingType>
+              >
+            }
+          >
+            <BookButton
+              setIsModalOpen={setIsModalOpen}
+              setIsMobileModalOpen={setIsMobileModalOpen}
+            />
+          </GuestView>
+        ) : (
+          <div className="flex w-full h-full justify-center items-center">
+            <BookButton
+              setIsModalOpen={setIsModalOpen}
+              setIsMobileModalOpen={setIsMobileModalOpen}
+            />
+          </div>
+        )}
+      </div>
+      {selectedBooking && (
+        <DetailsModal
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+          onUpdateGuests={onUpdateGuest}
+        />
+      )}
     </>
   );
 };

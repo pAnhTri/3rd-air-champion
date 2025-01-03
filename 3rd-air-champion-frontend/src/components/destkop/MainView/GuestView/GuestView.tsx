@@ -6,9 +6,15 @@ interface GuestViewProps {
   children: JSX.Element;
   currentBookings: bookingType[];
   rooms: roomType[];
+  setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
 }
 
-const GuestView = ({ children, currentBookings, rooms }: GuestViewProps) => {
+const GuestView = ({
+  children,
+  currentBookings,
+  rooms,
+  setSelectedBooking,
+}: GuestViewProps) => {
   const formatDate = (dateString: string) => {
     // Parse the input string into a Date object
     const date = parseISO(dateString);
@@ -20,7 +26,7 @@ const GuestView = ({ children, currentBookings, rooms }: GuestViewProps) => {
   const remainingNumberOfRooms = rooms.length - currentBookings.length;
 
   return (
-    <div className={`grid grid-rows-3 h-full px-2`}>
+    <div className={`grid grid-rows-3 h-full px-2 overflow-y-scroll`}>
       {currentBookings.map((booking, index) => {
         return (
           <div
@@ -31,9 +37,18 @@ const GuestView = ({ children, currentBookings, rooms }: GuestViewProps) => {
             <div className="basis-4/5">
               <div className="h-full w-full grid grid-rows-3">
                 {/* Name */}
-                <p className="flex h-full items-center font-bold text-lg">
-                  {booking.guest.name} ({booking.room.name})
-                </p>
+                <div className="flex flex-col h-full">
+                  <h1 className="self-center font-bold text-lg">
+                    {booking.alias || booking.guest.name} ({booking.room.name})
+                  </h1>
+                  {/* Notes */}
+                  <div
+                    className="h-full cursor-pointer underline text-blue-500"
+                    onClick={() => setSelectedBooking(booking)}
+                  >
+                    Details...
+                  </div>
+                </div>
 
                 {/* Room information */}
                 <div className="flex flex-col h-full justify-center">
@@ -42,6 +57,11 @@ const GuestView = ({ children, currentBookings, rooms }: GuestViewProps) => {
                     {formatDate(booking.startDate)} -{" "}
                     {formatDate(booking.endDate)}
                   </p>
+                </div>
+
+                {/* Room information */}
+                <div className="flex flex-col h-full justify-center">
+                  <p>Number of Guests: {booking.numberOfGuests}</p>
                 </div>
               </div>
             </div>

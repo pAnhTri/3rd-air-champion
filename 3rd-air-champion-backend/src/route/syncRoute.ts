@@ -83,6 +83,10 @@ router.post("/sync", async (req: Request, res: any) => {
             isAirBnB
             isBlocked
             bookings {
+            id
+            alias
+            price
+            notes
             guest {
                 id
                 name

@@ -22,6 +22,10 @@ router.get("/get", async (req: Request, res: any) => {
               price
             }
             bookings {
+              id
+              alias
+              price
+              notes
               guest {
                 id
                 name
@@ -127,6 +131,10 @@ router.post("/get/host", async (req: Request, res: any) => {
               price
             }
             bookings {
+              id
+              alias
+              price
+              notes
               guest {
                 id
                 name
@@ -325,6 +333,10 @@ router.post("/book/range", async (req: Request, res: any) => {
               price
             }
             bookings {
+              id
+              alias
+              notes
+              price
               guest {
                 id
                 name
@@ -365,6 +377,80 @@ router.post("/book/range", async (req: Request, res: any) => {
       }
       // Send the successful login response
       res.status(200).json(result.data.bookDays);
+    })
+    .catch((error: any) => {
+      // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
+router.post("/update/booking/guest", async (req: Request, res: any) => {
+  if (!("user" in req))
+    return res.status(401).json({ error: "Invalid or expired token" });
+
+  const { id, alias, notes, numberOfGuests } = req.body;
+
+  const variables: {
+    id: string;
+    alias?: string;
+    notes?: string;
+    numberOfGuests?: number;
+  } = { id };
+  if (alias) variables.alias = alias;
+  if (notes) variables.notes = notes;
+  if (numberOfGuests) variables.numberOfGuests = numberOfGuests;
+
+  const query = `
+        mutation UpdateBookingGuest($id: String!, $alias: String, $notes: String, $numberOfGuests: Int) {
+          updateBookingGuest(_id: $id, alias: $alias, notes: $notes, numberOfGuests: $numberOfGuests) {
+            id
+            calendar
+            date
+            isAirBnB
+            isBlocked
+            blockedRooms {
+              host
+              id
+              name
+              price
+            }
+            bookings {
+              id
+              alias
+              notes
+              price
+              guest {
+                id
+                name
+                email
+                phone
+                numberOfGuests
+                returning
+                notes
+                host
+              }
+              room {
+                id
+                host
+                name
+                price
+              }
+                description
+              duration
+              numberOfGuests
+              startDate
+              endDate
+            }
+          }
+        }`;
+
+  sendGraphQLRequest(query, variables)
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      // Send the successful login response
+      res.status(200).json(result.data.updateBookingGuest);
     })
     .catch((error: any) => {
       // Handle errors from the helper function
