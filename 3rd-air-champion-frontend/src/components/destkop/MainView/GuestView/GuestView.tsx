@@ -79,7 +79,7 @@ const GuestView = ({
               <div className="flex flex-col h-full justify-center space-y-2">
                 {booking.description === "" ? (
                   <button
-                    className="rounded-full shadow-md bg-black text-white font-semibold h-[56px] w-[56px] text-[0.6rem]"
+                    className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
                     onClick={() => {
                       const phone = booking.guest.phone;
                       window.location.href = `sms:${phone}`;
@@ -89,7 +89,7 @@ const GuestView = ({
                   </button>
                 ) : (
                   <button
-                    className="rounded-full shadow-md bg-black text-white font-semibold h-[56px] w-[56px] text-[0.6rem]"
+                    className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
                     onClick={() => {
                       const url = booking.description.match(
                         /https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/\S+/

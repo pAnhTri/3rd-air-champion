@@ -16,7 +16,7 @@ const BookButton = ({
         if (typeof setIsMobileModalOpen !== "undefined")
           setIsMobileModalOpen(false);
       }}
-      className="flex justify-center items-center rounded-full shadow-md bg-blue-500 hover:bg-blue-600 text-white font-semibold h-[76px] w-[76px] text-2xl"
+      className="flex justify-center items-center rounded-full shadow-md bg-blue-500 hover:bg-blue-600 text-white font-semibold h-[64px] w-[64px] text-2xl"
     >
       <FaPlus />
     </button>
