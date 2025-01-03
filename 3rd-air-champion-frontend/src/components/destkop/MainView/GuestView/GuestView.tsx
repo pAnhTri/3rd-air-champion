@@ -46,7 +46,7 @@ const GuestView = ({
                     className="h-full cursor-pointer underline text-blue-500"
                     onClick={() => setSelectedBooking(booking)}
                   >
-                    Details...
+                    {booking.notes}
                   </div>
                 </div>
 
@@ -107,8 +107,11 @@ const GuestView = ({
         return (
           <div
             key={index}
-            className="flex items-center justify-center border-b border-solid h-full w-full"
+            className="flex flex-col items-center justify-center border-b border-solid h-full w-full space-y-2"
           >
+            <p>
+              Remaining room {1 + index} / {remainingNumberOfRooms}
+            </p>
             {children}
           </div>
         );
