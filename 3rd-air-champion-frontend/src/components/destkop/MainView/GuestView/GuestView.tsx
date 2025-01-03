@@ -1,6 +1,7 @@
 import { formatDate } from "../../../../util/formatDate";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
+import { FaMinus } from "react-icons/fa";
 
 interface GuestViewProps {
   children: JSX.Element;
@@ -30,9 +31,21 @@ const GuestView = ({
               <div className="h-full w-full grid grid-rows-3">
                 {/* Name */}
                 <div className="flex flex-col h-full">
-                  <h1 className="self-center font-bold text-lg">
-                    {booking.alias || booking.guest.name} ({booking.room.name})
-                  </h1>
+                  <div className="flex items-center">
+                    <h1 className="basis-2/3 font-bold text-lg">
+                      {booking.alias || booking.guest.name} ({booking.room.name}
+                      )
+                    </h1>
+                    {booking.guest.name !== "AirBnB" && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedUnbooking(booking)}
+                        className="flex justify-center w-[24px] h-[24px] items-center rounded-full shadow-md bg-red-500 hover:bg-red-600 text-white font-semibold"
+                      >
+                        <FaMinus size={14} />
+                      </button>
+                    )}
+                  </div>
                   {/* Notes */}
                   <div
                     className="h-full cursor-pointer underline text-blue-500"
@@ -91,13 +104,6 @@ const GuestView = ({
                     Booking Details
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setSelectedUnbooking(booking)}
-                  className="rounded-full shadow-md bg-black text-white font-semibold h-[56px] w-[56px] text-[0.6rem]"
-                >
-                  Unbook
-                </button>
               </div>
             </div>
           </div>

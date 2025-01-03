@@ -1,3 +1,5 @@
+import { FaPlus } from "react-icons/fa";
+
 interface BookButtonProps {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsMobileModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -14,9 +16,9 @@ const BookButton = ({
         if (typeof setIsMobileModalOpen !== "undefined")
           setIsMobileModalOpen(false);
       }}
-      className="rounded-full shadow-md bg-blue-500 hover:bg-blue-600 text-white font-semibold h-[76px] w-[76px] text-[0.8rem]"
+      className="flex justify-center items-center rounded-full shadow-md bg-blue-500 hover:bg-blue-600 text-white font-semibold h-[76px] w-[76px] text-2xl"
     >
-      Book
+      <FaPlus />
     </button>
   );
 };
