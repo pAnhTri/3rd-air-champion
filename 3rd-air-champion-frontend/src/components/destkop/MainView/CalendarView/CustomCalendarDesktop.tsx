@@ -115,7 +115,9 @@ const CustomCalendar = ({
                 key="red"
                 className="text-white bg-red-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
               >
-                {booking.alias || booking.guest.name}
+                {booking.guest.name === "AirBnB" && booking.alias
+                  ? `${booking.alias} (A)`
+                  : booking.guest.name}
               </div>
             );
           } else if (booking.room.name === "Cute") {
@@ -124,7 +126,9 @@ const CustomCalendar = ({
                 key="blue"
                 className="text-white bg-blue-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
               >
-                {booking.alias || booking.guest.name}
+                {booking.guest.name === "AirBnB" && booking.alias
+                  ? `${booking.alias} (A)`
+                  : booking.guest.name}
               </div>
             );
           } else {
@@ -133,7 +137,9 @@ const CustomCalendar = ({
                 key="green"
                 className="text-white bg-green-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
               >
-                {booking.alias || booking.guest.name}
+                {booking.guest.name === "AirBnB" && booking.alias
+                  ? `${booking.alias} (A)`
+                  : booking.guest.name}
               </div>
             );
           }
