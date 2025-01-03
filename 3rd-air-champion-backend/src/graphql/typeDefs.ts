@@ -238,6 +238,8 @@ const dayDefs = gql`
       numberOfGuests: Int
     ): [Day]
 
+    unbookGuest(_id: String!): [Day]
+
     updateDay(
       _id: String!
       isAirBnB: Boolean

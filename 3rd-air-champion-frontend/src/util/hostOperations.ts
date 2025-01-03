@@ -1,7 +1,7 @@
 import axios from "axios";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 
-const BACKEND_ENDPOINT = import.meta.env.VITE_PRODUCTION_BACKEND_ENDPOINT || "";
+const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
 
 export const fetchHost = async (id: string, token: string) => {
   return axios

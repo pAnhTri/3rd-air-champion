@@ -1,4 +1,4 @@
-import { format, parseISO } from "date-fns";
+import { formatDate } from "../../../../util/formatDate";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
 
@@ -7,6 +7,7 @@ interface GuestViewProps {
   currentBookings: bookingType[];
   rooms: roomType[];
   setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
+  setSelectedUnbooking: React.Dispatch<React.SetStateAction<bookingType>>;
 }
 
 const GuestView = ({
@@ -14,15 +15,8 @@ const GuestView = ({
   currentBookings,
   rooms,
   setSelectedBooking,
+  setSelectedUnbooking,
 }: GuestViewProps) => {
-  const formatDate = (dateString: string) => {
-    // Parse the input string into a Date object
-    const date = parseISO(dateString);
-
-    // Format the date as mm/dd/yy
-    return format(date, "MM/dd/yy");
-  };
-
   return (
     <div className={`grid grid-rows-3 h-full px-2 overflow-y-scroll`}>
       {currentBookings.map((booking, index) => {
@@ -44,7 +38,7 @@ const GuestView = ({
                     className="h-full cursor-pointer underline text-blue-500"
                     onClick={() => setSelectedBooking(booking)}
                   >
-                    {booking.notes}
+                    {booking.notes || "Details..."}
                   </div>
                 </div>
 
@@ -69,10 +63,10 @@ const GuestView = ({
 
             {/* Action */}
             <div className="basis-1/5">
-              <div className="flex h-full items-center">
+              <div className="flex flex-col h-full justify-center space-y-2">
                 {booking.description === "" ? (
                   <button
-                    className="rounded-full shadow-md bg-black text-white font-semibold h-[76px] w-[76px] text-[0.8rem]"
+                    className="rounded-full shadow-md bg-black text-white font-semibold h-[56px] w-[56px] text-[0.6rem]"
                     onClick={() => {
                       const phone = booking.guest.phone;
                       window.location.href = `sms:${phone}`;
@@ -82,7 +76,7 @@ const GuestView = ({
                   </button>
                 ) : (
                   <button
-                    className="rounded-full shadow-md bg-black text-white font-semibold h-[76px] w-[76px] text-[0.8rem]"
+                    className="rounded-full shadow-md bg-black text-white font-semibold h-[56px] w-[56px] text-[0.6rem]"
                     onClick={() => {
                       const url = booking.description.match(
                         /https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/\S+/
@@ -97,6 +91,13 @@ const GuestView = ({
                     Booking Details
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedUnbooking(booking)}
+                  className="rounded-full shadow-md bg-black text-white font-semibold h-[56px] w-[56px] text-[0.6rem]"
+                >
+                  Unbook
+                </button>
               </div>
             </div>
           </div>

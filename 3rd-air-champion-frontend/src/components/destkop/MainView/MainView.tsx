@@ -17,7 +17,11 @@ import GuestView from "./GuestView/GuestView";
 import BookButton from "../BookButton";
 import { isSyncModalOpenContext } from "../../../App";
 import DetailsModal from "./GuestView/DetailsModal";
-import { updateBookingGuest } from "../../../util/bookingOperations";
+import {
+  updateBookingGuest,
+  updateUnbookGuest,
+} from "../../../util/bookingOperations";
+import UnbookingConfirmation from "./GuestView/UnbookingConfirmation";
 
 interface MainViewProps {
   calendarId: string;
@@ -48,6 +52,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [isCalendarLoading, setIsCalendarLoading] = useState(true); // Track loading state
   const [calendarErrorMessage, setCalendarErrorMessage] = useState<string>(""); // Track errors
 
+  const [monthMap, setMonthMap] = useState<Map<string, dayType>>(new Map());
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
 
@@ -59,6 +65,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [selectedBooking, setSelectedBooking] = useState<bookingType | null>(
     null
   );
+  const [selectedUnbooking, setSelectedUnbooking] =
+    useState<bookingType | null>(null);
 
   const onSync = () => {
     alert("Synchronizing with Airbnb");
@@ -125,6 +133,21 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         setIsCalendarLoading(false);
       });
   }, [isCalendarLoading]);
+
+  useEffect(() => {
+    const map = new Map<string, dayType>();
+    days.forEach((day) => {
+      const formattedDate = new Date(day.date).toISOString().split("T")[0];
+      map.set(formattedDate, day);
+    });
+    setMonthMap(map);
+
+    const day = monthMap.get(selectedDate.toISOString().split("T")[0]);
+
+    if (day && day.bookings) {
+      setCurrentBookings(day.bookings);
+    } else setCurrentBookings(null);
+  }, [days]);
 
   useEffect(() => {
     if (shouldCallOnSync) {
@@ -207,6 +230,18 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       });
   };
 
+  const onUnbook = (id: string) => {
+    setSelectedUnbooking(null);
+    updateUnbookGuest(id, token as string)
+      .then((result) => {
+        console.log(result);
+        setIsCalendarLoading(true);
+      })
+      .catch((err) => {
+        console.error("Error unbooking guest:", err);
+      });
+  };
+
   return (
     <>
       <div className="col-span-5 bg-gray-100 overflow-hidden sm:col-span-4">
@@ -236,8 +271,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               setCurrentMonth={setCurrentMonth}
               setIsMobileModalOpen={setIsMobileModalOpen}
               setSelectedDate={setSelectedDate}
-              days={days}
               setDays={setDays}
+              monthMap={monthMap}
             />
             {isModalOpen && (
               <BookingModal
@@ -262,6 +297,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             rooms={rooms}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
+                React.SetStateAction<bookingType>
+              >
+            }
+            setSelectedUnbooking={
+              setSelectedUnbooking as React.Dispatch<
                 React.SetStateAction<bookingType>
               >
             }
@@ -302,6 +342,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 React.SetStateAction<bookingType>
               >
             }
+            setSelectedUnbooking={
+              setSelectedUnbooking as React.Dispatch<
+                React.SetStateAction<bookingType>
+              >
+            }
           >
             <BookButton
               setIsModalOpen={setIsModalOpen}
@@ -322,6 +367,13 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
           onUpdateGuests={onUpdateGuest}
+        />
+      )}
+      {selectedUnbooking && (
+        <UnbookingConfirmation
+          booking={selectedUnbooking}
+          onClose={() => setSelectedUnbooking(null)}
+          onUnbook={onUnbook}
         />
       )}
     </>

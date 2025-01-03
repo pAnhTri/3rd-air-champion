@@ -8,7 +8,7 @@ import { roomType } from "../../../../util/types/roomType";
 
 interface CustomCalendarProps {
   currentMonth: Date;
-  days: dayType[];
+  monthMap: Map<string, dayType>;
   rooms: roomType[];
   setDays: React.Dispatch<React.SetStateAction<dayType[]>>;
   setCurrentBookings: React.Dispatch<
@@ -21,7 +21,7 @@ interface CustomCalendarProps {
 
 const CustomCalendar = ({
   currentMonth,
-  days,
+  monthMap,
   rooms,
   setCurrentBookings,
   setCurrentMonth,
@@ -29,7 +29,7 @@ const CustomCalendar = ({
   setSelectedDate,
 }: CustomCalendarProps) => {
   const [months, setMonths] = useState<Date[]>([]);
-  const [monthMap, setMonthMap] = useState<Map<string, dayType>>(new Map());
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,15 +47,6 @@ const CustomCalendar = ({
 
     setMonths(monthsArray);
   }, []);
-
-  useEffect(() => {
-    const map = new Map<string, dayType>();
-    days.forEach((day) => {
-      const formattedDate = new Date(day.date).toISOString().split("T")[0];
-      map.set(formattedDate, day);
-    });
-    setMonthMap(map);
-  }, [days]);
 
   useEffect(() => {
     if (scrollContainerRef.current && months.length > 0) {

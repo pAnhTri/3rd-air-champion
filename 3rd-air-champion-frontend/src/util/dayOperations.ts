@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BACKEND_ENDPOINT = import.meta.env.VITE_PRODUCTION_BACKEND_ENDPOINT || "";
+const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
 
 export const fetchDays = async (calendarId: string, token: string) => {
   return axios
