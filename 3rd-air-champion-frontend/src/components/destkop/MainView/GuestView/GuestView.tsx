@@ -23,8 +23,6 @@ const GuestView = ({
     return format(date, "MM/dd/yy");
   };
 
-  const remainingNumberOfRooms = rooms.length - currentBookings.length;
-
   return (
     <div className={`grid grid-rows-3 h-full px-2 overflow-y-scroll`}>
       {currentBookings.map((booking, index) => {
@@ -61,7 +59,10 @@ const GuestView = ({
 
                 {/* Room information */}
                 <div className="flex flex-col h-full justify-center">
-                  <p>Number of Guests: {booking.numberOfGuests}</p>
+                  <p>
+                    {booking.numberOfGuests}
+                    {`${booking.numberOfGuests > 1 ? " Guests" : " Guest"}`}
+                  </p>
                 </div>
               </div>
             </div>
@@ -103,19 +104,19 @@ const GuestView = ({
       })}
 
       {/* Remaining rooms to book */}
-      {Array.from({ length: remainingNumberOfRooms }).map((_, index) => {
-        return (
+      {rooms
+        .filter((room) =>
+          currentBookings.every((booking) => room.name !== booking.room.name)
+        )
+        .map((room, index) => (
           <div
             key={index}
             className="flex flex-col items-center justify-center border-b border-solid h-full w-full space-y-2"
           >
-            <p>
-              Remaining room {1 + index} / {remainingNumberOfRooms}
-            </p>
+            <p>{room.name}</p>
             {children}
           </div>
-        );
-      })}
+        ))}
     </div>
   );
 };
