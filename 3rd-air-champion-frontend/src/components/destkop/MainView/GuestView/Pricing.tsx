@@ -86,7 +86,13 @@ const Pricing = ({
                     type="number"
                     className="border p-1 w-20"
                     step="0.01"
-                    onChange={(event) => field.onChange(+event.target.value)}
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value === ""
+                          ? event.target.value
+                          : +event.target.value
+                      )
+                    }
                     onBlur={() => setEditingRoomIndex(null)}
                   />
                   {fieldState.error && (
