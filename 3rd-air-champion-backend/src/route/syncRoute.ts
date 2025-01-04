@@ -90,6 +90,7 @@ router.post("/sync", async (req: Request, res: any) => {
             guest {
                 id
                 name
+                alias
                 email
                 phone
                 numberOfGuests

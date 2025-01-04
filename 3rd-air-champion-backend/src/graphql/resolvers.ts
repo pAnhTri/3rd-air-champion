@@ -538,6 +538,7 @@ const dayResolver = {
 
       const currentGuest = await Guest.findById(guest);
       const notes = currentGuest?.name !== "AirBnB" ? currentGuest?.notes : "";
+      const alias = currentGuest?.name !== "AirBnB" ? currentGuest?.alias : "";
 
       const bulkOperation = dates.map((bookingDate) => ({
         updateOne: {
@@ -551,6 +552,7 @@ const dayResolver = {
                 guest,
                 room,
                 notes: notes,
+                alias: alias,
                 price: roomPrice,
                 duration,
                 numberOfGuests,
@@ -682,6 +684,34 @@ const dayResolver = {
           },
           {
             $set: { "bookings.$[matchingBooking].notes": notes },
+          },
+          {
+            arrayFilters: [
+              {
+                "matchingBooking.guest": currentBooking?.guest,
+                "matchingBooking.room": currentBooking?.room,
+              },
+            ],
+            runValidators: true,
+          }
+        );
+      }
+
+      if (currentGuest?.name !== "AirBnB" && alias) {
+        await Guest.findByIdAndUpdate(
+          currentBooking?.guest,
+          { alias },
+          { runValidators: true }
+        );
+
+        await Day.updateMany(
+          {
+            calendar,
+            "bookings.guest": currentBooking?.guest,
+            "bookings.room": currentBooking?.room,
+          },
+          {
+            $set: { "bookings.$[matchingBooking].alias": alias },
           },
           {
             arrayFilters: [

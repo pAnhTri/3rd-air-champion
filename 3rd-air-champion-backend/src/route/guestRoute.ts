@@ -29,6 +29,7 @@ router.post("/create", async (req: Request, res: any) => {
         createGuest(name: $name, phone: $phone, host: $host, numberOfGuests: $numberOfGuests, returning: $returning, notes: $notes, email: $email) {
             id
             phone
+            alias
             numberOfGuests
             notes
             name
@@ -115,6 +116,7 @@ router.put("/update", async (req: Request, res: any) => {
             updateGuest(_id: $id, name: $name, email: $email, phone: $phone, numberOfGuests: $numberOfGuests, returning: $returning, notes: $notes) {
                 host
                 email
+                alias
                 name
                 notes
                 numberOfGuests
@@ -151,6 +153,7 @@ router.get("/get", async (req: Request, res: any) => {
         guests {
             id
             name
+            alias
             notes
             numberOfGuests
             phone
@@ -189,6 +192,7 @@ router.post("/get/one", async (req: Request, res: any) => {
           guest (_id: $id) {
               id
               name
+              alias
               notes
               numberOfGuests
               phone
@@ -227,6 +231,7 @@ router.post("/update/pricing", async (req: Request, res: any) => {
         updateGuestPricing(guest: $guest, room: $room, price: $price) {
           id
           name
+          alias
           notes
           numberOfGuests
           phone
@@ -265,6 +270,7 @@ router.post("/get/host", async (req: Request, res: any) => {
         guestsHost(host: $host) {
           id
           name
+          alias
           notes
           numberOfGuests
           phone

@@ -42,8 +42,10 @@ const GuestView = ({
                 <div className="flex flex-col h-full border-b border-solid mb-1">
                   <div className="flex items-center">
                     <h1 className="basis-2/3 font-bold text-lg">
-                      {booking.alias || booking.guest.name} ({booking.room.name}
-                      )
+                      {booking.guest.alias ||
+                        booking.alias ||
+                        booking.guest.name}{" "}
+                      ({booking.room.name})
                     </h1>
                     {booking.guest.name !== "AirBnB" && (
                       <button

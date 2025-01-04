@@ -106,6 +106,7 @@ const guestDefs = gql`
   type Guest {
     id: ID!
     name: String!
+    alias: String
     email: String
     phone: String!
     pricing: [Prcicing]

@@ -40,6 +40,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   };
 
   const { isSyncModalOpen, shouldCallOnSync, setShouldCallOnSync } = context;
+  const [initialSync, setIsInitialSync] = useState(true);
 
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [currentBookings, setCurrentBookings] = useState<
@@ -69,7 +70,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     useState<bookingType | null>(null);
 
   const onSync = () => {
-    alert("Synchronizing with Airbnb");
+    if (shouldCallOnSync) alert("Synchronizing with Airbnb");
     const savedData = localStorage.getItem("syncData");
     const requestBody: {
       calendar?: string;
@@ -93,7 +94,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     )
       .then((result) => {
         setIsBlockedAirBnBDates(result.blocked);
-        setIsCalendarLoading(true);
+        if (shouldCallOnSync) setIsCalendarLoading(true);
       })
       .catch((err) => console.error("Error syncing calendars:", err));
   };
@@ -102,7 +103,22 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     if (airbnbsync) {
       localStorage.setItem("syncData", JSON.stringify(airbnbsync));
     }
+
+    fetchGuests(hostId, token as string)
+      .then((result) => {
+        setGuests(result);
+      })
+      .catch((err) => {
+        console.error("Error fetching guests:", err);
+      });
   }, []);
+
+  useEffect(() => {
+    if (initialSync && guests.length > 0) {
+      onSync();
+      setIsInitialSync(false);
+    }
+  }, [guests, initialSync]);
 
   useEffect(() => {
     fetchGuests(hostId, token as string)

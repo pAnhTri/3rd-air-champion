@@ -29,6 +29,7 @@ router.get("/get", async (req: Request, res: any) => {
               guest {
                 id
                 name
+                alias
                 email
                 phone
                 numberOfGuests
@@ -143,6 +144,7 @@ router.post("/get/host", async (req: Request, res: any) => {
               guest {
                 id
                 name
+                alias
                 email
                 phone
                 numberOfGuests
@@ -349,6 +351,7 @@ router.post("/book/range", async (req: Request, res: any) => {
               price
               guest {
                 id
+                alias
                 name
                 email
                 phone
@@ -437,6 +440,7 @@ router.post("/update/booking/guest", async (req: Request, res: any) => {
               guest {
                 id
                 name
+                alias
                 email
                 phone
                 numberOfGuests
@@ -506,6 +510,7 @@ router.post("/update/unbook/guest", async (req: Request, res: any) => {
               guest {
                 id
                 name
+                alias
                 email
                 phone
                 numberOfGuests

@@ -6,6 +6,7 @@ import Day from "./daySchema";
 const guestSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    alias: { type: String, default: "" },
     email: {
       type: String,
       match: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
