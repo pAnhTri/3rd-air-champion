@@ -3,18 +3,19 @@ import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
 import { FaMinus } from "react-icons/fa";
 import Pricing from "./Pricing";
+import { useState } from "react";
 
 interface GuestViewProps {
   children: JSX.Element;
   currentBookings: bookingType[];
-  editingRoomIndex: number | null;
   rooms: roomType[];
-  onPricingUpdate: (data: {
-    guest: string;
-    room: string;
-    price: number;
-  }) => void;
-  setEditingRoomIndex: React.Dispatch<React.SetStateAction<number | null>>;
+  onPricingUpdate: (
+    data: {
+      guest: string;
+      room: string;
+      price: number;
+    }[]
+  ) => void;
   setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
   setSelectedUnbooking: React.Dispatch<React.SetStateAction<bookingType>>;
 }
@@ -22,13 +23,13 @@ interface GuestViewProps {
 const GuestView = ({
   children,
   currentBookings,
-  editingRoomIndex,
   rooms,
   onPricingUpdate,
-  setEditingRoomIndex,
   setSelectedBooking,
   setSelectedUnbooking,
 }: GuestViewProps) => {
+  const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+
   return (
     <div className={`flex flex-col h-full px-2 overflow-y-scroll`}>
       {currentBookings.map((booking, index) => {
@@ -38,7 +39,7 @@ const GuestView = ({
             <div className="basis-4/5">
               <div className="h-full w-full flex flex-col">
                 {/* Name */}
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full border-b border-solid mb-1">
                   <div className="flex items-center">
                     <h1 className="basis-2/3 font-bold text-lg">
                       {booking.alias || booking.guest.name} ({booking.room.name}
@@ -64,7 +65,7 @@ const GuestView = ({
                 </div>
 
                 {/* Room information */}
-                <div className="flex flex-col h-full justify-center">
+                <div className="flex flex-col h-full justify-center  border-b border-solid mb-2">
                   <p>Duration (Days): {booking.duration}</p>
                   <p>
                     {formatDate(booking.startDate)} -{" "}
@@ -72,7 +73,6 @@ const GuestView = ({
                   </p>
                 </div>
 
-                {/* Room information */}
                 <div className="flex flex-col h-full justify-center">
                   <p>
                     {booking.numberOfGuests}
@@ -83,10 +83,10 @@ const GuestView = ({
                   {booking.guest.name !== "AirBnB" && (
                     <Pricing
                       booking={booking}
-                      editingRoomIndex={editingRoomIndex}
+                      isEditing={isEditing}
                       onPricingUpdate={onPricingUpdate}
+                      setIsEditing={setIsEditing}
                       rooms={rooms}
-                      setEditingRoomIndex={setEditingRoomIndex}
                     />
                   )}
                 </div>

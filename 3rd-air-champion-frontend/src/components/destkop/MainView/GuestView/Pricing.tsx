@@ -11,25 +11,28 @@ import {
   pricingZodObject,
   pricingZodSchema,
 } from "../../../../util/zodPricing";
+import { FaRegEdit } from "react-icons/fa";
 
 interface PricingProps {
   booking: bookingType;
-  editingRoomIndex: number | null;
+  isEditing: boolean;
   rooms: roomType[];
-  onPricingUpdate: (data: {
-    guest: string;
-    room: string;
-    price: number;
-  }) => void;
-  setEditingRoomIndex: React.Dispatch<React.SetStateAction<number | null>>;
+  onPricingUpdate: (
+    data: {
+      guest: string;
+      room: string;
+      price: number;
+    }[]
+  ) => void;
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const Pricing = ({
   booking,
-  editingRoomIndex,
+  isEditing,
   rooms,
   onPricingUpdate,
-  setEditingRoomIndex,
+  setIsEditing,
 }: PricingProps) => {
   // Initialize React Hook Form
   const { control, handleSubmit } = useForm<pricingZodSchema>({
@@ -53,67 +56,90 @@ const Pricing = ({
   });
 
   const onSubmit: SubmitHandler<pricingZodSchema> = (data) => {
-    console.log(data);
-    console.log(editingRoomIndex);
-
-    const modifiedField = {
-      room: data.pricing[editingRoomIndex as number].room,
-      price: data.pricing[editingRoomIndex as number].price,
+    const updatedPricing = data.pricing.map((pricing) => ({
+      ...pricing,
       guest: booking.guest.id,
-    };
+    }));
 
-    console.log(modifiedField);
-
-    onPricingUpdate(modifiedField);
+    console.log("Updated Pricing:", updatedPricing);
+    onPricingUpdate(updatedPricing);
+    setIsEditing(false); // Exit edit mode after saving
   };
 
   return (
-    <div className="flex flex-col space-y-2">
-      {fields.map((field, index) => (
+    <div>
+      {isEditing ? (
         <form
-          key={field.id}
           onSubmit={handleSubmit(onSubmit)}
-          className="flex space-x-2 items-center"
+          className="flex flex-col space-y-4"
         >
-          {editingRoomIndex === index ? (
-            <Controller
-              name={`pricing.${index}.price`}
-              control={control}
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col">
-                  <input
-                    {...field}
-                    type="number"
-                    className="border p-1 w-20"
-                    step="0.01"
-                    onChange={(event) =>
-                      field.onChange(
-                        event.target.value === ""
-                          ? event.target.value
-                          : +event.target.value
-                      )
-                    }
-                    onBlur={() => setEditingRoomIndex(null)}
-                  />
-                  {fieldState.error && (
-                    <span className="text-red-500 text-sm">
-                      {fieldState.error.message}
-                    </span>
-                  )}
-                </div>
-              )}
-            />
-          ) : (
-            <span
-              className="cursor-pointer"
-              onClick={() => setEditingRoomIndex(index)}
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex items-center space-x-4">
+              <span className="basis-1/3">{rooms[index].name}:</span>
+              <Controller
+                name={`pricing.${index}.price`}
+                control={control}
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col">
+                    <input
+                      {...field}
+                      type="number"
+                      className="border p-1 w-24"
+                      step="0.01"
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value === ""
+                            ? event.target.value
+                            : +event.target.value
+                        )
+                      }
+                    />
+                    {fieldState.error && (
+                      <span className="text-red-500 text-sm">
+                        {fieldState.error.message}
+                      </span>
+                    )}
+                  </div>
+                )}
+              />
+            </div>
+          ))}
+          <div className="flex items-center space-x-4">
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded-md"
             >
-              {rooms[index].name}: $
-              <span className="underline">{field.price}</span>
-            </span>
-          )}
+              Save All
+            </button>
+            <button
+              type="button"
+              className="bg-gray-500 text-white px-4 py-2 rounded-md"
+              onClick={() => setIsEditing(false)}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
-      ))}
+      ) : (
+        <div>
+          <div className="flex items-center space-x-2">
+            <span>Prices: </span>
+            <FaRegEdit
+              className="cursor-pointer"
+              onClick={() => setIsEditing(true)}
+            />
+          </div>
+          <div className="flex">
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex items-center">
+                <span>
+                  {rooms[index].name}: ${field.price}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -68,8 +68,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [selectedUnbooking, setSelectedUnbooking] =
     useState<bookingType | null>(null);
 
-  const [editingRoomIndex, setEditingRoomIndex] = useState<number | null>(null);
-
   const onSync = () => {
     alert("Synchronizing with Airbnb");
     const savedData = localStorage.getItem("syncData");
@@ -242,15 +240,20 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       });
   };
 
-  const onPricingUpdate = (data: {
-    guest: string;
-    room: string;
-    price: number;
-  }) => {
-    setEditingRoomIndex(null); // Exit edit mode
-    updateGuestPricing(data, token as string)
-      .then((result) => {
-        console.log(result);
+  const onPricingUpdate = (
+    data: {
+      guest: string;
+      room: string;
+      price: number;
+    }[]
+  ) => {
+    Promise.all(
+      data.map((priceUpdate) =>
+        updateGuestPricing(priceUpdate, token as string)
+      )
+    )
+      .then((results) => {
+        console.log("All updates completed:", results);
         setCurrentBookings(null);
         setIsMobileModalOpen(false);
         setIsCalendarLoading(true);
@@ -313,9 +316,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <GuestView
             currentBookings={currentBookings}
             rooms={rooms}
-            editingRoomIndex={editingRoomIndex}
             onPricingUpdate={onPricingUpdate}
-            setEditingRoomIndex={setEditingRoomIndex}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
@@ -358,9 +359,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <GuestView
             currentBookings={currentBookings}
             rooms={rooms}
-            editingRoomIndex={editingRoomIndex}
             onPricingUpdate={onPricingUpdate}
-            setEditingRoomIndex={setEditingRoomIndex}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
