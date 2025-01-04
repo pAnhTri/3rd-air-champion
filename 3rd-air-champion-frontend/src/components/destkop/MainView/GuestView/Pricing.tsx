@@ -1,4 +1,9 @@
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  useFieldArray,
+  SubmitHandler,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
@@ -27,7 +32,7 @@ const Pricing = ({
   setEditingRoomIndex,
 }: PricingProps) => {
   // Initialize React Hook Form
-  const { control, handleSubmit, getValues } = useForm<pricingZodSchema>({
+  const { control, handleSubmit } = useForm<pricingZodSchema>({
     resolver: zodResolver(pricingZodObject),
     defaultValues: {
       pricing: rooms.map((room) => {
@@ -47,15 +52,17 @@ const Pricing = ({
     name: "pricing",
   });
 
-  const onSubmit = () => {
-    if (editingRoomIndex === null) return;
+  const onSubmit: SubmitHandler<pricingZodSchema> = (data) => {
+    console.log(data);
+    console.log(editingRoomIndex);
 
-    // Get the modified field using editingRoomIndex
     const modifiedField = {
-      room: getValues(`pricing.${editingRoomIndex}`).room,
-      price: getValues(`pricing.${editingRoomIndex}`).price,
+      room: data.pricing[editingRoomIndex as number].room,
+      price: data.pricing[editingRoomIndex as number].price,
       guest: booking.guest.id,
     };
+
+    console.log(modifiedField);
 
     onPricingUpdate(modifiedField);
   };
@@ -80,7 +87,7 @@ const Pricing = ({
                     className="border p-1 w-20"
                     step="0.01"
                     onChange={(event) => field.onChange(+event.target.value)}
-                    onBlur={() => setEditingRoomIndex(null)} // Submit on blur
+                    onBlur={() => setEditingRoomIndex(null)}
                   />
                   {fieldState.error && (
                     <span className="text-red-500 text-sm">
@@ -99,7 +106,6 @@ const Pricing = ({
               <span className="underline">{field.price}</span>
             </span>
           )}
-          {editingRoomIndex === index && <button type="submit">Save</button>}
         </form>
       ))}
     </div>
