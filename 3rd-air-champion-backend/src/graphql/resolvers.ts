@@ -182,6 +182,28 @@ const guestResolver = {
 
       return await new Guest(guestData).save();
     },
+    updateGuestPricing: async (_: unknown, { guest, room, price }: any) => {
+      const guestData = await Guest.findOne({
+        _id: guest,
+        "pricing.room": room,
+      });
+
+      if (guestData) {
+        // Room exists, update its price
+        await Guest.updateOne(
+          { _id: guest, "pricing.room": room },
+          { $set: { "pricing.$.price": price } }
+        );
+      } else {
+        // Room doesn't exist, add a new entry
+        await Guest.updateOne(
+          { _id: guest },
+          { $push: { pricing: { room, price } } }
+        );
+      }
+
+      return await Guest.findById(guest);
+    },
     updateGuest: async (
       _: unknown,
       { _id, name, email, phone, numberOfGuests, returning, notes }: any

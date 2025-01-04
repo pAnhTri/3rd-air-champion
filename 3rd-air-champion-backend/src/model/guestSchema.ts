@@ -12,6 +12,12 @@ const guestSchema = new mongoose.Schema(
     },
     phone: { type: String, required: true },
     numberOfGuests: { type: Number, required: true, default: 1 },
+    pricing: [
+      {
+        room: { type: mongoose.Schema.ObjectId, ref: "Room" },
+        price: { type: Number, default: 0 },
+      },
+    ],
     returning: { type: Boolean, required: true, default: false },
     notes: { type: String, default: "" },
     host: { type: mongoose.Schema.ObjectId, ref: "Host", required: true },

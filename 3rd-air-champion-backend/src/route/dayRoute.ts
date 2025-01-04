@@ -35,6 +35,11 @@ router.get("/get", async (req: Request, res: any) => {
                 returning
                 notes
                 host
+                pricing {
+                  id
+                  price
+                  room
+                }
               }
               room {
                 id
@@ -144,6 +149,11 @@ router.post("/get/host", async (req: Request, res: any) => {
                 returning
                 notes
                 host
+                pricing {
+                  id
+                  price
+                  room
+                }
               }
               room {
                 id
@@ -346,6 +356,11 @@ router.post("/book/range", async (req: Request, res: any) => {
                 returning
                 notes
                 host
+                pricing {
+                  id
+                  price
+                  room
+                }
               }
               room {
                 id
@@ -428,6 +443,11 @@ router.post("/update/booking/guest", async (req: Request, res: any) => {
                 returning
                 notes
                 host
+                pricing {
+                  id
+                  price
+                  room
+                }
               }
               room {
                 id
@@ -492,6 +512,11 @@ router.post("/update/unbook/guest", async (req: Request, res: any) => {
                 returning
                 notes
                 host
+                pricing {
+                  id
+                  price
+                  room
+                }
               }
               room {
                 id

@@ -34,6 +34,11 @@ router.post("/create", async (req: Request, res: any) => {
             name
             email
             returning
+            pricing {
+              id
+              price
+              room
+            }
         }
     }`;
 
@@ -115,6 +120,11 @@ router.put("/update", async (req: Request, res: any) => {
                 numberOfGuests
                 phone
                 returning
+                pricing {
+                  id
+                  price
+                  room
+                }
             }
         }`;
 
@@ -146,6 +156,11 @@ router.get("/get", async (req: Request, res: any) => {
             phone
             returning
             email
+            pricing {
+              id
+              price
+              room
+            }
         }
     }`;
 
@@ -179,6 +194,11 @@ router.post("/get/one", async (req: Request, res: any) => {
               phone
               returning
               email
+              pricing {
+                id
+                price
+                room
+              }
           }
       }`;
 
@@ -189,6 +209,44 @@ router.post("/get/one", async (req: Request, res: any) => {
       }
       // Send the successful login response
       res.status(200).json(result.data.guest);
+    })
+    .catch((error: any) => {
+      // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
+router.post("/update/pricing", async (req: Request, res: any) => {
+  if (!("user" in req))
+    return res.status(401).json({ error: "Invalid or expired token" });
+
+  const { guest, price, room } = req.body;
+
+  const query = `
+      mutation UpdateGuestPricing($guest: String!, $room: String, $price: Float) {
+        updateGuestPricing(guest: $guest, room: $room, price: $price) {
+          id
+          name
+          notes
+          numberOfGuests
+          phone
+          returning
+          email
+          pricing {
+            id
+            price
+            room
+          }
+        }
+      }`;
+
+  sendGraphQLRequest(query, { guest, price, room })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      // Send the successful login response
+      res.status(200).json(result.data.updateGuestPricing);
     })
     .catch((error: any) => {
       // Handle errors from the helper function
@@ -211,7 +269,12 @@ router.post("/get/host", async (req: Request, res: any) => {
           numberOfGuests
           phone
           returning
-          email  
+          email
+          pricing {
+              id
+              price
+              room
+            }  
         }
       }`;
 

@@ -2,11 +2,19 @@ import { formatDate } from "../../../../util/formatDate";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
 import { FaMinus } from "react-icons/fa";
+import Pricing from "./Pricing";
 
 interface GuestViewProps {
   children: JSX.Element;
   currentBookings: bookingType[];
+  editingRoomIndex: number | null;
   rooms: roomType[];
+  onPricingUpdate: (data: {
+    guest: string;
+    room: string;
+    price: number;
+  }) => void;
+  setEditingRoomIndex: React.Dispatch<React.SetStateAction<number | null>>;
   setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
   setSelectedUnbooking: React.Dispatch<React.SetStateAction<bookingType>>;
 }
@@ -14,21 +22,21 @@ interface GuestViewProps {
 const GuestView = ({
   children,
   currentBookings,
+  editingRoomIndex,
   rooms,
+  onPricingUpdate,
+  setEditingRoomIndex,
   setSelectedBooking,
   setSelectedUnbooking,
 }: GuestViewProps) => {
   return (
-    <div className={`grid grid-rows-3 h-full px-2 overflow-y-scroll`}>
+    <div className={`flex flex-col h-full px-2 overflow-y-scroll`}>
       {currentBookings.map((booking, index) => {
         return (
-          <div
-            key={index}
-            className="row-span-1 h-full border-b border-solid flex w-full"
-          >
+          <div key={index} className="h-full border-b border-solid flex w-full">
             {/* Guest Info */}
             <div className="basis-4/5">
-              <div className="h-full w-full grid grid-rows-3">
+              <div className="h-full w-full flex flex-col">
                 {/* Name */}
                 <div className="flex flex-col h-full">
                   <div className="flex items-center">
@@ -70,6 +78,17 @@ const GuestView = ({
                     {booking.numberOfGuests}
                     {`${booking.numberOfGuests > 1 ? " Guests" : " Guest"}`}
                   </p>
+
+                  {/* Room Pricing */}
+                  {booking.guest.name !== "AirBnB" && (
+                    <Pricing
+                      booking={booking}
+                      editingRoomIndex={editingRoomIndex}
+                      onPricingUpdate={onPricingUpdate}
+                      rooms={rooms}
+                      setEditingRoomIndex={setEditingRoomIndex}
+                    />
+                  )}
                 </div>
               </div>
             </div>

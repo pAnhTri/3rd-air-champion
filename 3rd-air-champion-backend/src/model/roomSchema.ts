@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Host from "./hostSchema";
 import Day from "./daySchema";
+import Guest from "./guestSchema";
 
 const roomSchema = new mongoose.Schema(
   {
@@ -84,6 +85,11 @@ roomSchema.post("findOneAndDelete", async function (doc) {
     { new: true }
   );
 
+  await Guest.updateMany(
+    { "pricing.room": doc._id },
+    { $pull: { pricing: { room: doc._id } } }
+  );
+
   await Day.updateMany(
     { "bookings.room": doc._id }, // Match bookings with the deleted room
     { $pull: { bookings: { room: doc._id } } } // Remove bookings with the deleted room
@@ -110,6 +116,11 @@ roomSchema.post("deleteMany", async function (doc) {
       },
     },
     { new: true }
+  );
+
+  await Guest.updateMany(
+    { "pricing.room": { $in: toBeDeletedRoomsIds } }, // Match any booking containing the deleted room
+    { $pull: { pricing: { room: { $in: toBeDeletedRoomsIds } } } } // Remove all bookings with the deleted room
   );
 
   await Day.updateMany(

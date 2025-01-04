@@ -67,3 +67,23 @@ export const createGuest = async (
       throw "An unexpected error occurred. Please try again.";
     });
 };
+
+export const updateGuestPricing = async (
+  body: { guest: string; room: string; price: number },
+  token: string
+) => {
+  return axios
+    .post(`${BACKEND_ENDPOINT}/guest/update/pricing`, body, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((result) => result.data)
+    .catch((err) => {
+      if (err.response && err.response.data && err.response.data.errors) {
+        throw err.response.data.errors;
+      }
+      // Default error message if no backend message is available
+      throw "An unexpected error occurred. Please try again.";
+    });
+};

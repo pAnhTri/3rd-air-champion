@@ -97,11 +97,18 @@ const calendarDefs = gql`
 `;
 
 const guestDefs = gql`
+  type Prcicing {
+    id: ID
+    room: ID
+    price: Float
+  }
+
   type Guest {
     id: ID!
     name: String!
     email: String
     phone: String!
+    pricing: [Prcicing]
     numberOfGuests: Int
     returning: Boolean
     notes: String
@@ -126,6 +133,9 @@ const guestDefs = gql`
       notes: String
       host: String!
     ): Guest!
+
+    updateGuestPricing(guest: String!, room: String, price: Float): Guest!
+
     updateGuest(
       _id: String!
       name: String

@@ -11,7 +11,7 @@ import { roomType } from "../../../util/types/roomType";
 import { fetchRooms } from "../../../util/roomOperations";
 import RoomLinkModal from "./CalendarView/RoomLinkModal";
 import { guestType } from "../../../util/types/guestType";
-import { fetchGuests } from "../../../util/guestOperations";
+import { fetchGuests, updateGuestPricing } from "../../../util/guestOperations";
 import { syncCalendars } from "../../../util/syncOperations";
 import GuestView from "./GuestView/GuestView";
 import BookButton from "../BookButton";
@@ -67,6 +67,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   );
   const [selectedUnbooking, setSelectedUnbooking] =
     useState<bookingType | null>(null);
+
+  const [editingRoomIndex, setEditingRoomIndex] = useState<number | null>(null);
 
   const onSync = () => {
     alert("Synchronizing with Airbnb");
@@ -141,12 +143,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       map.set(formattedDate, day);
     });
     setMonthMap(map);
-
-    const day = monthMap.get(selectedDate.toISOString().split("T")[0]);
-
-    if (day && day.bookings) {
-      setCurrentBookings(day.bookings);
-    } else setCurrentBookings(null);
   }, [days]);
 
   useEffect(() => {
@@ -223,6 +219,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     updateBookingGuest(data, token as string)
       .then((result) => {
         console.log(result);
+        setCurrentBookings(null);
+        setIsMobileModalOpen(false);
         setIsCalendarLoading(true);
       })
       .catch((err) => {
@@ -235,10 +233,30 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     updateUnbookGuest(id, token as string)
       .then((result) => {
         console.log(result);
+        setCurrentBookings(null);
+        setIsMobileModalOpen(false);
         setIsCalendarLoading(true);
       })
       .catch((err) => {
         console.error("Error unbooking guest:", err);
+      });
+  };
+
+  const onPricingUpdate = (data: {
+    guest: string;
+    room: string;
+    price: number;
+  }) => {
+    setEditingRoomIndex(null); // Exit edit mode
+    updateGuestPricing(data, token as string)
+      .then((result) => {
+        console.log(result);
+        setCurrentBookings(null);
+        setIsMobileModalOpen(false);
+        setIsCalendarLoading(true);
+      })
+      .catch((err) => {
+        console.error("Error updating guest pricing:", err);
       });
   };
 
@@ -295,6 +313,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <GuestView
             currentBookings={currentBookings}
             rooms={rooms}
+            editingRoomIndex={editingRoomIndex}
+            onPricingUpdate={onPricingUpdate}
+            setEditingRoomIndex={setEditingRoomIndex}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
@@ -337,6 +358,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <GuestView
             currentBookings={currentBookings}
             rooms={rooms}
+            editingRoomIndex={editingRoomIndex}
+            onPricingUpdate={onPricingUpdate}
+            setEditingRoomIndex={setEditingRoomIndex}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
