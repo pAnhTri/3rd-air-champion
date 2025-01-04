@@ -11,7 +11,6 @@ import {
   pricingZodObject,
   pricingZodSchema,
 } from "../../../../util/zodPricing";
-import { FaRegEdit } from "react-icons/fa";
 
 interface PricingProps {
   booking: bookingType;
@@ -71,7 +70,7 @@ const Pricing = ({
       {isEditing ? (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col space-y-4"
+          className="flex flex-col space-y-1"
         >
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-center space-x-4">
@@ -104,16 +103,16 @@ const Pricing = ({
               />
             </div>
           ))}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 py-1">
             <button
               type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md"
+              className="bg-blue-500 text-white px-2 py-1 rounded-md"
             >
               Save All
             </button>
             <button
               type="button"
-              className="bg-gray-500 text-white px-4 py-2 rounded-md"
+              className="bg-gray-500 text-white px-2 py-1 rounded-md"
               onClick={() => setIsEditing(false)}
             >
               Cancel
@@ -122,18 +121,15 @@ const Pricing = ({
         </form>
       ) : (
         <div>
-          <div className="flex items-center space-x-2">
-            <span>Prices: </span>
-            <FaRegEdit
-              className="cursor-pointer"
-              onClick={() => setIsEditing(true)}
-            />
-          </div>
-          <div className="flex">
+          <div
+            className="flex space-x-1 cursor-pointer underline"
+            onClick={() => setIsEditing(true)}
+          >
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-center">
-                <span>
+                <span className="text-sm whitespace-nowrap">
                   {rooms[index].name}: ${field.price}
+                  {index !== rooms.length - 1 ? "," : ""}
                 </span>
               </div>
             ))}
