@@ -60,13 +60,16 @@ const GuestView = ({
                     className="h-full cursor-pointer underline text-blue-500"
                     onClick={() => setSelectedBooking(booking)}
                   >
-                    {booking.notes || "Details..."}
+                    {booking.guest.notes || booking.notes || "Details..."}
                   </div>
                 </div>
 
                 {/* Room information */}
                 <div className="flex flex-col h-full justify-center  border-b border-solid mb-2">
-                  <p>Duration (Days): {booking.duration}</p>
+                  <p>
+                    {booking.duration}{" "}
+                    {booking.duration > 1 ? "nights" : "night"}
+                  </p>
                   <p>
                     {formatDate(booking.startDate)} -{" "}
                     {formatDate(booking.endDate)}
