@@ -5,7 +5,12 @@ import { dayType } from "../../../util/types/dayType";
 import { fetchDays } from "../../../util/dayOperations";
 import BookingModal from "../BookingModal/BookingModal";
 import { bookingType } from "../../../util/types/bookingType";
-import { addDays, isWithinInterval, startOfToday } from "date-fns";
+import {
+  addDays,
+  getDaysInMonth,
+  isWithinInterval,
+  startOfToday,
+} from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { roomType } from "../../../util/types/roomType";
 import { fetchRooms } from "../../../util/roomOperations";
@@ -68,6 +73,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   );
   const [selectedUnbooking, setSelectedUnbooking] =
     useState<bookingType | null>(null);
+
+  const [occupancy, setOccupancy] = useState<{
+    totalOccupancy: number;
+    roomOccupancy: { name: string; occupancy: number }[];
+  }>({ totalOccupancy: 0, roomOccupancy: [] });
 
   const onSync = () => {
     if (shouldCallOnSync) alert("Synchronizing with Airbnb");
@@ -158,6 +168,68 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     });
     setMonthMap(map);
   }, [days]);
+
+  useEffect(() => {
+    if (days && currentMonth) {
+      const targetMonth = currentMonth.getMonth(); // Current month (0-based index)
+      const targetYear = currentMonth.getFullYear(); // Current year
+
+      // Get unique days in the current month
+      const occupiedDays = days.filter((day) => {
+        const processedDate = new Date(day.date);
+        return (
+          processedDate.getFullYear() === targetYear &&
+          processedDate.getMonth() === targetMonth
+        );
+      });
+
+      // Initialize a map to group Sets by room.id
+      const roomSets = new Map();
+
+      // Iterate over each room in the state
+      rooms.forEach((room) => {
+        const roomId = room.id;
+
+        // Filter the dayType objects by the room.id in their bookings
+        const roomSpecificSet = new Set(
+          occupiedDays.filter((day) =>
+            day.bookings.some((booking) => booking.room.id === roomId)
+          )
+        );
+
+        // Add the Set to the Map
+        roomSets.set(room.name, roomSpecificSet);
+      });
+
+      // Total number of days in the current month
+      const daysInMonth = getDaysInMonth(currentMonth);
+
+      // Initialize total occupancy and room-wise occupancy
+      let totalOccupiedDays = 0;
+      const roomOccupancy = [];
+
+      for (const [roomName, roomSet] of roomSets.entries()) {
+        const occupancyPercentage = (roomSet.size / daysInMonth) * 100;
+        roomOccupancy.push({ name: roomName, occupancy: occupancyPercentage });
+
+        // Exclude "Master" room from total occupancy calculation
+        if (roomName !== "Master") {
+          totalOccupiedDays += roomSet.size;
+        }
+      }
+
+      // Calculate total occupancy percentage (excluding "Master")
+      const totalRooms = rooms.filter((room) => room.name !== "Master").length;
+      const totalOccupancy =
+        (totalOccupiedDays / (totalRooms * daysInMonth)) * 100;
+
+      // Update state
+      setOccupancy({
+        totalOccupancy: totalOccupancy,
+        roomOccupancy: roomOccupancy,
+      });
+    }
+  }, [days, currentMonth]);
 
   useEffect(() => {
     if (shouldCallOnSync) {
@@ -292,7 +364,10 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           </div>
         ) : (
           <>
-            <CalendarNavigator currentMonth={currentMonth} />
+            <CalendarNavigator
+              occupancy={occupancy}
+              currentMonth={currentMonth}
+            />
             {isSyncModalOpen && (
               <RoomLinkModal
                 hostId={hostId}
