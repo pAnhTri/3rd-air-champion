@@ -119,7 +119,7 @@ const CustomCalendar = ({
                 key="red"
                 className={`text-white bg-red-500 ${textSize} truncate h-full flex items-center pl-1 ${
                   booking.guest.name === "AirBnB" && "font-bold"
-                }`}
+                } justify-center`}
               >
                 {booking.guest.name === "AirBnB" && booking.alias
                   ? `${booking.alias} (A)`
@@ -132,7 +132,7 @@ const CustomCalendar = ({
                 key="blue"
                 className={`text-white bg-blue-500 ${textSize} truncate h-full flex items-center pl-1 ${
                   booking.guest.name === "AirBnB" && "font-bold"
-                }`}
+                } justify-center`}
               >
                 {booking.guest.name === "AirBnB" && booking.alias
                   ? `${booking.alias} (A)`
@@ -145,7 +145,7 @@ const CustomCalendar = ({
                 key="green"
                 className={`text-white bg-green-500 ${textSize} truncate h-full flex items-center pl-1 ${
                   booking.guest.name === "AirBnB" && "font-bold"
-                }`}
+                } justify-center`}
               >
                 {booking.guest.name === "AirBnB" && booking.alias
                   ? `${booking.alias} (A)`
