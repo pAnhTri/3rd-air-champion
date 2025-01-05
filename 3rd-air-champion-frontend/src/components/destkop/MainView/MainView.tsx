@@ -308,7 +308,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               setCurrentMonth={setCurrentMonth}
               setIsMobileModalOpen={setIsMobileModalOpen}
               setSelectedDate={setSelectedDate}
-              setDays={setDays}
               monthMap={monthMap}
             />
             {isModalOpen && (

@@ -10,7 +10,6 @@ interface CustomCalendarProps {
   currentMonth: Date;
   monthMap: Map<string, dayType>;
   rooms: roomType[];
-  setDays: React.Dispatch<React.SetStateAction<dayType[]>>;
   setCurrentBookings: React.Dispatch<
     React.SetStateAction<bookingType[] | null | undefined>
   >;
