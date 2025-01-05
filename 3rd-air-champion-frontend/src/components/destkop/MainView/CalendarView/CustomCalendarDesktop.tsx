@@ -93,18 +93,33 @@ const CustomCalendar = ({
           blue: JSX.Element;
           green: JSX.Element;
         } = {
-          red: <div className="h-full min-h-[16px]" />, // Ensure full height
-          blue: <div className="h-full min-h-[16px]" />,
-          green: <div className="h-full min-h-[16px]" />,
+          red: <div className="row-span-1 h-full min-h-[16px]" />, // Ensure full height
+          blue: <div className="row-span-1 h-full min-h-[16px]" />,
+          green: <div className="row-span-1 h-full min-h-[16px]" />,
+        };
+
+        const getTextSize = (name: string): string => {
+          if (name.length >= 15) return "text-[0.45rem]"; // Exceeds 15 characters
+          if (name.length > 8) return "text-[0.6rem]"; // Exceeds 8 characters
+          return "text-[0.65rem]"; // Default size
         };
 
         // Fill the placeholders based on room name
         day.bookings.forEach((booking) => {
+          const name =
+            booking.guest.name === "AirBnB" && booking.alias
+              ? `${booking.alias} (A)`
+              : booking.guest.name;
+
+          const textSize = getTextSize(name);
+
           if (booking.room.name === "Cozy") {
             gridContent.red = (
               <div
                 key="red"
-                className="text-white bg-red-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
+                className={`text-white bg-red-500 ${textSize} truncate h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold"
+                }`}
               >
                 {booking.guest.name === "AirBnB" && booking.alias
                   ? `${booking.alias} (A)`
@@ -115,7 +130,9 @@ const CustomCalendar = ({
             gridContent.blue = (
               <div
                 key="blue"
-                className="text-white bg-blue-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
+                className={`text-white bg-blue-500 ${textSize} truncate h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold"
+                }`}
               >
                 {booking.guest.name === "AirBnB" && booking.alias
                   ? `${booking.alias} (A)`
@@ -126,7 +143,9 @@ const CustomCalendar = ({
             gridContent.green = (
               <div
                 key="green"
-                className="text-white bg-green-500 text-[0.65rem] truncate px-1 h-full flex items-center justify-center"
+                className={`text-white bg-green-500 ${textSize} truncate h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold"
+                }`}
               >
                 {booking.guest.name === "AirBnB" && booking.alias
                   ? `${booking.alias} (A)`
@@ -138,11 +157,11 @@ const CustomCalendar = ({
 
         // Render the three grid rows
         return (
-          <div className="mt-1">
-            <div className="row-span-1 h-full">{gridContent.red}</div>
-            <div className="row-span-1 h-full">{gridContent.blue}</div>
-            <div className="row-span-1 h-full">{gridContent.green}</div>
-          </div>
+          <>
+            {gridContent.red}
+            {gridContent.blue}
+            {gridContent.green}
+          </>
         );
       }
     }

@@ -7,7 +7,7 @@
 }
 
 .react-calendar__custom_tile {
-  @apply hover:bg-slate-500 h-[100px] sm:h-[76px] border border-gray-300 grid grid-rows-4 mb-1;
+  @apply hover:bg-slate-500 border border-gray-300 grid grid-rows-4 mb-1 max-h-[120px] max-w-full overflow-hidden;
 }
 
 .react-calendar__custom_tile > abbr {
