@@ -37,16 +37,16 @@ const CalendarNavigator = ({
                 // Determine the color class based on occupancy
                 const occupancyColor =
                   object.occupancy < 33.33
-                    ? "text-green-500"
+                    ? "text-red-500"
                     : object.occupancy < 66.67
                     ? "text-yellow-500"
-                    : "text-red-500";
+                    : "text-green-500";
 
                 return (
                   <div key={index} className="flex space-x-1 w-full">
                     <span className="font-medium">{object.name}: </span>
                     <span className={occupancyColor}>
-                      {object.occupancy.toFixed(2)}%
+                      {Math.round(object.occupancy)}%
                     </span>
                   </div>
                 );
@@ -55,20 +55,15 @@ const CalendarNavigator = ({
         ) : (
           <span
             onClick={() => setShowDetails(true)}
-            className="cursor-pointer underline"
+            className={`cursor-pointer underline ${
+              occupancy.totalOccupancy < 33.33
+                ? "text-red-500"
+                : occupancy.totalOccupancy < 66.67
+                ? "text-yellow-500"
+                : "text-green-500"
+            }`}
           >
-            <span
-              className={
-                occupancy.totalOccupancy < 33.33
-                  ? "text-green-500"
-                  : occupancy.totalOccupancy < 66.67
-                  ? "text-yellow-500"
-                  : "text-red-500"
-              }
-            >
-              {occupancy.totalOccupancy.toFixed(2)}%
-            </span>{" "}
-            Full
+            {Math.round(occupancy.totalOccupancy)}%
           </span>
         )}
       </div>
