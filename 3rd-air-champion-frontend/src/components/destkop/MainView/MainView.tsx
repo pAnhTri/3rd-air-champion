@@ -76,8 +76,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
   const [occupancy, setOccupancy] = useState<{
     totalOccupancy: number;
+    airbnbOccupancy: number;
     roomOccupancy: { name: string; occupancy: number }[];
-  }>({ totalOccupancy: 0, roomOccupancy: [] });
+  }>({ totalOccupancy: 0, airbnbOccupancy: 0, roomOccupancy: [] });
 
   const onSync = () => {
     if (shouldCallOnSync) alert("Synchronizing with Airbnb");
@@ -206,7 +207,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
       // Initialize total occupancy and room-wise occupancy
       let totalOccupiedDays = 0;
+      let totalAirbnbGuests = 0;
       const roomOccupancy = [];
+      const airbnbGuestCountMap = new Map(); // Map for storing counts of Airbnb guests
 
       for (const [roomName, roomSet] of roomSets.entries()) {
         const occupancyPercentage = (roomSet.size / daysInMonth) * 100;
@@ -216,16 +219,40 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         if (roomName !== "Master") {
           totalOccupiedDays += roomSet.size;
         }
+
+        // Count "Airbnb" guests for the current room
+        let airbnbCount = 0;
+        roomSet.forEach((day: dayType) => {
+          day.bookings.forEach((booking) => {
+            if (
+              booking.room.name === roomName &&
+              booking.guest.name.toLowerCase() === "airbnb"
+            ) {
+              airbnbCount += 1;
+            }
+          });
+        });
+
+        // Store the count in the map
+        airbnbGuestCountMap.set(roomName, airbnbCount);
+
+        // Add to total Airbnb guest count
+        totalAirbnbGuests += airbnbCount;
       }
+
+      console.log(totalAirbnbGuests);
 
       // Calculate total occupancy percentage (excluding "Master")
       const totalRooms = rooms.filter((room) => room.name !== "Master").length;
       const totalOccupancy =
         (totalOccupiedDays / (totalRooms * daysInMonth)) * 100;
+      const airbnbOccupancy =
+        (totalAirbnbGuests / (totalRooms * daysInMonth)) * 100;
 
       // Update state
       setOccupancy({
         totalOccupancy: totalOccupancy,
+        airbnbOccupancy: airbnbOccupancy,
         roomOccupancy: roomOccupancy,
       });
     }

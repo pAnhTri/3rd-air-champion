@@ -4,6 +4,7 @@ interface CalendarNavigatorProps {
   currentMonth: Date;
   occupancy: {
     totalOccupancy: number;
+    airbnbOccupancy: number;
     roomOccupancy: {
       name: string;
       occupancy: number;
@@ -51,6 +52,20 @@ const CalendarNavigator = ({
                   </div>
                 );
               })}
+            <div className="flex space-x-1 w-full">
+              <span className="font-medium">AirBnB: </span>
+              <span
+                className={`${
+                  occupancy.airbnbOccupancy < 33.33
+                    ? "text-red-500"
+                    : occupancy.airbnbOccupancy < 66.67
+                    ? "text-yellow-500"
+                    : "text-green-500"
+                }`}
+              >
+                {Math.round(occupancy.airbnbOccupancy)}%
+              </span>
+            </div>
           </div>
         ) : (
           <span
