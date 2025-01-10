@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import Calendar from "react-calendar";
 import "../../../../styles/calendarStyle.css";
-import { isSameDay, startOfToday } from "date-fns";
+import { addDays, isSameDay, isWithinInterval, startOfToday } from "date-fns";
 import { dayType } from "../../../../util/types/dayType";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
+import { toZonedTime } from "date-fns-tz";
 
 interface CustomCalendarProps {
   currentMonth: Date;
@@ -67,19 +68,68 @@ const CustomCalendar = ({
 
   const customTile = ({ date }: { date: Date }) => {
     const className = ["react-calendar__custom_tile"];
+
     if (isSameDay(date, startOfToday()))
       className.push("react-calendar__custom_tile_today");
+
     const day = monthMap.get(date.toISOString().split("T")[0]);
+
     if (day && day.isBlocked)
       className.push("react-calendar__custom_tile_blocked");
+
     if (day && day.bookings.length === rooms.length)
       className.push("react-calendar__custom_tile_full");
+
+    // Add styling for non-booked days
+    if (!day || (day.bookings && day.bookings.length === 0)) {
+      className.push("react-calendar__custom_tile_no_booking");
+    }
+
+    if (day && day.bookings.length > 0) {
+      className.push("react-calendar__custom_tile_booking");
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Aggregate booking conditions in one pass
+      const { isStart, isInbetween, isEnd } = day.bookings.reduce(
+        (acc, booking) => {
+          const startDate = toZonedTime(booking.startDate, timeZone);
+          const endDate = toZonedTime(booking.endDate, timeZone);
+
+          if (
+            isWithinInterval(date, { start: startDate, end: endDate }) &&
+            !(isSameDay(date, startDate) || isSameDay(date, endDate))
+          ) {
+            acc.isInbetween = true;
+          }
+
+          if (isSameDay(date, startDate)) acc.isStart = true;
+          if (isSameDay(date, endDate)) acc.isEnd = true;
+
+          return acc;
+        },
+        { isStart: false, isInbetween: false, isEnd: false }
+      );
+
+      // Refined class assignment logic
+      if (isInbetween) {
+        className.push("react-calendar__custom_tile_booking_between");
+      } else {
+        if (isStart && !isEnd) {
+          className.push("react-calendar__custom_tile_booking_start");
+        }
+        if (isEnd) {
+          className.push("react-calendar__custom_tile_booking_end");
+        }
+      }
+    }
 
     return className;
   };
 
   const customTileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view === "month") {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const day = monthMap.get(date.toISOString().split("T")[0]);
       if (day) {
         day.bookings.sort((a, b) => {
@@ -105,6 +155,11 @@ const CustomCalendar = ({
 
         // Fill the placeholders based on room name
         day.bookings.forEach((booking) => {
+          const halfwayPoint = Math.ceil(booking.duration / 2);
+          const startDate = toZonedTime(booking.startDate, timeZone);
+          const endDate = toZonedTime(booking.endDate, timeZone);
+          const halfwayDate = addDays(startDate, halfwayPoint - 1);
+
           const name =
             booking.guest.name === "AirBnB" && booking.alias
               ? `${booking.alias} (A)`
@@ -112,43 +167,54 @@ const CustomCalendar = ({
 
           const textSize = getTextSize(name);
 
+          // Determine if the current date is the halfway point
+          console.log(halfwayDate);
+          const isHalfwayPoint =
+            halfwayDate.toISOString().split("T")[0] ===
+            date.toISOString().split("T")[0];
+
+          const content = isHalfwayPoint ? (
+            <div
+              className={`truncate h-full flex items-center pl-1 ${
+                booking.guest.name === "AirBnB" && "font-bold"
+              } justify-center`}
+            >
+              {name}
+            </div>
+          ) : null;
+
+          if (isSameDay(date, startDate)) console.log("same day:", date);
+
+          const roundedClass = `${
+            isSameDay(date, startDate) ? "rounded-l-lg" : ""
+          } ${isSameDay(date, endDate) ? "rounded-r-lg" : ""}`;
+
           if (booking.room.name === "Cozy") {
             gridContent.red = (
               <div
                 key="red"
-                className={`text-white bg-red-500 ${textSize} truncate h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold"
-                } justify-center`}
+                className={`text-white bg-red-500 ${roundedClass}
+                ${textSize}`}
               >
-                {booking.guest.name === "AirBnB" && booking.alias
-                  ? `${booking.alias} (A)`
-                  : booking.guest.name}
+                {content}
               </div>
             );
           } else if (booking.room.name === "Cute") {
             gridContent.blue = (
               <div
                 key="blue"
-                className={`text-white bg-blue-500 ${textSize} truncate h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold"
-                } justify-center`}
+                className={`text-white bg-blue-500 ${roundedClass} ${textSize}`}
               >
-                {booking.guest.name === "AirBnB" && booking.alias
-                  ? `${booking.alias} (A)`
-                  : booking.guest.name}
+                {content}
               </div>
             );
           } else {
             gridContent.green = (
               <div
                 key="green"
-                className={`text-white bg-green-500 ${textSize} truncate h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold"
-                } justify-center`}
+                className={`text-white bg-green-500 ${roundedClass} ${textSize}`}
               >
-                {booking.guest.name === "AirBnB" && booking.alias
-                  ? `${booking.alias} (A)`
-                  : booking.guest.name}
+                {content}
               </div>
             );
           }
