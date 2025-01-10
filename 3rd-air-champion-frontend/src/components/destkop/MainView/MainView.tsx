@@ -8,6 +8,7 @@ import { bookingType } from "../../../util/types/bookingType";
 import {
   addDays,
   getDaysInMonth,
+  isSameDay,
   isWithinInterval,
   startOfToday,
 } from "date-fns";
@@ -161,6 +162,123 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       });
   }, [isCalendarLoading]);
 
+  const transformBookings = (
+    monthMap: Map<string, dayType>,
+    timeZone: string
+  ) => {
+    const propagateBooking = (
+      booking: bookingType,
+      currentKey: string,
+      sortedKeys: string[],
+      index: number,
+      tracking: { startDate: string; endDate: string; duration: number },
+      processedBookings: Set<string>
+    ): void => {
+      const nextIndex = index + 1;
+
+      // Base case: If there are no more keys, end recursion
+      if (nextIndex >= sortedKeys.length) {
+        return;
+      }
+
+      const nextKey = sortedKeys[nextIndex];
+      const nextDay = monthMap.get(nextKey);
+
+      if (!nextDay) {
+        return;
+      }
+
+      // Find a matching booking in the next day's bookings
+      const nextBooking = nextDay.bookings.find((b) => {
+        const currentDate = toZonedTime(currentKey, timeZone);
+        const nextDate = toZonedTime(nextKey, timeZone);
+        return (
+          b.guest.id === booking.guest.id &&
+          b.room.id === booking.room.id &&
+          isSameDay(nextDate, addDays(currentDate, 1))
+        );
+      });
+
+      if (nextBooking) {
+        // Update the tracking object
+        tracking.endDate = nextBooking.endDate;
+        tracking.duration += 1;
+
+        // Recursively propagate the merged booking
+        propagateBooking(
+          nextBooking,
+          nextKey,
+          sortedKeys,
+          nextIndex,
+          tracking,
+          processedBookings
+        );
+      }
+
+      console.log("UNWIND RECURSION FOR:", currentKey);
+      console.log(`Tracking for ${currentKey}:`, tracking);
+
+      // Update the current booking after recursion unwinds
+      booking.duration = tracking.duration;
+      booking.endDate = tracking.endDate;
+      booking.startDate = tracking.startDate;
+
+      // Mark the next booking as processed
+      const bookingIdentifier = `${tracking.startDate}-${tracking.endDate}-${booking.guest.id}`;
+      processedBookings.add(bookingIdentifier);
+
+      console.log(`Updated booking:`, booking);
+    };
+
+    const sortedKeys = [...monthMap.keys()].sort(); // Get sorted keys
+    const processedBookings = new Set<string>(); // Track processed bookings
+
+    for (let i = 0; i < sortedKeys.length; i++) {
+      const currentKey = sortedKeys[i];
+      const currentDay = monthMap.get(currentKey);
+
+      if (!currentDay) {
+        continue;
+      }
+
+      currentDay.bookings.forEach((booking) => {
+        // Create a unique identifier for the booking
+        const bookingIdentifier = `${booking.startDate}-${booking.endDate}-${booking.guest.id}`;
+        console.log("bookingIdentifier:", bookingIdentifier);
+
+        // Skip already-processed bookings
+        if (
+          processedBookings.has(bookingIdentifier) ||
+          booking.guest.name === "AirBnB"
+        ) {
+          console.log("Skipping:", bookingIdentifier);
+          return;
+        }
+
+        console.log(`Processing booking on ${currentKey}:`, booking);
+
+        const tracking = {
+          startDate: booking.startDate,
+          endDate: booking.endDate,
+          duration: 1,
+        };
+
+        // Mark the booking as processed
+        processedBookings.add(bookingIdentifier);
+
+        // Pass the sortedKeys and current index to propagateBooking
+        propagateBooking(
+          booking,
+          currentKey,
+          sortedKeys,
+          i,
+          tracking,
+          processedBookings
+        );
+      });
+    }
+  };
+
   useEffect(() => {
     const map = new Map<string, dayType>();
     days.forEach((day) => {
@@ -168,6 +286,16 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       map.set(formattedDate, day);
     });
     setMonthMap(map);
+
+    const sortedMap = new Map(
+      [...map.entries()].sort(([keyA], [keyB]) => {
+        return keyA.localeCompare(keyB); // Lexicographical comparison
+      })
+    );
+
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    transformBookings(sortedMap, timeZone);
   }, [days]);
 
   useEffect(() => {
@@ -239,8 +367,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         // Add to total Airbnb guest count
         totalAirbnbGuests += airbnbCount;
       }
-
-      console.log(totalAirbnbGuests);
 
       // Calculate total occupancy percentage (excluding "Master")
       const totalRooms = rooms.filter((room) => room.name !== "Master").length;
