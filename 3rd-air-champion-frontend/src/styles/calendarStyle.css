@@ -7,7 +7,7 @@
 }
 
 .react-calendar__custom_tile {
-  @apply hover:bg-slate-500 border-gray-300 grid grid-rows-4 mb-1 max-h-[120px] max-w-full overflow-hidden;
+  @apply hover:bg-slate-500 border border-gray-300 grid grid-rows-4 mb-1 max-h-[120px] max-w-full overflow-hidden;
 }
 
 .react-calendar__custom_tile > abbr {
@@ -24,29 +24,4 @@
 
 .react-calendar__custom_tile_full {
   @apply bg-slate-400;
-}
-
-/* Base styling for tiles without bookings */
-.react-calendar__custom_tile_no_booking {
-  @apply border;
-}
-
-/* Base styles for tiles with bookings */
-.react-calendar__custom_tile_booking {
-  @apply border-y;
-}
-
-/* Start date styles */
-.react-calendar__custom_tile_booking_start {
-  @apply border-l;
-}
-
-/* End date styles */
-.react-calendar__custom_tile_booking_end {
-  @apply border-r;
-}
-
-/* In-between styles */
-.react-calendar__custom_tile_booking_between {
-  @apply border-x-0;
 }
