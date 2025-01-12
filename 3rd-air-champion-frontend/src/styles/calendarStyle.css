@@ -38,7 +38,7 @@
 }
 
 .react-calendar__custom_tile_today {
-  @apply border-2 border-solid border-yellow-500;
+  @apply border-[2.5px] border-solid rounded-md border-yellow-500;
 }
 
 .react-calendar__custom_tile_blocked {

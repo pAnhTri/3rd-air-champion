@@ -133,33 +133,28 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   }, [guests, initialSync]);
 
   useEffect(() => {
-    fetchGuests(hostId, token as string)
-      .then((result) => {
-        setGuests(result);
-      })
-      .catch((err) => {
-        console.error("Error fetching guests:", err);
-      });
-
-    fetchDays(calendarId, token as string)
-      .then((result) => {
-        setDays(result);
-      })
-      .catch((err) => {
-        console.error("Error fetching days:", err);
-        setCalendarErrorMessage("Failed to fetch days. Please try again.");
-      });
-
-    fetchRooms(hostId, token as string)
-      .then((result) => {
-        setRooms(result);
-        setIsCalendarLoading(false); // Data fetched, stop loading
-      })
-      .catch((err) => {
-        console.error("Error fetching rooms:", err);
-        setCalendarErrorMessage("Failed to fetch rooms. Please try again.");
-        setIsCalendarLoading(false);
-      });
+    if (isCalendarLoading) {
+      fetchGuests(hostId, token as string)
+        .then((guests) => {
+          setGuests(guests);
+          return fetchDays(calendarId, token as string); // Chain the next fetch
+        })
+        .then((days) => {
+          setDays(days);
+          return fetchRooms(hostId, token as string); // Chain the final fetch
+        })
+        .then((rooms) => {
+          setRooms(rooms);
+          setIsCalendarLoading(false); // All data fetched, stop loading
+        })
+        .catch((err) => {
+          console.error("Error fetching data:", err);
+          setCalendarErrorMessage(
+            "Failed to fetch calendar data. Please try again."
+          );
+          setIsCalendarLoading(false); // Ensure loading stops even on error
+        });
+    }
   }, [isCalendarLoading]);
 
   const transformBookings = (

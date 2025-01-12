@@ -12,7 +12,7 @@ const NavBarDesktop = ({ handleLogout, name }: NavBarDesktopProps) => {
       <h1 className="p-1 hover:rounded-md sm:p-2 text-4xl">Calendar</h1>
 
       {/* Profile Section */}
-      <div className="absolute left-0 pl-2">
+      <div className="absolute left-0 pl-2 z-30">
         <ProfileDesktop handleLogout={handleLogout}>{name}</ProfileDesktop>
       </div>
     </div>

@@ -64,7 +64,7 @@ const GuestInput = ({
             placeholder="Type guest name..."
           />
           {filteredGuests.length > 0 && searchQuery !== "" ? (
-            <ul className="absolute bg-white border border-gray-300 rounded w-full mt-1 max-h-40 overflow-y-auto z-10">
+            <ul className="absolute bg-white border border-gray-300 rounded w-full mt-1 max-h-40 overflow-y-auto z-20">
               {filteredGuests.map((guest) => (
                 <li
                   key={guest.id}
@@ -79,7 +79,7 @@ const GuestInput = ({
             showAddPane !== "guest" &&
             searchQuery !== "" &&
             !isGuestFound && (
-              <ul className="absolute bg-white border border-gray-300 rounded w-full mt-1 max-h-40 overflow-y-auto z-10">
+              <ul className="absolute bg-white border border-gray-300 rounded w-full mt-1 max-h-40 overflow-y-auto z-20">
                 <li
                   className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
                   onClick={() => setShowAddPane("guest")}
