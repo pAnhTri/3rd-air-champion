@@ -46,7 +46,9 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
 
   return nextDay ? (
     <div className="flex flex-col h-full px-2 overflow-y-scroll">
-      <h1 className="font-bold self-center text-lg">To Do</h1>
+      <h1 className="font-bold self-center text-lg">
+        To Do for Today ({format(startOfToday(), "MM/dd/yyyy")})
+      </h1>
       {nextDay.bookings
         .filter((booking) => booking.startDate === nextDayDate)
         .map((booking, index) => {
