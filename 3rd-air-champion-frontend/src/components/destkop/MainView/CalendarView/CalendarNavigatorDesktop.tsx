@@ -2,6 +2,7 @@ import { useState } from "react";
 
 interface CalendarNavigatorProps {
   currentMonth: Date;
+  isTodoModalOpen: boolean;
   occupancy: {
     totalOccupancy: number;
     airbnbOccupancy: number;
@@ -10,11 +11,14 @@ interface CalendarNavigatorProps {
       occupancy: number;
     }[];
   };
+  setIsTodoModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const CalendarNavigator = ({
   currentMonth,
   occupancy,
+  isTodoModalOpen,
+  setIsTodoModalOpen,
 }: CalendarNavigatorProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const formattedDate = currentMonth.toLocaleDateString("en-US", {
@@ -27,6 +31,15 @@ const CalendarNavigator = ({
       {/* Date */}
       <div className="flex h-full w-full justify-center items-center space-x-2">
         <span className="font-bold text-xl text-gray-800">{formattedDate}</span>
+        <button
+          type="button"
+          className={`text-white bg-black p-1 text-xs rounded-md ${
+            isTodoModalOpen && "drop-shadow-[0_4px_6px_rgba(59,130,246,0.5)]"
+          }`}
+          onClick={() => setIsTodoModalOpen(!isTodoModalOpen)}
+        >
+          To Do
+        </button>
       </div>
       {showDetails ? (
         <div

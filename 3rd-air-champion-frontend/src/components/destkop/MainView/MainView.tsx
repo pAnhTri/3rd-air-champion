@@ -28,6 +28,7 @@ import {
   updateUnbookGuest,
 } from "../../../util/bookingOperations";
 import UnbookingConfirmation from "./GuestView/UnbookingConfirmation";
+import ToDoList from "./ToDoList";
 
 interface MainViewProps {
   calendarId: string;
@@ -63,6 +64,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
+  const [isTodoModalOpen, setIsTodoModalOpen] = useState(true);
 
   const [blockedAirBnBDates, setIsBlockedAirBnBDates] = useState<{
     room: { duration: number; start: string }[];
@@ -515,6 +517,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             <CalendarNavigator
               occupancy={occupancy}
               currentMonth={currentMonth}
+              isTodoModalOpen={isTodoModalOpen}
+              setIsTodoModalOpen={setIsTodoModalOpen}
             />
             {isSyncModalOpen && (
               <RoomLinkModal
@@ -550,7 +554,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       </div>
 
       <div className="hidden bg-white border-l sm:block">
-        {currentBookings && currentBookings.length > 0 ? (
+        {isTodoModalOpen ? (
+          <ToDoList monthMap={monthMap} />
+        ) : currentBookings && currentBookings.length > 0 ? (
           <GuestView
             currentBookings={currentBookings}
             rooms={rooms}
@@ -623,6 +629,26 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           </div>
         )}
       </div>
+
+      <div
+        className={`fixed bottom-0 left-0 w-full bg-white p-1 border-t border-gray-300 z-50 overflow-y-scroll sm:hidden transition-transform duration-300 ${
+          isTodoModalOpen ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{ height: "calc(100% - 15rem)" }} // Leaves a 4px margin at the top
+      >
+        {/* Close Button */}
+        <button
+          className="text-gray-700 font-bold text-[1.5rem]"
+          onClick={() => {
+            setIsTodoModalOpen(false);
+          }} // Close the modal
+        >
+          &times;
+        </button>
+
+        <ToDoList monthMap={monthMap} />
+      </div>
+
       {selectedBooking && (
         <DetailsModal
           booking={selectedBooking}
