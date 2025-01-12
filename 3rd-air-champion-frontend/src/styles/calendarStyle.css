@@ -6,8 +6,31 @@
   display: none !important;
 }
 
-.react-calendar__custom_tile {
+/* .react-calendar__custom_tile {
   @apply hover:bg-slate-500 border-gray-300 grid grid-rows-4 mb-1 max-h-[120px] max-w-full overflow-hidden;
+} */
+
+.react-calendar__custom_tile {
+  --tw-border-opacity: 1;
+  border-color: rgb(
+    209 213 219 / var(--tw-border-opacity, 1)
+  ); /* #d1d5db, corresponds to border-gray-300 */
+  display: grid; /* corresponds to grid */
+  grid-template-rows: repeat(
+    4,
+    minmax(0, 1fr)
+  ); /* corresponds to grid-rows-4 */
+  margin-bottom: 0.25rem; /* corresponds to mb-1 */
+  max-height: 120px; /* corresponds to max-h-[120px] */
+  max-width: 100%; /* corresponds to max-w-full */
+  overflow: visible !important;
+}
+
+.react-calendar__custom_tile:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(
+    100 116 139 / var(--tw-bg-opacity, 1)
+  ); /* #64748b, corresponds to hover:bg-slate-500 */
 }
 
 .react-calendar__custom_tile > abbr {

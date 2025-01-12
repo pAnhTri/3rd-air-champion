@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import Calendar from "react-calendar";
 import "../../../../styles/calendarStyle.css";
-import { addDays, isSameDay, isWithinInterval, startOfToday } from "date-fns";
+import {
+  endOfMonth,
+  getDay,
+  isSameDay,
+  isWithinInterval,
+  startOfToday,
+} from "date-fns";
 import { dayType } from "../../../../util/types/dayType";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
@@ -29,8 +35,10 @@ const CustomCalendar = ({
   setSelectedDate,
 }: CustomCalendarProps) => {
   const [months, setMonths] = useState<Date[]>([]);
+  const [tileWidth, setTileWidth] = useState<number | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const calendarWrapperRef = useRef<HTMLDivElement>(null); // Wrapper div ref
 
   useEffect(() => {
     const currentMonth = new Date();
@@ -55,6 +63,18 @@ const CustomCalendar = ({
       scrollContainerRef.current.scrollTop = currentIndex * calendarHeight;
     }
   }, [months]);
+
+  useEffect(() => {
+    if (calendarWrapperRef.current) {
+      // Find the first tile element inside the calendar wrapper
+      const tile = calendarWrapperRef.current.querySelector(
+        ".react-calendar__tile"
+      );
+      if (tile) {
+        setTileWidth(tile.getBoundingClientRect().width);
+      }
+    }
+  }, [currentMonth]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
     const scrollTop = (e.target as HTMLElement).scrollTop;
@@ -126,6 +146,32 @@ const CustomCalendar = ({
     return className;
   };
 
+  const getTextSize = (name: string, availableWidth: number): string => {
+    // Define base font size in rem and corresponding pixel size
+    const baseFontSizeRem = 0.65; // Default base size
+    const baseFontSizePx = 16 * baseFontSizeRem; // Convert base font size to px
+
+    // Estimate average character width at the base font size (approx. half the font size in px)
+    const averageCharWidthPx = baseFontSizePx * 0.6;
+
+    // Calculate the total width required for the text at the base font size
+    const requiredWidthPx = name.length * averageCharWidthPx;
+
+    // Determine the scaling factor based on available width
+    const scaleFactor = availableWidth / requiredWidthPx;
+
+    // Calculate the adjusted font size (rem), clamping between min and max
+    const minFontSizeRem = 0.45; // Minimum font size in rem
+    const maxFontSizeRem = 0.85; // Maximum font size in rem
+    const adjustedFontSizeRem = Math.min(
+      Math.max(baseFontSizeRem * scaleFactor, minFontSizeRem),
+      maxFontSizeRem
+    );
+
+    // Return the text size as a TailwindCSS class
+    return adjustedFontSizeRem.toFixed(2);
+  };
+
   const customTileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view === "month") {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -147,51 +193,40 @@ const CustomCalendar = ({
           green: <div className="row-span-1 h-full min-h-[16px]" />,
         };
 
-        const getTextSize = (name: string): string => {
-          if (name.length >= 15) return "text-[0.45rem]"; // Exceeds 15 characters
-          if (name.length > 8) return "text-[0.6rem]"; // Exceeds 8 characters
-          return "text-[0.65rem]"; // Default size
-        };
-
         // Fill the placeholders based on room name
         day.bookings.forEach((booking) => {
-          const halfwayPoint = Math.ceil(booking.duration / 2);
           const startDate = toZonedTime(booking.startDate, timeZone);
           const endDate = toZonedTime(booking.endDate, timeZone);
-          const halfwayDate = addDays(startDate, halfwayPoint - 1);
 
           const name =
             booking.guest.name === "AirBnB" && booking.alias
               ? `${booking.alias} (A)`
               : booking.guest.name;
 
-          const textSize = getTextSize(name);
-
-          // Determine if the current date is the halfway point
-          console.log(halfwayDate);
-          const isHalfwayPoint =
-            halfwayDate.toISOString().split("T")[0] ===
-            date.toISOString().split("T")[0];
-
-          const content = isHalfwayPoint ? (
-            <div
-              className={`truncate h-full flex items-center pl-1 ${
-                booking.guest.name === "AirBnB" && "font-bold"
-              } justify-center`}
-            >
-              {name}
-            </div>
-          ) : (
-            <div
-              className={`truncate h-full flex items-center pl-1 ${
-                booking.guest.name === "AirBnB" && "font-bold"
-              } justify-center`}
-            >
-              &nbsp;
-            </div>
+          const dayIndex = getDay(date);
+          let maxDuration = Math.max(
+            Math.min(booking.duration, booking.duration - dayIndex),
+            1
           );
 
-          if (isSameDay(date, startDate)) console.log("same day:", date);
+          if (isSameDay(date, endOfMonth(date))) maxDuration = 1;
+
+          const availableTileWidth = tileWidth ? tileWidth * maxDuration : 0;
+
+          const textSize = getTextSize(name, availableTileWidth);
+
+          const content = isSameDay(date, startDate) ? (
+            <span
+              className="absolute top-auto left-1 truncate z-10"
+              style={{
+                maxWidth: `${availableTileWidth - maxDuration * 1.5}px`,
+              }}
+            >
+              {name}
+            </span>
+          ) : (
+            <span>&nbsp;</span>
+          );
 
           const roundedClass = `${
             isSameDay(date, startDate) ? "rounded-l-lg" : ""
@@ -201,8 +236,11 @@ const CustomCalendar = ({
             gridContent.red = (
               <div
                 key="red"
-                className={`text-white bg-red-500 ${roundedClass}
-                ${textSize}`}
+                className={`text-white bg-red-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold"
+                } justify-center
+               `}
+                style={{ fontSize: `${textSize}rem` }}
               >
                 {content}
               </div>
@@ -211,7 +249,10 @@ const CustomCalendar = ({
             gridContent.blue = (
               <div
                 key="blue"
-                className={`text-white bg-blue-500 ${roundedClass} ${textSize}`}
+                className={`text-white bg-blue-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold"
+                } justify-center`}
+                style={{ fontSize: `${textSize}rem` }}
               >
                 {content}
               </div>
@@ -220,7 +261,10 @@ const CustomCalendar = ({
             gridContent.green = (
               <div
                 key="green"
-                className={`text-white bg-green-500 ${roundedClass} ${textSize}`}
+                className={`text-white bg-green-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold"
+                } justify-center`}
+                style={{ fontSize: `${textSize}rem` }}
               >
                 {content}
               </div>
@@ -260,7 +304,7 @@ const CustomCalendar = ({
       onScroll={handleScroll}
     >
       {months.map((month, index) => (
-        <div key={index} className="snap-start h-full">
+        <div key={index} className="snap-start h-full" ref={calendarWrapperRef}>
           <Calendar
             activeStartDate={month}
             showNavigation={false}
