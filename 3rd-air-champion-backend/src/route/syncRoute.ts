@@ -217,7 +217,13 @@ router.post("/sync", async (req: Request, res: any) => {
 
       // Determine dates to unbook
       const toUnbook = Array.from(fetchedDatesMap)
-        .filter(([key]) => !reservedDatesSet.has(key as string))
+        .filter(([key]) => {
+          const [date] = (key as string).split("_"); // Extract the date part from the key
+          return (
+            !reservedDatesSet.has(key as string) &&
+            !isBefore(toZonedTime(date, timeZone), startOfToday())
+          );
+        })
         .map(([key, value]) => value);
 
       // Return the `toUnbook` array for chaining
