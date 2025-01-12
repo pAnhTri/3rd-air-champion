@@ -631,7 +631,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       </div>
 
       <div
-        className={`fixed bottom-0 left-0 w-full h-[50%] bg-white p-1 border-t border-gray-300 z-50 overflow-y-scroll sm:hidden transition-transform duration-300 ${
+        className={`fixed bottom-0 left-0 w-full h-[25%] bg-white p-1 border-t border-gray-300 z-50 overflow-y-scroll sm:hidden transition-transform duration-300 ${
           isTodoModalOpen ? "translate-y-0" : "translate-y-full"
         }`}
       >
