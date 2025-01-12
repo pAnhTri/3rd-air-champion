@@ -201,10 +201,16 @@ const dayDefs = gql`
     updatedAt: String
   }
 
+  input UnbookBookingInput {
+    room: String!
+    date: String!
+  }
+
   type Query {
     days: [Day]
     day(_id: String!): Day!
     hostDays(calendarId: String!): [Day]
+    airBnBDays(calendar: String!, guest: String!): [Day]
   }
 
   type Mutation {
@@ -241,6 +247,12 @@ const dayDefs = gql`
       room: String!
       duration: Int!
     ): [Day]
+
+    unbookAirBnB(
+      calendar: String!
+      guest: String!
+      bookings: [UnbookBookingInput!]!
+    ): Boolean!
 
     updateBookingGuest(
       _id: String!

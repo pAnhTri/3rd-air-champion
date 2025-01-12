@@ -287,6 +287,12 @@ const dayResolver = {
         .populate("bookings.room")
         .populate("blockedRooms");
     },
+    airBnBDays: async (_: unknown, { calendar, guest }: any) => {
+      return await Day.find({ calendar, "bookings.guest": guest })
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
+    },
   },
   Mutation: {
     blockDay: async (_: unknown, { calendar, date }: any) => {
@@ -641,6 +647,35 @@ const dayResolver = {
         .populate("bookings.guest")
         .populate("bookings.room")
         .populate("blockedRooms");
+    },
+    unbookAirBnB: async (_: unknown, { calendar, guest, bookings }: any) => {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      for await (const { room, date } of bookings) {
+        const localDate = toZonedTime(date.split("T")[0], timeZone);
+        Day.updateOne(
+          {
+            calendar,
+            date: localDate,
+            "bookings.room": room,
+            "bookings.guest": guest,
+          },
+          {
+            $pull: { bookings: { guest, room } }, // Remove the specific booking
+          }
+        )
+          .then(() => {
+            console.log(`Successfully unbooked room ${room} on ${date}`);
+          })
+          .catch((error: any) => {
+            console.error(
+              `Failed to unbook room ${room} on ${date}:`,
+              error.message
+            );
+          });
+      }
+
+      return true;
     },
     updateBookingGuest: async (
       _: unknown,

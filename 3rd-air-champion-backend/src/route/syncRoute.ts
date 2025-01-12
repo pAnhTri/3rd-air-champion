@@ -2,8 +2,14 @@ import express, { Request, Response } from "express";
 import axios from "axios";
 import ical from "ical";
 import dotenv from "dotenv";
-import { differenceInCalendarDays, isBefore, startOfToday } from "date-fns";
+import {
+  addDays,
+  differenceInCalendarDays,
+  isBefore,
+  startOfToday,
+} from "date-fns";
 import { sendGraphQLRequest } from "./util/sendToGraphQL";
+import { toZonedTime } from "date-fns-tz";
 
 dotenv.config();
 
@@ -75,6 +81,60 @@ router.post("/sync", async (req: Request, res: any) => {
 
   const variables = { calendar, guest };
 
+  const fetchDayQuery = `
+        query AirBnBDays($calendar: String!, $guest: String!) {
+          airBnBDays(calendar: $calendar, guest: $guest) {
+            id
+            calendar
+            date
+            isAirBnB
+            isBlocked
+            blockedRooms {
+              host
+              id
+              name
+              price
+            }
+            bookings {
+              id
+              alias
+              price
+              notes
+              guest {
+                id
+                name
+                alias
+                email
+                phone
+                numberOfGuests
+                returning
+                notes
+                host
+                pricing {
+                  id
+                  price
+                  room
+                }
+              }
+              room {
+                id
+                host
+                name
+                price
+              }
+              description
+              duration
+              numberOfGuests
+              startDate
+              endDate
+            }
+          }
+        }`;
+
+  const unbookQuery = `mutation UnbookAirBnB($calendar: String!, $guest: String!, $bookings: [UnbookBookingInput!]!) {
+                        unbookAirBnB(calendar: $calendar, guest: $guest, bookings: $bookings)
+                      }`;
+
   const bookQuery = `mutation BookAirBnB($calendar: String!, $date: String!, $guest: String!, $description: String!, $room: String!, $duration: Int!) {
         bookAirBnB(calendar: $calendar, date: $date, guest: $guest, description: $description, room: $room, duration: $duration) {
             id
@@ -122,46 +182,94 @@ router.post("/sync", async (req: Request, res: any) => {
         }
     }`;
 
-  // Transform blocked data into the desired structure
-  const blockedData = finalResult.reduce(
-    (acc: Record<string, any[]>, roomData) => {
-      acc[roomData.room] = roomData.blocked; // Group blocked data by room
-      return acc;
-    },
-    {}
-  );
+  sendGraphQLRequest(fetchDayQuery, variables)
+    .then((result: any) => {
+      if (result.errors) {
+        throw new Error(result.errors[0].message);
+      }
+      const currentlyBookedDays = result.data.airBnBDays;
 
-  // Process booking requests
-  const bookingRequests = finalResult.flatMap((roomData) =>
-    roomData.reserved.map((booking) => {
-      const bookQueryBody = {
-        ...variables,
-        room: roomData.room,
-        description: booking.description,
-        date: booking.start,
-        duration: booking.duration,
-      };
-
-      return sendGraphQLRequest(bookQuery, bookQueryBody).then(
-        (result: any) => {
-          if (result.errors) {
-            throw new Error(result.errors[0].message); // Propagate the error
-          }
-          return { type: "reserved", data: result.data.bookAirBnB }; // Mark result as reserved
-        }
+      // Create fetchedDatesMap
+      const fetchedDatesMap = new Map(
+        currentlyBookedDays.flatMap((day: any) =>
+          day.bookings
+            .filter((booking: any) => booking.guest.id === guest)
+            .map((booking: any) => [
+              `${day.date}_${booking.room.id}`,
+              { date: day.date, room: booking.room.id },
+            ])
+        )
       );
+
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Create reservedDatesSet
+      const reservedDatesSet = new Set(
+        finalResult.flatMap(({ room, reserved }) =>
+          reserved.flatMap((booking) => {
+            return Array.from({ length: booking.duration }, (_, i) => {
+              const date = addDays(toZonedTime(booking.start, timeZone), i); // Add i days to the start date
+              return `${date.toISOString().split("T")[0]}_${room}`;
+            });
+          })
+        )
+      );
+
+      // Determine dates to unbook
+      const toUnbook = Array.from(fetchedDatesMap)
+        .filter(([key]) => !reservedDatesSet.has(key as string))
+        .map(([key, value]) => value);
+
+      // Return the `toUnbook` array for chaining
+      return sendGraphQLRequest(unbookQuery, {
+        calendar,
+        guest,
+        bookings: toUnbook,
+      });
     })
-  );
+    .then((result: any) => {
+      if (result.errors) {
+        throw new Error(result.errors[0].message);
+      }
+      console.log("Unbooked successfully:", result.data.unbookAirBnB);
 
-  // Combine both booking and blocking requests
-  const allRequests = [...bookingRequests];
+      // Process booking requests
+      const bookingRequests = finalResult.flatMap((roomData) =>
+        roomData.reserved.map((booking) => {
+          const bookQueryBody = {
+            ...variables,
+            room: roomData.room,
+            description: booking.description,
+            date: booking.start,
+            duration: booking.duration,
+          };
+          return sendGraphQLRequest(bookQuery, bookQueryBody).then(
+            (result: any) => {
+              if (result.errors) {
+                throw new Error(result.errors[0].message);
+              }
+              return { type: "reserved", data: result.data.bookAirBnB };
+            }
+          );
+        })
+      );
 
-  // Execute all requests and handle results
-  Promise.all(allRequests)
+      // Return a Promise.all for booking requests
+      return Promise.all(bookingRequests);
+    })
     .then((results) => {
       const reservedResults = results.filter((r) => r.type === "reserved");
 
-      // Send response
+      // Prepare the response
+      const blockedData = finalResult.reduce(
+        (acc: Record<string, any[]>, roomData) => {
+          acc[roomData.room] = roomData.blocked;
+          return acc;
+        },
+        {}
+      );
+
+      // Send success response
       res.status(200).json({
         success: true,
         reserved: reservedResults.map((r) => r.data),
@@ -169,7 +277,7 @@ router.post("/sync", async (req: Request, res: any) => {
       });
     })
     .catch((error) => {
-      // Handle errors collectively
+      // Handle all errors collectively
       console.error("Error during processing:", error.message);
       res.status(500).json({ error: error.message });
     });
