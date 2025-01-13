@@ -97,9 +97,9 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                     className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
                     onClick={() => {
                       const roomCodes = new Map([
-                        ["cute", "2005#"],
-                        ["cozy", "3006#"],
-                        ["master", "No Code"],
+                        ["cute", "(2005#)"],
+                        ["cozy", "(0106#)"],
+                        ["master", "with private bathroom"],
                       ]);
                       const phone = booking.guest.phone;
                       const messageBody = encodeURIComponent(
@@ -111,10 +111,10 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                             : "1 night"
                         }, starting from tomorrow. Your room is ${
                           booking.room.name
-                        } (${
+                        } ${
                           roomCodes.get(booking.room.name.toLowerCase()) ||
                           "Code"
-                        }). The main entrance door code is 1268=. I wish you a pleasant day. Thanks!`
+                        }. The main entrance door code is 1268=. I wish you a pleasant day. Thanks!`
                       );
                       window.location.href = `sms:${phone}?&body=${messageBody}`;
                       toggleTaskCompletion(taskId);
