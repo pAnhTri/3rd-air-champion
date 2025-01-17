@@ -212,9 +212,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         );
       }
 
-      console.log("UNWIND RECURSION FOR:", currentKey);
-      console.log(`Tracking for ${currentKey}:`, tracking);
-
       // Update the current booking after recursion unwinds
       booking.duration = tracking.duration;
       booking.endDate = tracking.endDate;
@@ -223,8 +220,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       // Mark the next booking as processed
       const bookingIdentifier = `${tracking.startDate}-${tracking.endDate}-${booking.guest.id}`;
       processedBookings.add(bookingIdentifier);
-
-      console.log(`Updated booking:`, booking);
     };
 
     const sortedKeys = [...monthMap.keys()].sort(); // Get sorted keys
@@ -241,18 +236,14 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       currentDay.bookings.forEach((booking) => {
         // Create a unique identifier for the booking
         const bookingIdentifier = `${booking.startDate}-${booking.endDate}-${booking.guest.id}`;
-        console.log("bookingIdentifier:", bookingIdentifier);
 
         // Skip already-processed bookings
         if (
           processedBookings.has(bookingIdentifier) ||
           booking.guest.name === "AirBnB"
         ) {
-          console.log("Skipping:", bookingIdentifier);
           return;
         }
-
-        console.log(`Processing booking on ${currentKey}:`, booking);
 
         const tracking = {
           startDate: booking.startDate,
@@ -296,13 +287,15 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   }, [days]);
 
   useEffect(() => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     if (days && currentMonth) {
       const targetMonth = currentMonth.getMonth(); // Current month (0-based index)
       const targetYear = currentMonth.getFullYear(); // Current year
 
       // Get unique days in the current month
       const occupiedDays = days.filter((day) => {
-        const processedDate = new Date(day.date);
+        const processedDate = toZonedTime(day.date, timeZone);
         return (
           processedDate.getFullYear() === targetYear &&
           processedDate.getMonth() === targetMonth
@@ -341,9 +334,10 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         roomOccupancy.push({ name: roomName, occupancy: occupancyPercentage });
 
         // Exclude "Master" room from total occupancy calculation
-        if (roomName !== "Master") {
-          totalOccupiedDays += roomSet.size;
-        }
+        // if (roomName !== "Master") {
+        //   totalOccupiedDays += roomSet.size;
+        // }
+        totalOccupiedDays += roomSet.size;
 
         // Count "Airbnb" guests for the current room
         let airbnbCount = 0;

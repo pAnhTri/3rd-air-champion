@@ -146,32 +146,6 @@ const CustomCalendar = ({
     return className;
   };
 
-  const getTextSize = (name: string, availableWidth: number): string => {
-    // Define base font size in rem and corresponding pixel size
-    const baseFontSizeRem = 0.65; // Default base size
-    const baseFontSizePx = 16 * baseFontSizeRem; // Convert base font size to px
-
-    // Estimate average character width at the base font size (approx. half the font size in px)
-    const averageCharWidthPx = baseFontSizePx * 0.6;
-
-    // Calculate the total width required for the text at the base font size
-    const requiredWidthPx = name.length * averageCharWidthPx;
-
-    // Determine the scaling factor based on available width
-    const scaleFactor = availableWidth / requiredWidthPx;
-
-    // Calculate the adjusted font size (rem), clamping between min and max
-    const minFontSizeRem = 0.45; // Minimum font size in rem
-    const maxFontSizeRem = 0.85; // Maximum font size in rem
-    const adjustedFontSizeRem = Math.min(
-      Math.max(baseFontSizeRem * scaleFactor, minFontSizeRem),
-      maxFontSizeRem
-    );
-
-    // Return the text size as a TailwindCSS class
-    return adjustedFontSizeRem.toFixed(2);
-  };
-
   const customTileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view === "month") {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -205,7 +179,9 @@ const CustomCalendar = ({
 
           const dayIndex = getDay(date);
           let maxDuration = Math.max(
-            Math.min(booking.duration, booking.duration - dayIndex),
+            booking.duration - dayIndex > 1
+              ? Math.min(booking.duration, booking.duration - dayIndex)
+              : booking.duration,
             1
           );
 
@@ -213,13 +189,13 @@ const CustomCalendar = ({
 
           const availableTileWidth = tileWidth ? tileWidth * maxDuration : 0;
 
-          const textSize = getTextSize(name, availableTileWidth);
+          const textSize = 0.65;
 
           const content = isSameDay(date, startDate) ? (
             <span
               className="absolute top-auto left-1 truncate z-10"
               style={{
-                maxWidth: `${availableTileWidth - maxDuration * 1.5}px`,
+                maxWidth: `${availableTileWidth - maxDuration * 3}px`,
               }}
             >
               {name}
