@@ -11,32 +11,35 @@ const ProfileDesktop = ({ children, handleLogout }: ProfileDesktopProps) => {
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  const getInitials = () => {
-    const splitName = children.trim().split(" "); // Split the name into parts
-    if (splitName.length === 1) {
-      // If there's only one word, return the first letter capitalized
-      return splitName[0].charAt(0).toUpperCase();
-    }
-    const firstInitial = splitName[0].charAt(0).toUpperCase(); // First name initial
-    const lastInitial = splitName[splitName.length - 1].charAt(0).toUpperCase(); // Last name initial
-    return firstInitial + lastInitial; // Combine initials
-  };
-
   return (
     <div className="relative">
       <div
         className="flex items-center cursor-pointer space-x-2"
         onClick={toggleDropdown}
       >
+        {/* Parent Container for Profile and Tick */}
         <div
           className={`${
             window.screen.availWidth > 640
               ? "h-[76px] w-[76px]"
               : "h-[44px] w-[44px]"
-          } rounded-full border border-solid border-black flex items-center justify-center`}
+          } relative flex items-center justify-center`}
         >
-          {getInitials()}
+          {/* Profile Image Container */}
+          <div className="h-full w-full rounded-full border border-solid border-black overflow-hidden">
+            <img
+              src="./DemoProfile.jpg" // Update this path with the correct URL
+              alt="Profile"
+              className="h-full w-full object-cover"
+            />
+          </div>
+
+          {/* Tick Overlay */}
+          <div className="absolute bottom-0 right-0 h-5 w-5 bg-green-500 rounded-full flex items-center justify-center border border-white">
+            ✓
+          </div>
         </div>
+
         <span
           className={`${
             window.screen.availWidth > 640 ? "text-[1.25rem]" : "hidden"

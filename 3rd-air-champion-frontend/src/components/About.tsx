@@ -14,17 +14,29 @@ const About = ({ setIsAboutModalOpen }: AboutProps) => {
         >
           &times;
         </button>
-        <h2 className="text-xl text-center font-bold mb-2">TiMag 1.0</h2>
+        <h2 className="w-full flex items-center justify-center text-xl font-bold mb-2">
+          <img
+            className={
+              window.screen.availWidth > 640
+                ? "h-[76px] w-[76px]"
+                : "h-[44px] w-[44px]"
+            }
+            alt="About"
+            title="About"
+            src="./TiMagLogo.svg"
+          ></img>
+          TiMag 1.0{" "}
+        </h2>
         <p className="mb-4">
           TiMag 1.0 is designed to manage non AirBnB vs. regular AirBnB bookings
           within a single platform. It provides the following features:
         </p>
         <ul className="list-disc list-inside space-y-1">
           <li>Centralized management for room rentals</li>
-          <li>Seamless synchronization with Airbnb calendars</li>
+          <li>Seamless synchronization with AirBnB calendars</li>
+          <li>Monthly statistics for profit optimization</li>
           <li>User-friendly interface for effortless operations</li>
           <li>Action item reminders for better task management</li>
-          <li>Monthly statistics</li>
         </ul>
         <p className="mt-4">
           For inquiries, please reach out to{" "}
@@ -32,7 +44,7 @@ const About = ({ setIsAboutModalOpen }: AboutProps) => {
             href="mailto:anhtp5@uci.edu"
             className="text-blue-500 underline hover:text-blue-700"
           >
-            anhtp5@uci.edu
+            Anh-Tri Pham
           </a>
           .
         </p>
