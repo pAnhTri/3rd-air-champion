@@ -20,7 +20,7 @@ const NavBarDesktop = ({
 
       {/* Centered Navigation Buttons */}
       <h1 className="p-1 hover:rounded-md sm:p-2 text-lg">
-        TT Booking Manager
+        TT House Booking Manager
       </h1>
 
       {/* About */}

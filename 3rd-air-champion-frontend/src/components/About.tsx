@@ -14,20 +14,20 @@ const About = ({ setIsAboutModalOpen }: AboutProps) => {
         >
           &times;
         </button>
-        <h2 className="text-xl text-center font-bold mb-2">About</h2>
+        <h2 className="text-xl text-center font-bold mb-2">TiMag 1.0</h2>
         <p className="mb-4">
-          This app is designed to centralize room renting operations and
-          synchronize Airbnb calendars. It provides the following features:
+          TiMag 1.0 is designed to manage non AirBnB vs. regular AirBnB bookings
+          within a single platform. It provides the following features:
         </p>
         <ul className="list-disc list-inside space-y-1">
           <li>Centralized management for room rentals</li>
           <li>Seamless synchronization with Airbnb calendars</li>
           <li>User-friendly interface for effortless operations</li>
           <li>Action item reminders for better task management</li>
-          <li>Month by month statistics</li>
+          <li>Monthly statistics</li>
         </ul>
         <p className="mt-4">
-          For inquiries, reach out to{" "}
+          For inquiries, please reach out to{" "}
           <a
             href="mailto:anhtp5@uci.edu"
             className="text-blue-500 underline hover:text-blue-700"

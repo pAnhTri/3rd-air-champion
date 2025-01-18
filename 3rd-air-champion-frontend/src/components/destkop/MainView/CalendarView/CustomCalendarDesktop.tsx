@@ -213,7 +213,9 @@ const CustomCalendar = ({
               <div
                 key="red"
                 className={`bg-red-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold text-white"
+                  booking.guest.name === "AirBnB"
+                    ? "text-white"
+                    : "text-black font-bold"
                 } justify-center
                `}
                 style={{ fontSize: `${textSize}rem` }}
@@ -226,7 +228,9 @@ const CustomCalendar = ({
               <div
                 key="blue"
                 className={`bg-blue-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold text-white"
+                  booking.guest.name === "AirBnB"
+                    ? "text-white"
+                    : "text-black font-bold"
                 } justify-center`}
                 style={{ fontSize: `${textSize}rem` }}
               >
@@ -238,7 +242,9 @@ const CustomCalendar = ({
               <div
                 key="green"
                 className={`bg-green-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold text-white"
+                  booking.guest.name === "AirBnB"
+                    ? "text-white"
+                    : "text-black font-bold"
                 } justify-center`}
                 style={{ fontSize: `${textSize}rem` }}
               >
