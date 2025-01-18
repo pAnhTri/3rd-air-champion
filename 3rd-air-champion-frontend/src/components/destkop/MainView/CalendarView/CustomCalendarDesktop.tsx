@@ -212,8 +212,8 @@ const CustomCalendar = ({
             gridContent.red = (
               <div
                 key="red"
-                className={`text-white bg-red-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold"
+                className={`bg-red-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold text-white"
                 } justify-center
                `}
                 style={{ fontSize: `${textSize}rem` }}
@@ -225,8 +225,8 @@ const CustomCalendar = ({
             gridContent.blue = (
               <div
                 key="blue"
-                className={`text-white bg-blue-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold"
+                className={`bg-blue-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold text-white"
                 } justify-center`}
                 style={{ fontSize: `${textSize}rem` }}
               >
@@ -237,8 +237,8 @@ const CustomCalendar = ({
             gridContent.green = (
               <div
                 key="green"
-                className={`text-white bg-green-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB" && "font-bold"
+                className={`bg-green-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
+                  booking.guest.name === "AirBnB" && "font-bold text-white"
                 } justify-center`}
                 style={{ fontSize: `${textSize}rem` }}
               >

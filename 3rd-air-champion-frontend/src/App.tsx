@@ -4,6 +4,7 @@ import { hostType } from "./util/types/hostType";
 import { useNavigate } from "react-router";
 import NavBarDesktop from "./components/destkop/NavBar/NavBarDesktop";
 import MainView from "./components/destkop/MainView/MainView";
+import About from "./components/About";
 
 interface SyncModalContextType {
   isSyncModalOpen: boolean;
@@ -20,6 +21,8 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [isLoading, setIsLoading] = useState(true); // Track loading state
   const [errorMessage, setErrorMessage] = useState<string>(""); // Track errors
+
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [shouldCallOnSync, setShouldCallOnSync] = useState(false);
@@ -85,7 +88,16 @@ function App() {
       >
         <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
           {/* Navbar */}
-          <NavBarDesktop handleLogout={handleLogout} name={host?.name} />
+          <NavBarDesktop
+            handleLogout={handleLogout}
+            name={host?.name}
+            setIsAboutModalOpen={setIsAboutModalOpen}
+          />
+
+          {/* About Modal */}
+          {isAboutModalOpen && (
+            <About setIsAboutModalOpen={setIsAboutModalOpen} />
+          )}
 
           {/* Main Content Area */}
           <div className="grid grid-cols-5 overflow-hidden">
