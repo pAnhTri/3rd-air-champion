@@ -44,9 +44,17 @@ const Register = ({ setIsLogin }: RegisterProps) => {
   return (
     <div className="flex flex-col justify-center items-center h-screen">
       <form
-        className="flex flex-col justify-center items-center bg-white w-full max-w-[480px] h-full max-h-[280px] rounded-md drop-shadow-md"
+        className="flex flex-col justify-center items-center bg-white w-full max-w-[480px] h-full max-h-[360px] rounded-md drop-shadow-md"
         onSubmit={handleSubmit(onSubmit)}
       >
+        <div className="flex items-center text-xl font-bold">
+          <img
+            src="./TiMagLogo.svg"
+            alt="Logo"
+            className={"h-[56px] w-[56px]"}
+          />{" "}
+          TiMag
+        </div>
         <div className="flex flex-col p-1">
           <label htmlFor="email">Email</label>
           <input
@@ -88,12 +96,12 @@ const Register = ({ setIsLogin }: RegisterProps) => {
         <div className="flex space-x-4">
           <button
             type="submit"
-            className="bg-blue-400 drop-shadow rounded-md mt-2 p-2"
+            className="bg-blue-400 drop-shadow rounded-md mt-2 p-2 disabled:bg-slate-500"
             disabled={
               !watch("email") || Object.keys(errors).length > 0 || isLoading
             }
           >
-            Submit
+            Register
           </button>
           <button
             type="submit"
