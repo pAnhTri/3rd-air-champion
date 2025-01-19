@@ -8,7 +8,7 @@ const Authorization = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Background Video */}
-      <video
+      {/* <video
         className="absolute top-0 left-0 w-full h-full object-cover z-0"
         autoPlay
         loop
@@ -18,7 +18,13 @@ const Authorization = () => {
       >
         <source src="./BackgroundVid.mp4" type="video/mp4" />
         Your browser does not support the video tag.
-      </video>
+      </video> */}
+
+      <img
+        className="absolute top-0 left-0 w-full h-full object-fill z-0"
+        src="./TestBg.jpg"
+        alt="Background"
+      ></img>
 
       {/* Mask Div */}
       <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10"></div>

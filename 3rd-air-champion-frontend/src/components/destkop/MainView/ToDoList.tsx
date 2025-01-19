@@ -7,17 +7,18 @@ interface ToDoListProps {
 }
 
 const ToDoList = ({ monthMap }: ToDoListProps) => {
-  const [nextDay, setNextDay] = useState<dayType | undefined>(
-    monthMap.get(addDays(startOfToday(), 1).toISOString().split("T")[0])
-  );
+  const [upcomingDays, setUpcomingDays] = useState<dayType[]>([]);
 
   const [completedTasks, setCompletedTasks] = useState<
     Record<string, { completed: boolean; date: string | null }>
   >(() => JSON.parse(localStorage.getItem("completedTasks") || "{}"));
 
   useEffect(() => {
-    const tomorrow = addDays(startOfToday(), 1).toISOString().split("T")[0];
-    setNextDay(monthMap.get(tomorrow));
+    const dates = [1, 2].map((days) => {
+      const dateKey = addDays(startOfToday(), days).toISOString().split("T")[0];
+      return monthMap.get(dateKey);
+    });
+    setUpcomingDays(dates.filter((day) => day !== undefined) as dayType[]);
   }, [monthMap]);
 
   useEffect(() => {
@@ -42,16 +43,18 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
     roomId: string
   ) => `${startDate}-${endDate}-${guestId}-${roomId}`;
 
-  const nextDayDate = addDays(startOfToday(), 1).toISOString().split("T")[0];
+  const upcomingDates = [1, 2].map(
+    (days) => addDays(startOfToday(), days).toISOString().split("T")[0]
+  );
 
-  return nextDay ? (
+  return upcomingDays.length > 0 ? (
     <div className="flex flex-col h-full px-2 overflow-y-scroll">
       <h1 className="font-bold self-center text-lg">
         To Do for Today ({format(startOfToday(), "MM/dd/yyyy")})
       </h1>
-      {nextDay.bookings
-        .filter((booking) => booking.startDate === nextDayDate)
-        .map((booking, index) => {
+
+      {upcomingDays.flatMap((day, dayIndex) =>
+        day.bookings.map((booking, index) => {
           const taskId = generateTaskId(
             booking.startDate,
             booking.endDate,
@@ -65,9 +68,23 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
           };
           const isCompleted = task.completed;
 
+          const isAirBnB = booking.guest.name === "AirBnB";
+          const shouldShowReminder =
+            (isAirBnB &&
+              (booking.startDate === upcomingDates[0] ||
+                booking.startDate === upcomingDates[1])) ||
+            (!isAirBnB &&
+              booking.startDate === upcomingDates[0] &&
+              day.date.toString() === upcomingDates[0]);
+
+          if (!shouldShowReminder) return null;
+
+          const reminderType =
+            booking.startDate === upcomingDates[1] ? "48-hour" : "24-hour";
+
           return (
             <div
-              key={index}
+              key={`${dayIndex}-${index}`}
               className={`h-full w-full border-b border-solid flex justify-center items-center ${
                 isCompleted ? "bg-gray-200" : ""
               }`}
@@ -89,6 +106,7 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                   {isCompleted && (
                     <p className="text-sm">Sent on {task.date}</p>
                   )}
+                  <p className="text-sm text-gray-600">In {reminderType}</p>
                 </div>
               </div>
               <div className="basis-1/5">
@@ -107,11 +125,15 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                           booking.guest.name
                         }, I would like to remind you that you will stay at TT house AirBnB for ${
                           booking.duration > 1
-                            ? `${booking.duration} nights`
-                            : "1 night"
-                        }, starting from tomorrow. Your room is ${
-                          booking.room.name
-                        } ${
+                            ? `${booking.duration} nights, starting ${
+                                reminderType === "48-hour"
+                                  ? "in 2 days"
+                                  : "tomorrow"
+                              }.`
+                            : reminderType === "48-hour"
+                            ? "the day after tomorrow."
+                            : "tomorrow night."
+                        } Your room is ${booking.room.name} ${
                           roomCodes.get(booking.room.name.toLowerCase()) ||
                           "Code"
                         }. The main entrance door code is 1268=. I wish you a pleasant day. Thanks!`
@@ -144,7 +166,8 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
               </div>
             </div>
           );
-        })}
+        })
+      )}
     </div>
   ) : (
     <div className="flex items-center justify-center h-full w-full">
