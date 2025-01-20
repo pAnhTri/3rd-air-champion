@@ -71,6 +71,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   }>();
 
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
+  const [selectedRoom, setSelectedRoom] = useState<roomType>();
   const [selectedBooking, setSelectedBooking] = useState<bookingType | null>(
     null
   );
@@ -538,6 +539,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 setGuests={setGuests}
                 rooms={rooms}
                 selectedDate={selectedDate}
+                selectedRoom={selectedRoom}
                 setRooms={setRooms}
                 onBooking={onBooking}
                 setIsModalOpen={setIsModalOpen}
@@ -566,11 +568,17 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               >
             }
           >
-            <BookButton setIsModalOpen={setIsModalOpen} />
+            <BookButton
+              setIsModalOpen={setIsModalOpen}
+              setSelectedRoom={setSelectedRoom}
+            />
           </GuestView>
         ) : (
           <div className="flex items-center justify-center h-full w-full">
-            <BookButton setIsModalOpen={setIsModalOpen} />
+            <BookButton
+              setIsModalOpen={setIsModalOpen}
+              setSelectedRoom={setSelectedRoom}
+            />
           </div>
         )}
       </div>
@@ -612,6 +620,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             <BookButton
               setIsModalOpen={setIsModalOpen}
               setIsMobileModalOpen={setIsMobileModalOpen}
+              setSelectedRoom={setSelectedRoom}
             />
           </GuestView>
         ) : (
@@ -619,6 +628,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             <BookButton
               setIsModalOpen={setIsModalOpen}
               setIsMobileModalOpen={setIsMobileModalOpen}
+              setSelectedRoom={setSelectedRoom}
             />
           </div>
         )}

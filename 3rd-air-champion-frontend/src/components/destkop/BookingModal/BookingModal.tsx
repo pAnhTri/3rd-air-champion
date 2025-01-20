@@ -18,6 +18,7 @@ interface BookingModalProps {
   guests: guestType[];
   rooms: roomType[];
   selectedDate: Date;
+  selectedRoom: roomType | undefined;
   onBooking: (
     roomName: string,
     date: Date,
@@ -34,11 +35,13 @@ const BookingModal = ({
   guests,
   rooms,
   selectedDate,
+  selectedRoom,
   setGuests,
   setRooms,
   onBooking,
   setIsModalOpen,
 }: BookingModalProps) => {
+  console.log(selectedRoom);
   const token = localStorage.getItem("token");
   const [showAddPane, setShowAddPane] = useState<"guest" | "room" | null>(null);
 
@@ -53,7 +56,11 @@ const BookingModal = ({
     formState: { errors },
   } = useForm<bookDaySchema>({
     resolver: zodResolver(bookDaysZodObject),
-    defaultValues: { numberOfGuests: 1, duration: 1 },
+    defaultValues: {
+      numberOfGuests: 1,
+      duration: 1,
+      room: selectedRoom?.id || "",
+    },
   });
 
   const onAddGuest = (guestObject: { name: string; phone: string }) => {
@@ -171,7 +178,7 @@ const BookingModal = ({
                 className="border border-gray-300 rounded px-2 py-1 w-full"
                 {...register("room")}
               >
-                <option value="">Select a room</option>
+                {!selectedRoom && <option value="">Select a room</option>}
                 {rooms.map((room) => (
                   <option key={room.id} value={room.id}>
                     {room.name}

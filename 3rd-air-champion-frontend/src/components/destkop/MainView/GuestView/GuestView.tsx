@@ -3,7 +3,7 @@ import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
 import { FaMinus } from "react-icons/fa";
 import Pricing from "./Pricing";
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface GuestViewProps {
   children: JSX.Element;
@@ -145,7 +145,7 @@ const GuestView = ({
             className="flex flex-col items-center justify-center border-b border-solid h-full w-full space-y-2"
           >
             <p>{room.name}</p>
-            {children}
+            {React.cloneElement(children, { room: room })}
           </div>
         ))}
     </div>

@@ -1,17 +1,23 @@
 import { FaPlus } from "react-icons/fa";
+import { roomType } from "../../util/types/roomType";
 
 interface BookButtonProps {
+  room?: roomType;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsMobileModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedRoom: React.Dispatch<React.SetStateAction<roomType | undefined>>;
 }
 
 const BookButton = ({
+  room,
   setIsModalOpen,
   setIsMobileModalOpen,
+  setSelectedRoom,
 }: BookButtonProps) => {
   return (
     <button
       onClick={() => {
+        setSelectedRoom(room);
         setIsModalOpen(true);
         if (typeof setIsMobileModalOpen !== "undefined")
           setIsMobileModalOpen(false);
