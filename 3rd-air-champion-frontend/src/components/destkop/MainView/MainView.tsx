@@ -574,11 +574,20 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             />
           </GuestView>
         ) : (
-          <div className="flex items-center justify-center h-full w-full">
-            <BookButton
-              setIsModalOpen={setIsModalOpen}
-              setSelectedRoom={setSelectedRoom}
-            />
+          <div className="flex flex-col items-center justify-center h-full w-full">
+            {rooms.map((room, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center justify-center border-b border-solid h-full w-full space-y-2"
+              >
+                <p>{room.name}</p>
+                <BookButton
+                  room={room}
+                  setIsModalOpen={setIsModalOpen}
+                  setSelectedRoom={setSelectedRoom}
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -624,12 +633,21 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             />
           </GuestView>
         ) : (
-          <div className="flex w-full h-full justify-center items-center">
-            <BookButton
-              setIsModalOpen={setIsModalOpen}
-              setIsMobileModalOpen={setIsMobileModalOpen}
-              setSelectedRoom={setSelectedRoom}
-            />
+          <div className="flex flex-col w-full h-full justify-center items-center">
+            {rooms.map((room, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center justify-center border-b border-solid h-full w-full space-y-2"
+              >
+                <p>{room.name}</p>
+                <BookButton
+                  room={room}
+                  setIsModalOpen={setIsModalOpen}
+                  setIsMobileModalOpen={setIsMobileModalOpen}
+                  setSelectedRoom={setSelectedRoom}
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
