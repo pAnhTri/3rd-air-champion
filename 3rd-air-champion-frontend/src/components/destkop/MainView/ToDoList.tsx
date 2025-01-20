@@ -69,13 +69,20 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
           const isCompleted = task.completed;
 
           const isAirBnB = booking.guest.name === "AirBnB";
+
+          const isUpcomingForAirBnB =
+            isAirBnB &&
+            (booking.startDate === upcomingDates[0] ||
+              booking.startDate === upcomingDates[1]) &&
+            day.date.toString() === booking.startDate;
+
+          const isUpcomingForNonAirBnB =
+            !isAirBnB &&
+            booking.startDate === upcomingDates[0] &&
+            day.date.toString() === upcomingDates[0];
+
           const shouldShowReminder =
-            (isAirBnB &&
-              (booking.startDate === upcomingDates[0] ||
-                booking.startDate === upcomingDates[1])) ||
-            (!isAirBnB &&
-              booking.startDate === upcomingDates[0] &&
-              day.date.toString() === upcomingDates[0]);
+            isUpcomingForAirBnB || isUpcomingForNonAirBnB;
 
           if (!shouldShowReminder) return null;
 

@@ -5,34 +5,64 @@ import Register from "./Register";
 const Authorization = () => {
   const [isLogin, setIsLogin] = useState(true);
 
+  const listings = [
+    {
+      url: "https://www.airbnb.com/rooms/1177648203505001777",
+      label: "Airbnb Listing 1",
+    },
+    {
+      url: "https://www.airbnb.com/rooms/1144526275550691711",
+      label: "Airbnb Listing 2",
+    },
+  ];
+
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Background Video */}
-      {/* <video
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-        autoPlay
-        loop
-        muted
-        controls={false} // Disable controls
-        onContextMenu={(e) => e.preventDefault()} // Disable context menu
-      >
-        <source src="./BackgroundVid.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video> */}
+    <div className="w-full h-screen flex flex-col">
+      {/* Demo Images */}
+      <div className="w-full h-1/3 flex items-center justify-center">
+        <img
+          src={"./FullDemo.jpg"}
+          alt="House"
+          className="max-h-full max-w-full object-contain"
+        />
+      </div>
 
-      <img
-        className="absolute top-0 left-0 w-full h-full object-fill z-0"
-        src="./TestBg.jpg"
-        alt="Background"
-      ></img>
+      {/* AirBnB Reviews */}
+      <div className="w-full flex flex-col items-center my-2">
+        <img
+          src={"./Login/UserReview.jpg"}
+          alt="User Reviews"
+          className="max-w-[256px] mb-4"
+        />
+        <p className="flex w-full max-w-[80%] items-center justify-center space-x-4 mb-4">
+          <div className="flex-shrink-0 flex items-center justify-center">
+            <img
+              src={"./Login/ProfilePic.jpg"}
+              alt="Profile Image"
+              className="w-[44px] h-[44px] object-contain"
+            />
+          </div>
+          <span>Stay with Anh-Tuan, Superhost, Engineer</span>
+        </p>
 
-      {/* Mask Div */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10"></div>
+        <p className="flex w-full max-w-[80%] items-center justify-center space-x-4">
+          <div className="flex-shrink-0 flex items-center justify-center">
+            <img
+              src={"./Login/Trophy.jpg"}
+              alt="Trophy"
+              className="w-[44px] h-[44px] object-contain"
+            />
+          </div>
+          <span>
+            Top 5% of homes based on ratings, ranking, and reliability.
+          </span>
+        </p>
+      </div>
 
-      {/* Content */}
-      <div className="relative z-20">
+      {/* Login/ Register */}
+      <div className="h-full">
         {isLogin ? (
-          <Login setIsLogin={setIsLogin} />
+          <Login listings={listings} setIsLogin={setIsLogin} />
         ) : (
           <Register setIsLogin={setIsLogin} />
         )}

@@ -6,10 +6,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 
 interface LoginProps {
+  listings: {
+    url: string;
+    label: string;
+  }[];
   setIsLogin: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Login = ({ setIsLogin }: LoginProps) => {
+const Login = ({ listings, setIsLogin }: LoginProps) => {
   const {
     register,
     handleSubmit,
@@ -41,9 +45,9 @@ const Login = ({ setIsLogin }: LoginProps) => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen">
+    <div className="flex flex-col justify-center items-center h-full">
       <form
-        className="flex flex-col justify-center items-center bg-white w-full max-w-[480px] h-full max-h-[280px] rounded-md drop-shadow-md"
+        className="flex flex-col justify-center items-center bg-white w-full h-full rounded-md drop-shadow-md"
         onSubmit={handleSubmit(onSubmit)}
       >
         <div className="flex items-center text-xl font-bold">
@@ -52,7 +56,7 @@ const Login = ({ setIsLogin }: LoginProps) => {
             alt="Logo"
             className={"h-[56px] w-[56px]"}
           />{" "}
-          TiMag
+          Welcome to TT House
         </div>
         <div className="flex flex-col p-1">
           <label htmlFor="email">Email</label>
@@ -99,6 +103,26 @@ const Login = ({ setIsLogin }: LoginProps) => {
           </button>
         </div>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        <div className="flex mt-2 space-x-1">
+          <span>As seen on AirBnB</span>
+          <a
+            href={listings[0].url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 underline hover:text-blue-700"
+          >
+            Cozy
+          </a>
+          <span>and</span>
+          <a
+            href={listings[1].url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 underline hover:text-blue-700"
+          >
+            Cute
+          </a>
+        </div>
       </form>
     </div>
   );

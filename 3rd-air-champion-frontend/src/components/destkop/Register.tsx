@@ -42,9 +42,9 @@ const Register = ({ setIsLogin }: RegisterProps) => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen">
+    <div className="flex flex-col justify-center items-center h-full">
       <form
-        className="flex flex-col justify-center items-center bg-white w-full max-w-[480px] h-full max-h-[360px] rounded-md drop-shadow-md"
+        className="flex flex-col justify-center items-center bg-white w-full h-full rounded-md drop-shadow-md"
         onSubmit={handleSubmit(onSubmit)}
       >
         <div className="flex items-center text-xl font-bold">
@@ -53,7 +53,7 @@ const Register = ({ setIsLogin }: RegisterProps) => {
             alt="Logo"
             className={"h-[56px] w-[56px]"}
           />{" "}
-          TiMag
+          Welcome to TT House
         </div>
         <div className="flex flex-col p-1">
           <label htmlFor="email">Email</label>
