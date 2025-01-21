@@ -1,14 +1,19 @@
+import { toZonedTime } from "date-fns-tz";
 import { formatDate } from "../../../../util/formatDate";
 import { bookingType } from "../../../../util/types/bookingType";
+import { dayType } from "../../../../util/types/dayType";
+import { addDays } from "date-fns";
 
 interface UnbookingConfirmationProps {
   booking: bookingType;
+  monthMap: Map<string, dayType>;
   onClose: () => void;
-  onUnbook: (id: string) => void;
+  onUnbook: (ids: string[]) => void;
 }
 
 const UnbookingConfirmation = ({
   booking,
+  monthMap,
   onClose,
   onUnbook,
 }: UnbookingConfirmationProps) => {
@@ -38,7 +43,32 @@ const UnbookingConfirmation = ({
         {/* Action buttons */}
         <div className="flex justify-end space-x-4 mt-4">
           <button
-            onClick={() => onUnbook(booking.id)}
+            onClick={() => {
+              const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+              const bookingIds: string[] = [];
+              const startDate = toZonedTime(booking.startDate, timeZone);
+
+              for (let i = 0; i < booking.duration; i++) {
+                const currentDay = monthMap.get(
+                  addDays(startDate, i).toISOString().split("T")[0]
+                );
+
+                if (currentDay) {
+                  // Find matching bookings in the current day
+                  currentDay.bookings.forEach((b) => {
+                    if (
+                      b.guest.id === booking.guest.id &&
+                      b.room.id === booking.room.id
+                    ) {
+                      bookingIds.push(b.id); // Collect the booking ID
+                    }
+                  });
+                }
+              }
+
+              onUnbook(bookingIds);
+            }}
             className="px-4 py-2 bg-green-500 text-white rounded"
           >
             Confirm

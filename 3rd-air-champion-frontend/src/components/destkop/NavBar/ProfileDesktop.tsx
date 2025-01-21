@@ -51,7 +51,11 @@ const ProfileDesktop = ({ children, handleLogout }: ProfileDesktopProps) => {
 
       {/* Dropdown Menu */}
       {isDropdownOpen && (
-        <DropDownMenu user={children} handleLogout={handleLogout} />
+        <DropDownMenu
+          user={children}
+          handleLogout={handleLogout}
+          setIsDropdownOpen={setIsDropdownOpen}
+        />
       )}
     </div>
   );

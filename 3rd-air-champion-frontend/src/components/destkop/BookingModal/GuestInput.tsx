@@ -10,7 +10,6 @@ interface GuestInputProps {
     guest: string;
     room: string;
     date: Date;
-    isAirBnB: boolean;
     duration: number;
     numberOfGuests: number;
   }>;
@@ -90,13 +89,6 @@ const GuestInput = ({
             )
           )}
         </div>
-        <button
-          type="button"
-          className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-          onClick={() => setShowAddPane("guest")}
-        >
-          Add Guest
-        </button>
       </div>
     </div>
   );

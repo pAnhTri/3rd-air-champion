@@ -14,14 +14,18 @@ import {
 } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { roomType } from "../../../util/types/roomType";
-import { fetchRooms } from "../../../util/roomOperations";
+import { createRoom, fetchRooms } from "../../../util/roomOperations";
 import RoomLinkModal from "./CalendarView/RoomLinkModal";
 import { guestType } from "../../../util/types/guestType";
-import { fetchGuests, updateGuestPricing } from "../../../util/guestOperations";
+import {
+  createGuest,
+  fetchGuests,
+  updateGuestPricing,
+} from "../../../util/guestOperations";
 import { syncCalendars } from "../../../util/syncOperations";
 import GuestView from "./GuestView/GuestView";
 import BookButton from "../BookButton";
-import { isSyncModalOpenContext } from "../../../App";
+import { AddPaneContext, isSyncModalOpenContext } from "../../../App";
 import DetailsModal from "./GuestView/DetailsModal";
 import {
   updateBookingGuest,
@@ -29,6 +33,9 @@ import {
 } from "../../../util/bookingOperations";
 import UnbookingConfirmation from "./GuestView/UnbookingConfirmation";
 import ToDoList from "./ToDoList";
+import ModifyBookingModal from "../ModifyBookingModal";
+import GuestAddPane from "../BookingModal/GuestAddPane";
+import RoomAddPane from "../BookingModal/RoomAddPane";
 
 interface MainViewProps {
   calendarId: string;
@@ -46,7 +53,26 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     setShouldCallOnSync: React.Dispatch<React.SetStateAction<boolean>>;
   };
 
+  const addPaneContext = useContext(AddPaneContext) as {
+    showAddPane: "guest" | "room" | null;
+    setShowAddPane: React.Dispatch<
+      React.SetStateAction<"guest" | "room" | null>
+    >;
+    guestErrorMessage: string;
+    setGuestErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+    roomErrorMessage: string;
+    setRoomErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  };
+
   const { isSyncModalOpen, shouldCallOnSync, setShouldCallOnSync } = context;
+  const {
+    showAddPane,
+    setShowAddPane,
+    guestErrorMessage,
+    setGuestErrorMessage,
+    roomErrorMessage,
+    setRoomErrorMessage,
+  } = addPaneContext;
   const [initialSync, setIsInitialSync] = useState(true);
 
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -76,6 +102,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     null
   );
   const [selectedUnbooking, setSelectedUnbooking] =
+    useState<bookingType | null>(null);
+  const [selectedModifyBooking, setSelectedModifyBooking] =
     useState<bookingType | null>(null);
 
   const [occupancy, setOccupancy] = useState<{
@@ -160,6 +188,30 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     }
   }, [isCalendarLoading]);
 
+  const onAddGuest = (guestObject: { name: string; phone: string }) => {
+    createGuest(guestObject, token as string)
+      .then((result) => {
+        setGuests([...guests, result]);
+        setShowAddPane(null);
+      })
+      .catch((err) => {
+        setGuestErrorMessage(err);
+        console.error("Error creating guest:", err);
+      });
+  };
+
+  const onAddRoom = (roomObject: { name: string; price: number }) => {
+    createRoom(roomObject, token as string)
+      .then((result) => {
+        setRooms([...rooms, result]);
+        setShowAddPane(null);
+      })
+      .catch((err) => {
+        setRoomErrorMessage(err);
+        console.error("Error creating room:", err);
+      });
+  };
+
   const transformBookings = (
     monthMap: Map<string, dayType>,
     timeZone: string
@@ -172,22 +224,30 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       tracking: { startDate: string; endDate: string; duration: number },
       processedBookings: Set<string>
     ): void => {
+      const finalizeBooking = () => {
+        // Update the current booking after recursion unwinds
+        booking.duration = tracking.duration;
+        booking.endDate = tracking.endDate;
+        booking.startDate = tracking.startDate;
+
+        // Mark the next booking as processed
+        const bookingIdentifier = `${tracking.startDate}-${tracking.endDate}-${booking.guest.id}`;
+        processedBookings.add(bookingIdentifier);
+      };
+
       const nextIndex = index + 1;
 
       // Base case: If there are no more keys, end recursion
       if (nextIndex >= sortedKeys.length) {
+        finalizeBooking();
         return;
       }
 
       const nextKey = sortedKeys[nextIndex];
       const nextDay = monthMap.get(nextKey);
 
-      if (!nextDay) {
-        return;
-      }
-
       // Find a matching booking in the next day's bookings
-      const nextBooking = nextDay.bookings.find((b) => {
+      const nextBooking = nextDay?.bookings.find((b) => {
         const currentDate = toZonedTime(currentKey, timeZone);
         const nextDate = toZonedTime(nextKey, timeZone);
         return (
@@ -213,14 +273,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         );
       }
 
-      // Update the current booking after recursion unwinds
-      booking.duration = tracking.duration;
-      booking.endDate = tracking.endDate;
-      booking.startDate = tracking.startDate;
-
-      // Mark the next booking as processed
-      const bookingIdentifier = `${tracking.startDate}-${tracking.endDate}-${booking.guest.id}`;
-      processedBookings.add(bookingIdentifier);
+      finalizeBooking();
     };
 
     const sortedKeys = [...monthMap.keys()].sort(); // Get sorted keys
@@ -439,6 +492,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     }
 
     setDays([...days, ...bookedDays]);
+    setIsCalendarLoading(true);
   };
 
   const onUpdateGuest = (data: {
@@ -459,18 +513,33 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       });
   };
 
-  const onUnbook = (id: string) => {
+  const onUnbook = (ids: string[]) => {
     setSelectedUnbooking(null);
-    updateUnbookGuest(id, token as string)
-      .then((result) => {
-        console.log(result);
+
+    const unbookSequentially = (index: number) => {
+      if (index >= ids.length) {
+        // All unbookings are done
         setCurrentBookings(null);
         setIsMobileModalOpen(false);
         setIsCalendarLoading(true);
-      })
-      .catch((err) => {
-        console.error("Error unbooking guest:", err);
-      });
+        return;
+      }
+
+      const id = ids[index];
+      updateUnbookGuest(id, token as string)
+        .then((result) => {
+          console.log(`Successfully unbooked guest with ID: ${id}`, result);
+          // Proceed to the next ID
+          unbookSequentially(index + 1);
+        })
+        .catch((err) => {
+          console.error(`Error unbooking guest with ID: ${id}`, err);
+          // Continue even if an error occurs
+          unbookSequentially(index + 1);
+        });
+    };
+
+    unbookSequentially(0); // Start the recursive process
   };
 
   const onPricingUpdate = (
@@ -536,13 +605,72 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               <BookingModal
                 calendarId={calendarId}
                 guests={guests}
-                setGuests={setGuests}
                 rooms={rooms}
                 selectedDate={selectedDate}
                 selectedRoom={selectedRoom}
-                setRooms={setRooms}
+                showAddPane={showAddPane}
                 onBooking={onBooking}
                 setIsModalOpen={setIsModalOpen}
+                setShowAddPane={setShowAddPane}
+              />
+            )}
+            {showAddPane && (
+              <>
+                {/* GuestAddPane */}
+                {showAddPane === "guest" && (
+                  <div
+                    className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
+                    onClick={() => {
+                      setShowAddPane(null); // Close modal on background click
+                    }}
+                  >
+                    <div
+                      className="w-full max-w-md bg-white p-4 rounded-lg shadow-lg"
+                      onClick={(e) => e.stopPropagation()} // Prevent background click inside modal
+                    >
+                      <GuestAddPane
+                        guestErrorMessage={guestErrorMessage}
+                        onAddGuest={(guestData) => {
+                          onAddGuest(guestData); // Handle guest addition
+                          setShowAddPane(null); // Close modal after adding guest
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* RoomAddPane */}
+                {showAddPane === "room" && (
+                  <div
+                    className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
+                    onClick={() => {
+                      setShowAddPane(null); // Close modal on background click
+                    }}
+                  >
+                    <div
+                      className="w-full max-w-md bg-white p-4 rounded-lg shadow-lg"
+                      onClick={(e) => e.stopPropagation()} // Prevent background click inside modal
+                    >
+                      <RoomAddPane
+                        roomErrorMessage={roomErrorMessage}
+                        onAddRoom={(roomData) => {
+                          onAddRoom(roomData); // Handle room addition
+                          setShowAddPane(null); // Close modal after adding room
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {selectedModifyBooking && (
+              <ModifyBookingModal
+                calendarId={calendarId}
+                monthMap={monthMap}
+                onBooking={onBooking}
+                selectedModifyBooking={selectedModifyBooking}
+                setSelectedModifyBooking={setSelectedModifyBooking}
               />
             )}
           </>
@@ -559,6 +687,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             onPricingUpdate={onPricingUpdate}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
+                React.SetStateAction<bookingType>
+              >
+            }
+            setSelectedModifyBooking={
+              setSelectedModifyBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
               >
             }
@@ -615,8 +748,14 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             currentBookings={currentBookings}
             rooms={rooms}
             onPricingUpdate={onPricingUpdate}
+            setIsMobileModalOpen={setIsMobileModalOpen}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
+                React.SetStateAction<bookingType>
+              >
+            }
+            setSelectedModifyBooking={
+              setSelectedModifyBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
               >
             }
@@ -679,6 +818,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       )}
       {selectedUnbooking && (
         <UnbookingConfirmation
+          monthMap={monthMap}
           booking={selectedUnbooking}
           onClose={() => setSelectedUnbooking(null)}
           onUnbook={onUnbook}

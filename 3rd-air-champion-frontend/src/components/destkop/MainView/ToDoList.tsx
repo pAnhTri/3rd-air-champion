@@ -110,10 +110,10 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                 <div className="flex flex-col">
                   {booking.guest.alias || booking.alias || booking.guest.name} (
                   {booking.room.name})
+                  <p className="text-sm text-gray-600">In {reminderType}</p>
                   {isCompleted && (
                     <p className="text-sm">Sent on {task.date}</p>
                   )}
-                  <p className="text-sm text-gray-600">In {reminderType}</p>
                 </div>
               </div>
               <div className="basis-1/5">

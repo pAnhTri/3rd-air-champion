@@ -2,6 +2,7 @@ import { formatDate } from "../../../../util/formatDate";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
 import { FaMinus } from "react-icons/fa";
+import { CiCalendar } from "react-icons/ci";
 import Pricing from "./Pricing";
 import React, { useState } from "react";
 
@@ -16,7 +17,9 @@ interface GuestViewProps {
       price: number;
     }[]
   ) => void;
+  setIsMobileModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
+  setSelectedModifyBooking: React.Dispatch<React.SetStateAction<bookingType>>;
   setSelectedUnbooking: React.Dispatch<React.SetStateAction<bookingType>>;
 }
 
@@ -25,7 +28,9 @@ const GuestView = ({
   currentBookings,
   rooms,
   onPricingUpdate,
+  setIsMobileModalOpen,
   setSelectedBooking,
+  setSelectedModifyBooking,
   setSelectedUnbooking,
 }: GuestViewProps) => {
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
@@ -47,15 +52,32 @@ const GuestView = ({
                         booking.guest.name}{" "}
                       ({booking.room.name})
                     </h1>
-                    {booking.guest.name !== "AirBnB" && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedUnbooking(booking)}
-                        className="flex justify-center w-[24px] h-[24px] items-center rounded-full shadow-md bg-red-500 hover:bg-red-600 text-white font-semibold"
-                      >
-                        <FaMinus size={14} />
-                      </button>
-                    )}
+
+                    {/* Quick Change Button */}
+                    <div className="flex gap-9">
+                      {booking.guest.name !== "AirBnB" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedModifyBooking(booking);
+                            if (typeof setIsMobileModalOpen !== "undefined")
+                              setIsMobileModalOpen(false);
+                          }}
+                          className="flex justify-center w-[24px] h-[24px] items-center rounded-full shadow-md bg-green-500 hover:bg-green-600 text-white font-semibold"
+                        >
+                          <CiCalendar size={14} />
+                        </button>
+                      )}
+                      {booking.guest.name !== "AirBnB" && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUnbooking(booking)}
+                          className="flex justify-center w-[24px] h-[24px] items-center rounded-full shadow-md bg-red-500 hover:bg-red-600 text-white font-semibold"
+                        >
+                          <FaMinus size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {/* Notes */}
                   <div

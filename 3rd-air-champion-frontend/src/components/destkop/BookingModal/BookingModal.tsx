@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { guestType } from "../../../util/types/guestType";
 import { roomType } from "../../../util/types/roomType";
-import { createGuest } from "../../../util/guestOperations";
-import { createRoom } from "../../../util/roomOperations";
-import GuestAddPane from "./GuestAddPane";
 import GuestInput from "./GuestInput";
-import RoomAddPane from "./RoomAddPane";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { bookDaySchema, bookDaysZodObject } from "../../../util/zodBookDays";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,15 +15,15 @@ interface BookingModalProps {
   rooms: roomType[];
   selectedDate: Date;
   selectedRoom: roomType | undefined;
+  showAddPane: "guest" | "room" | null;
   onBooking: (
     roomName: string,
     date: Date,
     duration: number,
     bookedDays: dayType[]
   ) => void;
-  setGuests: React.Dispatch<React.SetStateAction<guestType[]>>;
-  setRooms: React.Dispatch<React.SetStateAction<roomType[]>>;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowAddPane: React.Dispatch<React.SetStateAction<"guest" | "room" | null>>;
 }
 
 const BookingModal = ({
@@ -36,18 +32,13 @@ const BookingModal = ({
   rooms,
   selectedDate,
   selectedRoom,
-  setGuests,
-  setRooms,
+  showAddPane,
   onBooking,
   setIsModalOpen,
+  setShowAddPane,
 }: BookingModalProps) => {
-  console.log(selectedRoom);
   const token = localStorage.getItem("token");
-  const [showAddPane, setShowAddPane] = useState<"guest" | "room" | null>(null);
-
   const [bookingErrorMessage, setBookingErrorMessage] = useState("");
-  const [guestErrorMessage, setGuestErrorMessage] = useState("");
-  const [roomErrorMessage, setRoomErrorMessage] = useState("");
 
   const {
     register,
@@ -63,33 +54,11 @@ const BookingModal = ({
     },
   });
 
-  const onAddGuest = (guestObject: { name: string; phone: string }) => {
-    createGuest(guestObject, token as string)
-      .then((result) => {
-        setGuests([...guests, result]);
-        setShowAddPane(null);
-      })
-      .catch((err) => {
-        setGuestErrorMessage(err);
-        console.error("Error creating guest:", err);
-      });
-  };
-
-  const onAddRoom = (roomObject: { name: string; price: number }) => {
-    createRoom(roomObject, token as string)
-      .then((result) => {
-        setRooms([...rooms, result]);
-        setShowAddPane(null);
-      })
-      .catch((err) => {
-        setRoomErrorMessage(err);
-        console.error("Error creating room:", err);
-      });
-  };
-
   const onSubmit: SubmitHandler<bookDaySchema> = (data) => {
+    console.log(data);
     const request = {
       ...data,
+      isAirBnB: false,
       date: data.date.toISOString(),
       calendar: calendarId,
     };
@@ -126,22 +95,6 @@ const BookingModal = ({
           />
           {errors.guest && (
             <span className="text-red-500">{errors.guest.message}</span>
-          )}
-
-          {/* Is AirBnB*/}
-          <div className="flex gap-2">
-            <label htmlFor="isAirBnB" className="block text-sm font-medium">
-              Is AirBnB
-            </label>
-            <input
-              id="isAirBnB"
-              type="checkbox"
-              className="border border-gray-300 rounded px-2 py-1"
-              {...register("isAirBnB")}
-            />
-          </div>
-          {errors.isAirBnB && (
-            <p className="text-red-500">{errors.isAirBnB.message}</p>
           )}
 
           {/* Number of Guests */}
@@ -185,13 +138,6 @@ const BookingModal = ({
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-                onClick={() => setShowAddPane("room")}
-              >
-                Add Room
-              </button>
             </div>
             {errors.room && (
               <span className="text-red-500 text-sm">
@@ -240,7 +186,7 @@ const BookingModal = ({
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-between">
             <button
               type="button"
               className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
@@ -260,62 +206,6 @@ const BookingModal = ({
           )}
         </form>
       </div>
-
-      {showAddPane && (
-        <>
-          {/* GuestAddPane for Small Screens */}
-          {showAddPane === "guest" && (
-            <div
-              className="fixed bottom-0 left-0 w-full bg-gray-100 p-4 border-t border-gray-300 z-[60] sm:hidden"
-              onClick={(e) => e.stopPropagation()} // Prevent click from closing modal
-            >
-              <GuestAddPane
-                guestErrorMessage={guestErrorMessage}
-                onAddGuest={onAddGuest}
-              />
-            </div>
-          )}
-
-          {/* GuestAddPane for Larger Screens */}
-          {showAddPane === "guest" && (
-            <div
-              className="hidden sm:block w-1/3 bg-gray-100 p-4 border-l border-gray-300"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <GuestAddPane
-                guestErrorMessage={guestErrorMessage}
-                onAddGuest={onAddGuest}
-              />
-            </div>
-          )}
-
-          {/* RoomAddPane for Small Screens */}
-          {showAddPane === "room" && (
-            <div
-              className="fixed bottom-0 left-0 w-full bg-gray-100 p-4 border-t border-gray-300 z-[60] sm:hidden"
-              onClick={(e) => e.stopPropagation()} // Prevent click from closing modal
-            >
-              <RoomAddPane
-                roomErrorMessage={roomErrorMessage}
-                onAddRoom={onAddRoom}
-              />
-            </div>
-          )}
-
-          {/* RoomAddPane for Larger Screens */}
-          {showAddPane === "room" && (
-            <div
-              className="hidden sm:block w-1/3 bg-gray-100 p-4 border-l border-gray-300"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <RoomAddPane
-                roomErrorMessage={roomErrorMessage}
-                onAddRoom={onAddRoom}
-              />
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 };

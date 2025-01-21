@@ -131,7 +131,13 @@ const DetailsModal = ({
                     <input
                       {...field}
                       type="number"
-                      onChange={(event) => field.onChange(+event.target.value)}
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value === ""
+                            ? event.target.value
+                            : +event.target.value
+                        )
+                      }
                       className="border rounded px-2 py-1 w-full"
                       placeholder="Number of Guests"
                     />

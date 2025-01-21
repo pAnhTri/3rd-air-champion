@@ -13,8 +13,19 @@ interface SyncModalContextType {
   setShouldCallOnSync: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+interface AddPaneContextType {
+  showAddPane: "guest" | "room" | null;
+  setShowAddPane: React.Dispatch<React.SetStateAction<"guest" | "room" | null>>;
+  guestErrorMessage: string;
+  setGuestErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  roomErrorMessage: string;
+  setRoomErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+}
+
 export const isSyncModalOpenContext =
   createContext<SyncModalContextType | null>(null);
+
+export const AddPaneContext = createContext<AddPaneContextType | null>(null);
 
 function App() {
   const [host, setHost] = useState<hostType | null>(null); // Track host data
@@ -26,6 +37,10 @@ function App() {
 
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [shouldCallOnSync, setShouldCallOnSync] = useState(false);
+
+  const [showAddPane, setShowAddPane] = useState<"guest" | "room" | null>(null);
+  const [guestErrorMessage, setGuestErrorMessage] = useState("");
+  const [roomErrorMessage, setRoomErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -86,28 +101,39 @@ function App() {
           setShouldCallOnSync,
         }}
       >
-        <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
-          {/* Navbar */}
-          <NavBarDesktop
-            handleLogout={handleLogout}
-            name={host?.name}
-            setIsAboutModalOpen={setIsAboutModalOpen}
-          />
+        <AddPaneContext.Provider
+          value={{
+            showAddPane,
+            setShowAddPane,
+            guestErrorMessage,
+            setGuestErrorMessage,
+            roomErrorMessage,
+            setRoomErrorMessage,
+          }}
+        >
+          <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
+            {/* Navbar */}
+            <NavBarDesktop
+              handleLogout={handleLogout}
+              name={host?.name}
+              setIsAboutModalOpen={setIsAboutModalOpen}
+            />
 
-          {/* About Modal */}
-          {isAboutModalOpen && (
-            <About setIsAboutModalOpen={setIsAboutModalOpen} />
-          )}
+            {/* About Modal */}
+            {isAboutModalOpen && (
+              <About setIsAboutModalOpen={setIsAboutModalOpen} />
+            )}
 
-          {/* Main Content Area */}
-          <div className="grid grid-cols-5 overflow-hidden">
-            <MainView
-              calendarId={host.calendar}
-              hostId={host.id}
-              airbnbsync={host.airbnbsync}
-            ></MainView>
+            {/* Main Content Area */}
+            <div className="grid grid-cols-5 overflow-hidden">
+              <MainView
+                calendarId={host.calendar}
+                hostId={host.id}
+                airbnbsync={host.airbnbsync}
+              ></MainView>
+            </div>
           </div>
-        </div>
+        </AddPaneContext.Provider>
       </isSyncModalOpenContext.Provider>
     )
   );
