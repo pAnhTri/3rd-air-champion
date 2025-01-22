@@ -104,7 +104,7 @@ const Login = ({ listings, setIsLogin }: LoginProps) => {
         </div>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
         <div className="flex mt-2 space-x-1">
-          <span>As seen on AirBnB</span>
+          <span>Two listings on AirBnB:</span>
           <a
             href={listings[0].url}
             target="_blank"
@@ -122,6 +122,7 @@ const Login = ({ listings, setIsLogin }: LoginProps) => {
           >
             Cute
           </a>
+          <span>rooms.</span>
         </div>
       </form>
     </div>

@@ -42,7 +42,7 @@ const Authorization = () => {
               className="w-[44px] h-[44px] object-contain"
             />
           </div>
-          <span>Stay with Anh-Tuan, Superhost, Engineer</span>
+          <span>Stay with Anh-Tuan, AirBnB Super host, PhD, Engineer</span>
         </p>
 
         <p className="flex w-full max-w-[80%] items-center justify-center space-x-4">
