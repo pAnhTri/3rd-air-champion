@@ -263,7 +263,11 @@ router.post("/sync", async (req: Request, res: any) => {
             !todayBookingMap.has(key as string) // Not part of today's booking duration
           );
         })
-        .map(([key, value]) => value);
+        .map(([key, value]) => {
+          // Extract only room and date fields for the toUnbook array
+          const { room, date } = value as any;
+          return { room, date };
+        });
 
       console.log("toUnbook:", toUnbook);
 
