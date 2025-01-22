@@ -248,14 +248,10 @@ router.post("/sync", async (req: Request, res: any) => {
         });
       }
 
-      console.log("Today Booking Map:", todayBookingMap);
-
       //Determine dates to unbook
       const toUnbook = Array.from(fetchedDatesMap)
         .filter(([key]) => {
           const [date] = (key as string).split("_"); // Extract the date part from the key
-          console.log("Time:", toZonedTime(date, timeZone));
-          console.log("Start of today:", startOfToday());
 
           return (
             !reservedDatesSet.has(key as string) && // Not in reserved dates
@@ -268,8 +264,6 @@ router.post("/sync", async (req: Request, res: any) => {
           const { room, date } = value as any;
           return { room, date };
         });
-
-      console.log("toUnbook:", toUnbook);
 
       // Return the `toUnbook` array for chaining
       return sendGraphQLRequest(unbookQuery, {

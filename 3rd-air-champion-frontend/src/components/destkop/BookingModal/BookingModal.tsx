@@ -76,17 +76,16 @@ const BookingModal = ({
 
   return (
     <div
-      className="fixed inset-0 bg-gray-800 bg-opacity-50 flex sm:items-center justify-center z-50"
+      className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50"
       onClick={() => setIsModalOpen(false)} // Close modal on background click
     >
       <div
-        className="bg-white rounded-lg shadow-lg p-4 sm:w-1/3"
+        className="bg-white rounded-lg shadow-lg p-4 sm:w-1/3 h-fit transform transition-transform"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
         <h2 className="text-lg font-bold mb-4">Book a Room</h2>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Guest Selection */}
-
           <GuestInput
             guests={guests}
             showAddPane={showAddPane}
@@ -105,14 +104,16 @@ const BookingModal = ({
             >
               Number of Guests
             </label>
-            <input
+            <select
               id="numberOfGuests"
-              type="number"
-              step={1}
-              min={1}
               className="border border-gray-300 rounded px-2 py-1 w-full"
               {...register("numberOfGuests", { valueAsNumber: true })}
-            />
+            >
+              <option value={1}>1 Guest</option>
+              <option value={2}>2 Guests</option>
+              <option value={3}>3 Guests</option>
+              <option value={4}>4 Guests</option>
+            </select>
             {errors.numberOfGuests && (
               <span className="text-red-500 text-sm">
                 {errors.numberOfGuests.message}
@@ -125,20 +126,18 @@ const BookingModal = ({
             <label htmlFor="room" className="block text-sm font-medium">
               Room
             </label>
-            <div className="flex gap-2 items-center">
-              <select
-                id="room"
-                className="border border-gray-300 rounded px-2 py-1 w-full"
-                {...register("room")}
-              >
-                {!selectedRoom && <option value="">Select a room</option>}
-                {rooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    {room.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              id="room"
+              className="border border-gray-300 rounded px-2 py-1 w-full"
+              {...register("room")}
+            >
+              {!selectedRoom && <option value="">Select a room</option>}
+              {rooms.map((room) => (
+                <option key={room.id} value={room.id}>
+                  {room.name}
+                </option>
+              ))}
+            </select>
             {errors.room && (
               <span className="text-red-500 text-sm">
                 {errors.room.message}
