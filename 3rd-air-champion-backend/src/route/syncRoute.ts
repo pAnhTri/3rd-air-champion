@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 import {
   addDays,
   differenceInCalendarDays,
-  isAfter,
   isBefore,
   startOfToday,
 } from "date-fns";
@@ -260,7 +259,7 @@ router.post("/sync", async (req: Request, res: any) => {
 
           return (
             !reservedDatesSet.has(key as string) && // Not in reserved dates
-            isAfter(startOfToday(), toZonedTime(date, timeZone)) && // In the future
+            !isBefore(toZonedTime(date, timeZone), startOfToday()) && // In the future
             !todayBookingMap.has(key as string) // Not part of today's booking duration
           );
         })
