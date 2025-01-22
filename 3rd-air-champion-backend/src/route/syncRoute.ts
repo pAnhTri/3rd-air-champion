@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import {
   addDays,
   differenceInCalendarDays,
+  isAfter,
   isBefore,
   startOfToday,
 } from "date-fns";
@@ -196,7 +197,13 @@ router.post("/sync", async (req: Request, res: any) => {
             .filter((booking: any) => booking.guest.id === guest)
             .map((booking: any) => [
               `${day.date}_${booking.room.id}`,
-              { date: day.date, room: booking.room.id },
+              {
+                date: day.date,
+                room: booking.room.id,
+                startDate: booking.startDate,
+                endDate: booking.endDate,
+                duration: booking.duration,
+              },
             ])
         )
       );
@@ -215,16 +222,51 @@ router.post("/sync", async (req: Request, res: any) => {
         )
       );
 
-      // Determine dates to unbook
+      // Find today's booking from fetchedDatesMap
+      const today = startOfToday();
+      const todayBooking = Array.from(fetchedDatesMap).find(([key, value]) => {
+        const { date } = value as any;
+        return date === today.toISOString().split("T")[0]; // Match today's date
+      })?.[1]; // Directly return the value (booking object)
+
+      // Create a map for today's booking duration
+      const todayBookingMap = new Map();
+
+      if (todayBooking) {
+        // Populate the map with all dates in the duration of today's booking
+        Array.from({ length: (todayBooking as any).duration }, (_, i) => {
+          const date = addDays(
+            toZonedTime((todayBooking as any).startDate, timeZone),
+            i
+          );
+          todayBookingMap.set(
+            `${date.toISOString().split("T")[0]}_${(todayBooking as any).room}`,
+            {
+              date: date.toISOString().split("T")[0],
+              room: (todayBooking as any).room,
+            }
+          );
+        });
+      }
+
+      console.log("Today Booking Map:", todayBookingMap);
+
+      //Determine dates to unbook
       const toUnbook = Array.from(fetchedDatesMap)
         .filter(([key]) => {
           const [date] = (key as string).split("_"); // Extract the date part from the key
+          console.log("Time:", toZonedTime(date, timeZone));
+          console.log("Start of today:", startOfToday());
+
           return (
-            !reservedDatesSet.has(key as string) &&
-            !isBefore(toZonedTime(date, timeZone), startOfToday())
+            !reservedDatesSet.has(key as string) && // Not in reserved dates
+            isAfter(startOfToday(), toZonedTime(date, timeZone)) && // In the future
+            !todayBookingMap.has(key as string) // Not part of today's booking duration
           );
         })
         .map(([key, value]) => value);
+
+      console.log("toUnbook:", toUnbook);
 
       // Return the `toUnbook` array for chaining
       return sendGraphQLRequest(unbookQuery, {
