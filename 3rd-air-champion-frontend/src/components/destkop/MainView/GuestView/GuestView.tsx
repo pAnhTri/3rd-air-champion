@@ -5,8 +5,10 @@ import { FaMinus } from "react-icons/fa";
 import { CiCalendar } from "react-icons/ci";
 import Pricing from "./Pricing";
 import React, { useState } from "react";
+import AirBnBPricing from "./AirBnBPricing";
 
 interface GuestViewProps {
+  airBnBPrices: Map<string, number> | undefined;
   children: JSX.Element;
   currentBookings: bookingType[];
   rooms: roomType[];
@@ -17,6 +19,9 @@ interface GuestViewProps {
       price: number;
     }[]
   ) => void;
+  setAirBnBPrices: React.Dispatch<
+    React.SetStateAction<Map<string, number> | undefined>
+  >;
   setIsMobileModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
   setSelectedModifyBooking: React.Dispatch<React.SetStateAction<bookingType>>;
@@ -24,9 +29,11 @@ interface GuestViewProps {
 }
 
 const GuestView = ({
+  airBnBPrices,
   children,
   currentBookings,
   rooms,
+  setAirBnBPrices,
   onPricingUpdate,
   setIsMobileModalOpen,
   setSelectedBooking,
@@ -34,6 +41,7 @@ const GuestView = ({
   setSelectedUnbooking,
 }: GuestViewProps) => {
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
   return (
     <div className={`flex flex-col h-full px-2 overflow-y-scroll`}>
@@ -107,13 +115,21 @@ const GuestView = ({
                   </p>
 
                   {/* Room Pricing */}
-                  {booking.guest.name !== "AirBnB" && (
+                  {booking.guest.name !== "AirBnB" ? (
                     <Pricing
                       booking={booking}
                       isEditing={isEditing}
                       onPricingUpdate={onPricingUpdate}
                       setIsEditing={setIsEditing}
                       rooms={rooms}
+                    />
+                  ) : (
+                    <AirBnBPricing
+                      airBnBPrices={airBnBPrices}
+                      booking={booking}
+                      editingKey={editingKey}
+                      setAirBnBPrices={setAirBnBPrices}
+                      setEditingKey={setEditingKey}
                     />
                   )}
                 </div>

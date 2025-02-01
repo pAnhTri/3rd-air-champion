@@ -8,7 +8,9 @@ import { bookingType } from "../../../util/types/bookingType";
 import {
   addDays,
   getDaysInMonth,
+  isAfter,
   isSameDay,
+  isSameMonth,
   isWithinInterval,
   startOfToday,
 } from "date-fns";
@@ -112,6 +114,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     roomOccupancy: { name: string; occupancy: number }[];
   }>({ totalOccupancy: 0, airbnbOccupancy: 0, roomOccupancy: [] });
 
+  const [airBnBPrices, setAirBnBPrices] = useState<Map<string, number>>();
+  const [profit, setProfit] = useState<number>(0);
+
   const onSync = () => {
     if (shouldCallOnSync) alert("Synchronizing with Airbnb");
     const savedData = localStorage.getItem("syncData");
@@ -154,6 +159,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       .catch((err) => {
         console.error("Error fetching guests:", err);
       });
+
+    const storedPrices = localStorage.getItem("airBnBPrices");
+    if (storedPrices) {
+      setAirBnBPrices(new Map<string, number>(JSON.parse(storedPrices)));
+    }
   }, []);
 
   useEffect(() => {
@@ -436,6 +446,76 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     }
   }, [shouldCallOnSync]);
 
+  useEffect(() => {
+    let totalProfit = 0;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    if (airBnBPrices) {
+      for (const [key, price] of airBnBPrices.entries()) {
+        const keyParts = key.split("_"); // Example key: "Room1_2025-01-31_2025-02-01"
+        if (keyParts.length < 2) continue; // Ensure key has the expected format
+
+        const keyDateStr = keyParts[1]; // Extract start date
+
+        const localStartDate = toZonedTime(keyDateStr, timeZone); // Parse start date
+
+        if (isSameMonth(localStartDate, currentMonth)) {
+          totalProfit += price;
+        }
+      }
+    }
+
+    if (monthMap) {
+      let guestProfit = 0;
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Filter and sort only the dates that belong to the current month or beyond
+      const sortedKeys = [...monthMap.keys()]
+        .filter((dateKey) => {
+          const localDate = toZonedTime(dateKey, timeZone); // Convert string to Date object
+          return (
+            isSameMonth(localDate, currentMonth) ||
+            isAfter(localDate, currentMonth)
+          );
+        })
+        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+      for (const dateKey of sortedKeys) {
+        const day = monthMap.get(dateKey);
+        if (!day) continue;
+
+        let foundEntry = false;
+
+        console.log(day);
+
+        const localDayKey = toZonedTime(dateKey, timeZone);
+
+        for (const booking of day.bookings) {
+          const localStartDate = toZonedTime(booking.startDate, timeZone);
+
+          // Check if the booking's startDate is in the current month
+          if (isSameMonth(localStartDate, currentMonth)) {
+            foundEntry = true;
+            const guestPricing = booking.guest.pricing.find(
+              (pricing) => pricing.room === booking.room.id
+            );
+
+            if (guestPricing) {
+              guestProfit += guestPricing.price;
+            }
+          }
+        }
+
+        // If no bookings in the current month were found, stop iterating
+        if (!(isSameMonth(localDayKey, currentMonth) || foundEntry)) break;
+      }
+
+      totalProfit += guestProfit;
+    }
+
+    setProfit(totalProfit);
+  }, [airBnBPrices, monthMap, currentMonth]);
+
   const onBooking = (
     roomName: string,
     date: Date,
@@ -581,6 +661,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             <CalendarNavigator
               occupancy={occupancy}
               currentMonth={currentMonth}
+              profit={profit}
               isTodoModalOpen={isTodoModalOpen}
               setIsTodoModalOpen={setIsTodoModalOpen}
             />
@@ -682,9 +763,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <ToDoList monthMap={monthMap} />
         ) : currentBookings && currentBookings.length > 0 ? (
           <GuestView
+            airBnBPrices={airBnBPrices}
             currentBookings={currentBookings}
             rooms={rooms}
             onPricingUpdate={onPricingUpdate}
+            setAirBnBPrices={setAirBnBPrices}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
@@ -745,9 +828,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
         {currentBookings && currentBookings.length > 0 ? (
           <GuestView
+            airBnBPrices={airBnBPrices}
             currentBookings={currentBookings}
             rooms={rooms}
             onPricingUpdate={onPricingUpdate}
+            setAirBnBPrices={setAirBnBPrices}
             setIsMobileModalOpen={setIsMobileModalOpen}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<

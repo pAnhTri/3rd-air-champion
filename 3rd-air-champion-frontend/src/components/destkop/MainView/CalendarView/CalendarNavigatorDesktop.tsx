@@ -11,6 +11,7 @@ interface CalendarNavigatorProps {
       occupancy: number;
     }[];
   };
+  profit: number;
   setIsTodoModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -18,6 +19,7 @@ const CalendarNavigator = ({
   currentMonth,
   occupancy,
   isTodoModalOpen,
+  profit,
   setIsTodoModalOpen,
 }: CalendarNavigatorProps) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -29,7 +31,7 @@ const CalendarNavigator = ({
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
       {/* Date */}
-      <div className="flex h-full w-full justify-center items-center space-x-2">
+      <div className="flex h-full w-full justify-center items-center text-nowrap space-x-2">
         <span className="font-bold text-xl text-gray-800">{formattedDate}</span>
         <button
           type="button"
@@ -40,6 +42,15 @@ const CalendarNavigator = ({
         >
           To Do
         </button>
+
+        {/* PROFIT */}
+        <div className="text-sm">
+          Pofit for{" "}
+          {currentMonth.toLocaleDateString("en-US", {
+            month: "short",
+          })}
+          : ${profit.toFixed(2)}
+        </div>
       </div>
       {showDetails ? (
         <div
