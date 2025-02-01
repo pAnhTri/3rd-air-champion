@@ -115,7 +115,10 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   }>({ totalOccupancy: 0, airbnbOccupancy: 0, roomOccupancy: [] });
 
   const [airBnBPrices, setAirBnBPrices] = useState<Map<string, number>>();
-  const [profit, setProfit] = useState<number>(0);
+  const [profit, setProfit] = useState<{ total: number; airbnb: number }>({
+    total: 0,
+    airbnb: 0,
+  });
 
   const onSync = () => {
     if (shouldCallOnSync) alert("Synchronizing with Airbnb");
@@ -448,6 +451,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
   useEffect(() => {
     let guestProfit = 0;
+    let airBnBProfit = 0;
     if (monthMap) {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -485,13 +489,14 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             if (profit) {
               const singleDayProfit = profit / booking.duration;
               guestProfit += singleDayProfit;
+              airBnBProfit += singleDayProfit;
             }
           }
         }
       }
     }
 
-    setProfit(guestProfit);
+    setProfit({ ...profit, total: guestProfit, airbnb: airBnBProfit });
   }, [airBnBPrices, monthMap, currentMonth]);
 
   const onBooking = (
