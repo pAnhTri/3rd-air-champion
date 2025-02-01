@@ -31,20 +31,26 @@ const CalendarNavigator = ({
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
       {/* Date */}
-      <div className="flex h-full w-full justify-center items-center text-nowrap space-x-2">
-        <span className="font-bold text-xl text-gray-800">{formattedDate}</span>
-        <button
-          type="button"
-          className={`text-white bg-black p-1 text-xs rounded-md ${
-            isTodoModalOpen && "drop-shadow-[0_4px_6px_rgba(59,130,246,0.5)]"
-          }`}
-          onClick={() => setIsTodoModalOpen(!isTodoModalOpen)}
-        >
-          To Do
-        </button>
+      <div className="flex h-full w-full items-center text-nowrap">
+        <div className="basis-2/3 flex justify-end w-full space-x-2">
+          <span className="font-bold text-xl text-gray-800">
+            {formattedDate}
+          </span>
+          <button
+            type="button"
+            className={`text-white bg-black p-1 text-xs rounded-md ${
+              isTodoModalOpen && "drop-shadow-[0_4px_6px_rgba(59,130,246,0.5)]"
+            }`}
+            onClick={() => setIsTodoModalOpen(!isTodoModalOpen)}
+          >
+            To Do
+          </button>
+        </div>
 
         {/* PROFIT */}
-        <div className="text-xl">${profit.toFixed(2)}</div>
+        <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
+          ${profit.toFixed(2)}
+        </div>
       </div>
       {showDetails ? (
         <div
