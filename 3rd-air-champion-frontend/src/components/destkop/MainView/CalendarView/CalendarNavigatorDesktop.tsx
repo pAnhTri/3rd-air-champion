@@ -44,13 +44,7 @@ const CalendarNavigator = ({
         </button>
 
         {/* PROFIT */}
-        <div className="text-sm">
-          Pofit for{" "}
-          {currentMonth.toLocaleDateString("en-US", {
-            month: "short",
-          })}
-          : ${profit.toFixed(2)}
-        </div>
+        <div className="text-xl">${profit.toFixed(2)}</div>
       </div>
       {showDetails ? (
         <div

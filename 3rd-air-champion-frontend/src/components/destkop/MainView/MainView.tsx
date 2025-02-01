@@ -447,26 +447,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   }, [shouldCallOnSync]);
 
   useEffect(() => {
-    let totalProfit = 0;
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    if (airBnBPrices) {
-      for (const [key, price] of airBnBPrices.entries()) {
-        const keyParts = key.split("_"); // Example key: "Room1_2025-01-31_2025-02-01"
-        if (keyParts.length < 2) continue; // Ensure key has the expected format
-
-        const keyDateStr = keyParts[1]; // Extract start date
-
-        const localStartDate = toZonedTime(keyDateStr, timeZone); // Parse start date
-
-        if (isSameMonth(localStartDate, currentMonth)) {
-          totalProfit += price;
-        }
-      }
-    }
-
+    let guestProfit = 0;
     if (monthMap) {
-      let guestProfit = 0;
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
       // Filter and sort only the dates that belong to the current month or beyond
@@ -484,18 +466,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         const day = monthMap.get(dateKey);
         if (!day) continue;
 
-        let foundEntry = false;
-
-        console.log(day);
-
-        const localDayKey = toZonedTime(dateKey, timeZone);
+        const currentLocalDate = toZonedTime(dateKey, timeZone);
+        if (!isSameMonth(currentLocalDate, currentMonth)) break;
 
         for (const booking of day.bookings) {
-          const localStartDate = toZonedTime(booking.startDate, timeZone);
-
-          // Check if the booking's startDate is in the current month
-          if (isSameMonth(localStartDate, currentMonth)) {
-            foundEntry = true;
+          if (booking.guest.name != "AirBnB") {
             const guestPricing = booking.guest.pricing.find(
               (pricing) => pricing.room === booking.room.id
             );
@@ -503,17 +478,20 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             if (guestPricing) {
               guestProfit += guestPricing.price;
             }
+          } else {
+            const key = `${booking.room.name}_${booking.startDate}_${booking.endDate}`;
+            const profit = airBnBPrices?.get(key);
+
+            if (profit) {
+              const singleDayProfit = profit / booking.duration;
+              guestProfit += singleDayProfit;
+            }
           }
         }
-
-        // If no bookings in the current month were found, stop iterating
-        if (!(isSameMonth(localDayKey, currentMonth) || foundEntry)) break;
       }
-
-      totalProfit += guestProfit;
     }
 
-    setProfit(totalProfit);
+    setProfit(guestProfit);
   }, [airBnBPrices, monthMap, currentMonth]);
 
   const onBooking = (
