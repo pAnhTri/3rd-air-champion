@@ -1,3 +1,4 @@
+import { isSameMonth } from "date-fns";
 import { useState } from "react";
 
 interface CalendarNavigatorProps {
@@ -39,15 +40,18 @@ const CalendarNavigator = ({
           <span className="font-bold text-xl text-gray-800">
             {formattedDate}
           </span>
-          <button
-            type="button"
-            className={`text-white bg-black p-1 text-xs rounded-md ${
-              isTodoModalOpen && "drop-shadow-[0_4px_6px_rgba(59,130,246,0.5)]"
-            }`}
-            onClick={() => setIsTodoModalOpen(!isTodoModalOpen)}
-          >
-            To Do
-          </button>
+          {isSameMonth(new Date(), currentMonth) && (
+            <button
+              type="button"
+              className={`text-white bg-black p-1 text-xs rounded-md ${
+                isTodoModalOpen &&
+                "drop-shadow-[0_4px_6px_rgba(59,130,246,0.5)]"
+              }`}
+              onClick={() => setIsTodoModalOpen(!isTodoModalOpen)}
+            >
+              To Do
+            </button>
+          )}
         </div>
 
         {/* PROFIT */}

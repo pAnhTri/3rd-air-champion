@@ -124,7 +124,7 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                       const roomCodes = new Map([
                         ["cute", "(2005#)"],
                         ["cozy", "(0106#)"],
-                        ["master", "with a private bathroom"],
+                        ["master", "(0209#)"],
                       ]);
                       const phone = booking.guest.phone;
                       const messageBody = encodeURIComponent(
