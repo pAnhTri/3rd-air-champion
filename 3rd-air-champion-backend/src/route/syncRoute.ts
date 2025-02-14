@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import {
   addDays,
   differenceInCalendarDays,
+  isAfter,
   isBefore,
   startOfToday,
 } from "date-fns";
@@ -54,7 +55,7 @@ router.post("/sync", async (req: Request, res: any) => {
       if (event.type === "VEVENT" && event.start && event.end) {
         // Skip days in the past
 
-        if (isBefore(event.start, startOfToday())) return;
+        // if (isBefore(event.start, startOfToday())) return;
 
         const duration = differenceInCalendarDays(
           event.end as Date,
@@ -215,11 +216,15 @@ router.post("/sync", async (req: Request, res: any) => {
           reserved.flatMap((booking) => {
             return Array.from({ length: booking.duration }, (_, i) => {
               const date = addDays(toZonedTime(booking.start, timeZone), i); // Add i days to the start date
-              return `${date.toISOString().split("T")[0]}_${room}`;
+              const dateString = date.toISOString().split("T")[0];
+
+              return `${dateString}_${room}`;
             });
           })
         )
       );
+
+      console.log("reservedDatesSet:", reservedDatesSet);
 
       // Find today's booking from fetchedDatesMap
       const today = startOfToday();
@@ -265,6 +270,8 @@ router.post("/sync", async (req: Request, res: any) => {
           return { room, date };
         });
 
+      console.log("toUnbook:", toUnbook);
+
       // Return the `toUnbook` array for chaining
       return sendGraphQLRequest(unbookQuery, {
         calendar,
@@ -280,23 +287,30 @@ router.post("/sync", async (req: Request, res: any) => {
 
       // Process booking requests
       const bookingRequests = finalResult.flatMap((roomData) =>
-        roomData.reserved.map((booking) => {
-          const bookQueryBody = {
-            ...variables,
-            room: roomData.room,
-            description: booking.description,
-            date: booking.start,
-            duration: booking.duration,
-          };
-          return sendGraphQLRequest(bookQuery, bookQueryBody).then(
-            (result: any) => {
-              if (result.errors) {
-                throw new Error(result.errors[0].message);
+        roomData.reserved
+          .filter((booking) => {
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+            const startDate = toZonedTime(booking.start, timeZone);
+            return !isBefore(startDate, startOfToday());
+          })
+          .map((booking) => {
+            const bookQueryBody = {
+              ...variables,
+              room: roomData.room,
+              description: booking.description,
+              date: booking.start,
+              duration: booking.duration,
+            };
+            return sendGraphQLRequest(bookQuery, bookQueryBody).then(
+              (result: any) => {
+                if (result.errors) {
+                  throw new Error(result.errors[0].message);
+                }
+                return { type: "reserved", data: result.data.bookAirBnB };
               }
-              return { type: "reserved", data: result.data.bookAirBnB };
-            }
-          );
-        })
+            );
+          })
       );
 
       // Return a Promise.all for booking requests
