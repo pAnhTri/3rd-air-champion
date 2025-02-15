@@ -335,9 +335,12 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   };
 
   useEffect(() => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const map = new Map<string, dayType>();
     days.forEach((day) => {
-      const formattedDate = new Date(day.date).toISOString().split("T")[0];
+      const formattedDate = toZonedTime(day.date, timeZone)
+        .toISOString()
+        .split("T")[0];
       map.set(formattedDate, day);
     });
     setMonthMap(map);
@@ -347,8 +350,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         return keyA.localeCompare(keyB); // Lexicographical comparison
       })
     );
-
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     transformBookings(sortedMap, timeZone);
   }, [days]);
