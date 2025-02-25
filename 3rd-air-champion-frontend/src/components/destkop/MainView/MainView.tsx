@@ -704,11 +704,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       return acc; // Return accumulator unchanged if no match
     }, ""); // Initialize with an empty string
 
-    const fullBody = `${body}${bookingDetails}Total price = $${totalPriceOfMonth}`;
+    const fullBody = `${body}${bookingDetails}\nTotal amount = $${totalPriceOfMonth}\n\nCould you please confirm whether everything is in order?`;
 
-    console.log(fullBody);
-
-    //window.location.href = `sms:${phone}?&body=${encodeURIComponent(fullBody)}`;
+    window.location.href = `sms:${phone}?&body=${encodeURIComponent(fullBody)}`;
   };
 
   return (
