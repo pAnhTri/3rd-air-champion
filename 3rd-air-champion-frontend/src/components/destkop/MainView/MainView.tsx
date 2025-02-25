@@ -7,6 +7,8 @@ import BookingModal from "../BookingModal/BookingModal";
 import { bookingType } from "../../../util/types/bookingType";
 import {
   addDays,
+  compareAsc,
+  format,
   getDaysInMonth,
   isAfter,
   isSameDay,
@@ -119,6 +121,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     total: 0,
     airbnb: 0,
   });
+  const [currentGuest, setCurrentGuest] = useState<string | null>(null);
 
   const onSync = () => {
     if (shouldCallOnSync) alert("Synchronizing with Airbnb");
@@ -629,6 +632,79 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       });
   };
 
+  const handleBookingConfirmation = (phone: string) => {
+    const month = format(currentMonth, "LLLL");
+    const body = `Your booking for ${month} is now as follows:\n`;
+
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // Sort monthMap entries using date-fns compareAsc
+    const sortedEntries = Array.from(monthMap.entries()).sort(
+      ([dateStrA], [dateStrB]) => {
+        const dateA = toZonedTime(dateStrA, timeZone);
+        const dateB = toZonedTime(dateStrB, timeZone);
+        return compareAsc(dateA, dateB);
+      }
+    );
+
+    // Process the sorted entries
+    const bookingDetails = sortedEntries.reduce((acc, [dateStr, dayEntry]) => {
+      const date = toZonedTime(dateStr, timeZone);
+
+      // Check if the booking is within the current month
+      if (isSameMonth(date, currentMonth)) {
+        // Filter bookings that match the phone number and start date
+        const matchingBookings = dayEntry.bookings.filter(
+          (booking) =>
+            booking.guest.phone === phone && booking.startDate === dateStr
+        );
+
+        // If matching bookings exist, format them and add to accumulator
+        if (matchingBookings.length > 0) {
+          const bookingText = matchingBookings
+            .map((booking: bookingType) => {
+              const startDate = toZonedTime(
+                booking.startDate.split("T")[0],
+                timeZone
+              );
+              const weekday = format(startDate, "EEE"); // Mon, Tue, etc.
+              const dateFormatted = format(startDate, "M/d"); // month/day format
+              const duration = booking.duration;
+
+              // Get the room name and price
+              const roomName = booking.room.name;
+              const pricePerNight =
+                booking.guest.pricing.find((p) => p.room === booking.room.id)
+                  ?.price || booking.price; // Fallback if pricing not found
+
+              if (duration === 1) {
+                // Single-night booking format
+                return `* ${weekday} ${dateFormatted}, 1 night, ${roomName}, $${pricePerNight}`;
+              } else {
+                // Multi-night booking format
+                const endDate = addDays(startDate, duration - 1);
+                const endWeekday = format(endDate, "EEE");
+                const endDateFormatted = format(endDate, "M/d");
+                const totalPrice = pricePerNight * duration;
+
+                return `* ${weekday} to ${endWeekday}, ${dateFormatted} - ${endDateFormatted}, ${duration} nights, ${roomName}, $${pricePerNight} * ${duration} = $${totalPrice}`;
+              }
+            })
+            .join("\n");
+
+          // Add the formatted booking details to the accumulator
+          return acc + bookingText + "\n";
+        }
+      }
+
+      return acc; // Return accumulator unchanged if no match
+    }, ""); // Initialize with an empty string
+
+    const fullBody = `${body}${bookingDetails}`;
+
+    window.location.href = `sms:${phone}?&body=${encodeURIComponent(fullBody)}`;
+  };
+
   return (
     <>
       <div className="col-span-5 bg-gray-100 overflow-hidden sm:col-span-4">
@@ -659,6 +735,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             )}
             <CustomCalendar
               currentMonth={currentMonth}
+              currentGuest={currentGuest}
               rooms={rooms}
               setCurrentBookings={setCurrentBookings}
               setCurrentMonth={setCurrentMonth}
@@ -749,9 +826,12 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <GuestView
             airBnBPrices={airBnBPrices}
             currentBookings={currentBookings}
+            currentGuest={currentGuest}
             rooms={rooms}
+            handleBookingConfirmation={handleBookingConfirmation}
             onPricingUpdate={onPricingUpdate}
             setAirBnBPrices={setAirBnBPrices}
+            setCurrentGuest={setCurrentGuest}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
@@ -814,9 +894,12 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           <GuestView
             airBnBPrices={airBnBPrices}
             currentBookings={currentBookings}
+            currentGuest={currentGuest}
             rooms={rooms}
+            handleBookingConfirmation={handleBookingConfirmation}
             onPricingUpdate={onPricingUpdate}
             setAirBnBPrices={setAirBnBPrices}
+            setCurrentGuest={setCurrentGuest}
             setIsMobileModalOpen={setIsMobileModalOpen}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<

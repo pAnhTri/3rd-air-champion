@@ -15,6 +15,7 @@ import { toZonedTime } from "date-fns-tz";
 
 interface CustomCalendarProps {
   currentMonth: Date;
+  currentGuest: string | null;
   monthMap: Map<string, dayType>;
   rooms: roomType[];
   setCurrentBookings: React.Dispatch<
@@ -27,6 +28,7 @@ interface CustomCalendarProps {
 
 const CustomCalendar = ({
   currentMonth,
+  currentGuest,
   monthMap,
   rooms,
   setCurrentBookings,
@@ -36,6 +38,8 @@ const CustomCalendar = ({
 }: CustomCalendarProps) => {
   const [months, setMonths] = useState<Date[]>([]);
   const [tileWidth, setTileWidth] = useState<number | null>(null);
+  const [useMonthMap, setUseMonthMap] =
+    useState<Map<string, dayType>>(monthMap);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarWrapperRef = useRef<HTMLDivElement>(null); // Wrapper div ref
@@ -76,6 +80,30 @@ const CustomCalendar = ({
     }
   }, [currentMonth]);
 
+  useEffect(() => {
+    if (currentGuest && useMonthMap.size > 0) {
+      const filteredMap = new Map<string, dayType>();
+
+      monthMap.forEach((dayEntry, date) => {
+        const guestBookings = dayEntry.bookings.filter(
+          (booking) => booking.guest.id == currentGuest
+        );
+
+        if (guestBookings.length > 0) {
+          const filteredDayEntry: dayType = {
+            ...dayEntry,
+            bookings: guestBookings,
+          };
+          filteredMap.set(date, filteredDayEntry);
+        }
+      });
+
+      setUseMonthMap(filteredMap);
+    } else {
+      setUseMonthMap(monthMap);
+    }
+  }, [currentGuest]);
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
     const scrollTop = (e.target as HTMLElement).scrollTop;
     const calendarHeight = (e.target as HTMLElement).offsetHeight;
@@ -92,7 +120,7 @@ const CustomCalendar = ({
     if (isSameDay(date, startOfToday()))
       className.push("react-calendar__custom_tile_today");
 
-    const day = monthMap.get(date.toISOString().split("T")[0]);
+    const day = useMonthMap.get(date.toISOString().split("T")[0]);
 
     if (day && day.isBlocked)
       className.push("react-calendar__custom_tile_blocked");
@@ -150,7 +178,7 @@ const CustomCalendar = ({
     if (view === "month") {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      const day = monthMap.get(date.toISOString().split("T")[0]);
+      const day = useMonthMap.get(date.toISOString().split("T")[0]);
       if (day) {
         day.bookings.sort((a, b) => {
           return a.room.name.localeCompare(b.room.name);
@@ -272,7 +300,7 @@ const CustomCalendar = ({
     // select the date
     setSelectedDate(date);
     setIsMobileModalOpen(true);
-    const day = monthMap.get(date.toISOString().split("T")[0]);
+    const day = useMonthMap.get(date.toISOString().split("T")[0]);
 
     if (day && day.bookings) {
       setCurrentBookings(day.bookings);

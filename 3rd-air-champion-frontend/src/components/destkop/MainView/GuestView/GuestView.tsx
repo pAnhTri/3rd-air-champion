@@ -11,7 +11,9 @@ interface GuestViewProps {
   airBnBPrices: Map<string, number> | undefined;
   children: JSX.Element;
   currentBookings: bookingType[];
+  currentGuest: string | null;
   rooms: roomType[];
+  handleBookingConfirmation: (phone: string) => void;
   onPricingUpdate: (
     data: {
       guest: string;
@@ -22,6 +24,7 @@ interface GuestViewProps {
   setAirBnBPrices: React.Dispatch<
     React.SetStateAction<Map<string, number> | undefined>
   >;
+  setCurrentGuest: React.Dispatch<React.SetStateAction<string | null>>;
   setIsMobileModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
   setSelectedModifyBooking: React.Dispatch<React.SetStateAction<bookingType>>;
@@ -32,10 +35,13 @@ const GuestView = ({
   airBnBPrices,
   children,
   currentBookings,
+  currentGuest,
   rooms,
   setAirBnBPrices,
   onPricingUpdate,
+  handleBookingConfirmation,
   setIsMobileModalOpen,
+  setCurrentGuest,
   setSelectedBooking,
   setSelectedModifyBooking,
   setSelectedUnbooking,
@@ -138,17 +144,40 @@ const GuestView = ({
 
             {/* Action */}
             <div className="basis-1/5">
-              <div className="flex flex-col h-full justify-center space-y-2">
+              <div className="flex flex-col h-full justify-between p-2">
                 {booking.description === "" ? (
-                  <button
-                    className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
-                    onClick={() => {
-                      const phone = booking.guest.phone;
-                      window.location.href = `sms:${phone}`;
-                    }}
-                  >
-                    Message
-                  </button>
+                  <>
+                    <input
+                      type="checkbox"
+                      value={booking.guest.id}
+                      onChange={(event) => {
+                        if (currentGuest == event.target.value) {
+                          setCurrentGuest(null);
+                        } else {
+                          setCurrentGuest(event.target.value);
+                        }
+                      }}
+                      checked={currentGuest === booking.guest.id}
+                    />
+                    <button
+                      className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
+                      onClick={() =>
+                        handleBookingConfirmation(booking.guest.phone)
+                      }
+                    >
+                      Confirm Booking
+                    </button>
+                    <button
+                      className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
+                      onClick={() => {
+                        const phone = booking.guest.phone;
+
+                        window.location.href = `sms:${phone}`;
+                      }}
+                    >
+                      Message
+                    </button>
+                  </>
                 ) : (
                   <button
                     className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
