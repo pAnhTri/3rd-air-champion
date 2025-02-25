@@ -723,7 +723,12 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         ) : (
           <>
             <CalendarNavigator
-              currentGuest={currentGuest}
+              currentGuest={
+                currentGuest
+                  ? (guests.find((guest) => guest.id === currentGuest)
+                      ?.name as string)
+                  : null
+              }
               occupancy={occupancy}
               currentMonth={currentMonth}
               profit={profit}

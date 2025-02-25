@@ -203,6 +203,8 @@ const CustomCalendar = ({
           const name =
             booking.guest.name === "AirBnB" && booking.alias
               ? `${booking.alias} (A)`
+              : currentGuest
+              ? booking.room.name
               : booking.guest.name;
 
           const dayIndex = getDay(date);

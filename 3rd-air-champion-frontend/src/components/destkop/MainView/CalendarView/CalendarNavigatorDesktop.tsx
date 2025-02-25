@@ -64,8 +64,8 @@ const CalendarNavigator = ({
         )}
       </div>
       <div className="flex h-full w-full">
-        {!currentGuest &&
-          (showDetails ? (
+        {!currentGuest ? (
+          showDetails ? (
             <div
               onClick={() => setShowDetails(false)}
               className="basis-2/3 flex h-full w-full justify-end items-center cursor-pointer space-x-2 text-[0.85rem] text-nowrap"
@@ -118,7 +118,12 @@ const CalendarNavigator = ({
                 {Math.round(occupancy.airbnbOccupancy)}% (A)booking
               </span>
             </div>
-          ))}
+          )
+        ) : (
+          <span className="flex justify-center w-full font-bold text-xl text-gray-800">
+            {currentGuest}
+          </span>
+        )}
         {/* PROFIT */}
         {!currentGuest && (
           <div className="basis-1/3 flex justify-end w-full font-bold text-nowrap">
