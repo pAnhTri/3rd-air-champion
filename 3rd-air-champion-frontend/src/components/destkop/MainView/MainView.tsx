@@ -647,6 +647,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       }
     );
 
+    let totalPriceOfMonth = 0;
+
     // Process the sorted entries
     const bookingDetails = sortedEntries.reduce((acc, [dateStr, dayEntry]) => {
       const date = toZonedTime(dateStr, timeZone);
@@ -679,6 +681,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
               if (duration === 1) {
                 // Single-night booking format
+                totalPriceOfMonth += pricePerNight;
                 return `* ${weekday} ${dateFormatted}, 1 night, ${roomName}, $${pricePerNight}`;
               } else {
                 // Multi-night booking format
@@ -687,6 +690,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 const endDateFormatted = format(endDate, "M/d");
                 const totalPrice = pricePerNight * duration;
 
+                totalPriceOfMonth += totalPrice;
                 return `* ${weekday} to ${endWeekday}, ${dateFormatted} - ${endDateFormatted}, ${duration} nights, ${roomName}, $${pricePerNight} * ${duration} = $${totalPrice}`;
               }
             })
@@ -700,9 +704,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       return acc; // Return accumulator unchanged if no match
     }, ""); // Initialize with an empty string
 
-    const fullBody = `${body}${bookingDetails}`;
+    const fullBody = `${body}${bookingDetails}Total price = $${totalPriceOfMonth}`;
 
-    window.location.href = `sms:${phone}?&body=${encodeURIComponent(fullBody)}`;
+    console.log(fullBody);
+
+    //window.location.href = `sms:${phone}?&body=${encodeURIComponent(fullBody)}`;
   };
 
   return (
@@ -719,6 +725,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         ) : (
           <>
             <CalendarNavigator
+              currentGuest={currentGuest}
               occupancy={occupancy}
               currentMonth={currentMonth}
               profit={profit}

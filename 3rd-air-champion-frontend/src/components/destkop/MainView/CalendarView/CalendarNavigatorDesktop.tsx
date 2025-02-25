@@ -3,6 +3,7 @@ import { useState } from "react";
 
 interface CalendarNavigatorProps {
   currentMonth: Date;
+  currentGuest: string | null;
   isTodoModalOpen: boolean;
   occupancy: {
     totalOccupancy: number;
@@ -21,6 +22,7 @@ interface CalendarNavigatorProps {
 
 const CalendarNavigator = ({
   currentMonth,
+  currentGuest,
   occupancy,
   isTodoModalOpen,
   profit,
@@ -40,7 +42,7 @@ const CalendarNavigator = ({
           <span className="font-bold text-xl text-gray-800">
             {formattedDate}
           </span>
-          {isSameMonth(new Date(), currentMonth) && (
+          {isSameMonth(new Date(), currentMonth) && !currentGuest && (
             <button
               type="button"
               className={`text-white bg-black p-1 text-xs rounded-md ${
@@ -55,69 +57,74 @@ const CalendarNavigator = ({
         </div>
 
         {/* PROFIT */}
-        <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
-          ${profit.total.toFixed(2)}
-        </div>
-      </div>
-      <div className="flex h-full w-full">
-        {showDetails ? (
-          <div
-            onClick={() => setShowDetails(false)}
-            className="basis-2/3 flex h-full w-full justify-end items-center cursor-pointer space-x-2 text-[0.85rem] text-nowrap"
-          >
-            {occupancy.roomOccupancy
-              .filter((room) => room.name !== "Master") // Exclude "Master"
-              .map((object, index) => {
-                // Determine the color class based on occupancy
-                const occupancyColor =
-                  object.occupancy < 33.33
-                    ? "text-red-500"
-                    : object.occupancy < 66.67
-                    ? "text-yellow-500"
-                    : "text-green-500";
-                return (
-                  <div key={index} className="space-x-1">
-                    <span className="font-medium">{object.name}: </span>
-                    <span className={occupancyColor}>
-                      {Math.round(object.occupancy)}%
-                    </span>
-                  </div>
-                );
-              })}
-          </div>
-        ) : (
-          <div
-            className="basis-2/3 flex h-full w-full justify-end items-center cursor-pointer space-x-2 text-[0.85rem] text-nowrap"
-            onClick={() => setShowDetails(true)}
-          >
-            <span
-              className={`cursor-pointer flex underline ${
-                occupancy.totalOccupancy < 33.33
-                  ? "text-red-500"
-                  : occupancy.totalOccupancy < 66.67
-                  ? "text-yellow-500"
-                  : "text-green-500"
-              }`}
-            >
-              {Math.round(occupancy.totalOccupancy)}% occupancy
-            </span>
-            <span
-              className={`underline ${
-                occupancy.airbnbOccupancy < 33.33
-                  ? "text-red-500"
-                  : occupancy.airbnbOccupancy < 66.67
-                  ? "text-yellow-500"
-                  : "text-green-500"
-              }`}
-            >
-              {Math.round(occupancy.airbnbOccupancy)}% (A)booking
-            </span>
+        {!currentGuest && (
+          <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
+            ${profit.total.toFixed(2)}
           </div>
         )}
+      </div>
+      <div className="flex h-full w-full">
+        {!currentGuest &&
+          (showDetails ? (
+            <div
+              onClick={() => setShowDetails(false)}
+              className="basis-2/3 flex h-full w-full justify-end items-center cursor-pointer space-x-2 text-[0.85rem] text-nowrap"
+            >
+              {occupancy.roomOccupancy
+                .filter((room) => room.name !== "Master") // Exclude "Master"
+                .map((object, index) => {
+                  // Determine the color class based on occupancy
+                  const occupancyColor =
+                    object.occupancy < 33.33
+                      ? "text-red-500"
+                      : object.occupancy < 66.67
+                      ? "text-yellow-500"
+                      : "text-green-500";
+                  return (
+                    <div key={index} className="space-x-1">
+                      <span className="font-medium">{object.name}: </span>
+                      <span className={occupancyColor}>
+                        {Math.round(object.occupancy)}%
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <div
+              className="basis-2/3 flex h-full w-full justify-end items-center cursor-pointer space-x-2 text-[0.85rem] text-nowrap"
+              onClick={() => setShowDetails(true)}
+            >
+              <span
+                className={`cursor-pointer flex underline ${
+                  occupancy.totalOccupancy < 33.33
+                    ? "text-red-500"
+                    : occupancy.totalOccupancy < 66.67
+                    ? "text-yellow-500"
+                    : "text-green-500"
+                }`}
+              >
+                {Math.round(occupancy.totalOccupancy)}% occupancy
+              </span>
+              <span
+                className={`underline ${
+                  occupancy.airbnbOccupancy < 33.33
+                    ? "text-red-500"
+                    : occupancy.airbnbOccupancy < 66.67
+                    ? "text-yellow-500"
+                    : "text-green-500"
+                }`}
+              >
+                {Math.round(occupancy.airbnbOccupancy)}% (A)booking
+              </span>
+            </div>
+          ))}
         {/* PROFIT */}
-        <div className="basis-1/3 flex justify-end w-full font-bold text-nowrap">
-          (A) ${profit.airbnb.toFixed(2)}
-        </div>
+        {!currentGuest && (
+          <div className="basis-1/3 flex justify-end w-full font-bold text-nowrap">
+            (A) ${profit.airbnb.toFixed(2)}
+          </div>
+        )}
       </div>
 
       {/* Bottom Section: Days of the Week */}
