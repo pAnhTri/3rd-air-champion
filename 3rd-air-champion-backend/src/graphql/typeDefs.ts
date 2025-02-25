@@ -263,6 +263,14 @@ const dayDefs = gql`
 
     unbookGuest(_id: String!): [Day]
 
+    updatePrice(
+      calendar: String!
+      room: String
+      startDate: String
+      endDate: String
+      price: Float
+    ): [Day]
+
     updateDay(
       _id: String!
       isAirBnB: Boolean

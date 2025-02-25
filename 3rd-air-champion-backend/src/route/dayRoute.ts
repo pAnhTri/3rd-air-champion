@@ -552,6 +552,76 @@ router.post("/update/unbook/guest", async (req: Request, res: any) => {
     });
 });
 
+router.post("/update/booking/price", async (req: Request, res: any) => {
+  if (!("user" in req))
+    return res.status(401).json({ error: "Invalid or expired token" });
+
+  const { calendar, room, startDate, endDate, price } = req.body;
+
+  const query = `
+  mutation UpdatePrice($calendar: String!, $room: String, $startDate: String, $endDate: String, $price: Float) {
+    updatePrice(calendar: $calendar, room: $room, startDate: $startDate, endDate: $endDate, price: $price) {
+      id
+      calendar
+      date
+      isAirBnB
+      isBlocked
+      blockedRooms {
+        host
+        id
+        name
+        price
+      }
+      bookings {
+        id
+        alias
+        notes
+        price
+        guest {
+          id
+          name
+          alias
+          email
+          phone
+          numberOfGuests
+          returning
+          notes
+          host
+          pricing {
+            id
+            price
+            room
+          }
+        }
+        room {
+          id
+          host
+          name
+          price
+        }
+          description
+        duration
+        numberOfGuests
+        startDate
+        endDate
+      }
+    }
+  }`;
+
+  sendGraphQLRequest(query, { calendar, room, startDate, endDate, price })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      // Send the successful login response
+      res.status(200).json(result.data.updatePrice);
+    })
+    .catch((error: any) => {
+      // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
 router.put("/update", async (req: Request, res: any) => {
   if (!("user" in req))
     return res.status(401).json({ error: "Invalid or expired token" });

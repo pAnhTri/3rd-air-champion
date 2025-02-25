@@ -74,3 +74,29 @@ export const updateUnbookGuest = async (id: string, token: string) => {
       throw "An unexpected error occurred. Please try again.";
     });
 };
+
+export const updateBookingPrice = async (
+  request: {
+    calendar: string;
+    room: string;
+    startDate: string;
+    endDate: string;
+    price: number;
+  },
+  token: string
+) => {
+  return axios
+    .post(`${BACKEND_ENDPOINT}/day/update/booking/price`, request, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((result) => result.data)
+    .catch((err) => {
+      if (err.response && err.response.data && err.response.data.errors) {
+        throw err.response.data.errors;
+      }
+      // Default error message if no backend message is available
+      throw "An unexpected error occurred. Please try again.";
+    });
+};

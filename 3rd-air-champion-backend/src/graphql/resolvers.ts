@@ -827,6 +827,44 @@ const dayResolver = {
         .populate("bookings.room")
         .populate("blockedRooms");
     },
+    updatePrice: async (
+      _: unknown,
+      { calendar, room, startDate, endDate, price }: any
+    ) => {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const localStartDate = toZonedTime(startDate.split("T")[0], timeZone);
+      const localEndDate = toZonedTime(endDate.split("T")[0], timeZone);
+
+      await Day.updateMany(
+        {
+          calendar,
+          date: { $gte: localStartDate, $lte: localEndDate },
+          "bookings.room": room,
+        },
+        {
+          $set: {
+            "bookings.$[matchingBooking].price": price,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "matchingBooking.room": room,
+            },
+          ],
+
+          runValidators: true,
+        }
+      );
+
+      return await Day.find({
+        calendar,
+        date: { $gte: localStartDate, $lte: localEndDate },
+      })
+        .populate("bookings.guest")
+        .populate("bookings.room")
+        .populate("blockedRooms");
+    },
     updateDay: async (
       _: unknown,
       { _id, isAirBnB, isBlocked, rooms, guests }: any

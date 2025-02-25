@@ -31,6 +31,7 @@ import { AddPaneContext, isSyncModalOpenContext } from "../../../App";
 import DetailsModal from "./GuestView/DetailsModal";
 import {
   updateBookingGuest,
+  updateBookingPrice,
   updateUnbookGuest,
 } from "../../../util/bookingOperations";
 import UnbookingConfirmation from "./GuestView/UnbookingConfirmation";
@@ -162,11 +163,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       .catch((err) => {
         console.error("Error fetching guests:", err);
       });
-
-    const storedPrices = localStorage.getItem("airBnBPrices");
-    if (storedPrices) {
-      setAirBnBPrices(new Map<string, number>(JSON.parse(storedPrices)));
-    }
   }, []);
 
   useEffect(() => {
@@ -449,6 +445,79 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       setShouldCallOnSync(false);
     }
   }, [shouldCallOnSync]);
+
+  useEffect(() => {
+    const storedPrices = localStorage.getItem("airBnBPrices");
+
+    if (storedPrices) {
+      // If prices already exist in localStorage, load them
+      setAirBnBPrices(new Map<string, number>(JSON.parse(storedPrices)));
+
+      if (rooms.length > 0) {
+        // Update the prices in the database
+        airBnBPrices?.forEach((price, key) => {
+          // Split the key to extract roomName, startDate, and endDate
+          const [roomName, startDate, endDate] = key.split("_");
+
+          // Lookup room ID directly from the rooms array
+          const roomData = rooms.find((room) => room.name === roomName);
+
+          if (!roomData) {
+            console.warn(`Room ID not found for room: ${roomName}`);
+            return; // Skip if room ID is not found
+          }
+
+          const roomId = roomData.id;
+
+          // Construct the request body
+          const requestBody = {
+            calendar: calendarId,
+            room: roomId,
+            startDate,
+            endDate,
+            price,
+          };
+
+          console.log("requestBody:", requestBody);
+
+          // Send the update request using .then().catch()
+          updateBookingPrice(requestBody, token as string)
+            .then(() => {
+              console.log(
+                `Successfully synced price for ${roomName} from ${startDate} to ${endDate}`
+              );
+            })
+            .catch((error) => {
+              console.error(
+                `Error updating booking price for ${roomName}:`,
+                error
+              );
+            });
+        });
+      }
+    } else if (monthMap && monthMap.size > 0) {
+      // Generate prices from bookings if monthMap exists and is not empty
+      const pricesMap = new Map<string, number>();
+
+      // Iterate through all days in the monthMap
+      monthMap.forEach((day: dayType) => {
+        day.bookings.forEach((booking: bookingType) => {
+          if (booking.guest && booking.guest.name === "AirBnB") {
+            // Create a unique key for each booking
+            const key = `${booking.room.name}_${booking.startDate}_${booking.endDate}`;
+            pricesMap.set(key, booking.price);
+          }
+        });
+      });
+
+      // Save the newly generated map to local storage
+      localStorage.setItem(
+        "airBnBPrices",
+        JSON.stringify(Array.from(pricesMap.entries()))
+      );
+      setAirBnBPrices(pricesMap);
+    }
+  }, [monthMap, isCalendarLoading]);
 
   useEffect(() => {
     let guestProfit = 0;
