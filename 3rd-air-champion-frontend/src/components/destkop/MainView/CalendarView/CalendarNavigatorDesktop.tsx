@@ -1,5 +1,5 @@
 import { isSameMonth } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface CalendarNavigatorProps {
   currentMonth: Date;
@@ -17,6 +17,7 @@ interface CalendarNavigatorProps {
     total: number;
     airbnb: number;
   };
+  getCurrentGuestBill: (guest: string) => number;
   setIsTodoModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -26,13 +27,24 @@ const CalendarNavigator = ({
   occupancy,
   isTodoModalOpen,
   profit,
+  getCurrentGuestBill,
   setIsTodoModalOpen,
 }: CalendarNavigatorProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [guestBill, setGuestBill] = useState<number | null>(null);
+
   const formattedDate = currentMonth.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
   });
+
+  useEffect(() => {
+    if (currentGuest) {
+      setGuestBill(getCurrentGuestBill(currentGuest));
+    } else {
+      setGuestBill(null);
+    }
+  }, [currentGuest]);
 
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
@@ -57,9 +69,13 @@ const CalendarNavigator = ({
         </div>
 
         {/* PROFIT */}
-        {!currentGuest && (
+        {!currentGuest ? (
           <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
             ${profit.total.toFixed(2)}
+          </div>
+        ) : (
+          <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
+            ${guestBill?.toFixed(2)}
           </div>
         )}
       </div>

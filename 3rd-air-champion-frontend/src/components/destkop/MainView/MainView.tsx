@@ -632,6 +632,39 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       });
   };
 
+  const getCurrentGuestBill = (guest: string) => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const totalPriceOfMonth = Array.from(monthMap.entries()).reduce(
+      (total, [dateStr, dayEntry]) => {
+        const date = toZonedTime(dateStr, timeZone);
+
+        if (isSameMonth(date, currentMonth)) {
+          const matchingBookings = dayEntry.bookings.filter(
+            (booking) =>
+              booking.guest.name === guest && booking.startDate === dateStr
+          );
+
+          return (
+            total +
+            matchingBookings.reduce((sum, booking) => {
+              const pricePerNight =
+                booking.guest.pricing.find((p) => p.room === booking.room.id)
+                  ?.price || booking.price;
+
+              return sum + pricePerNight * booking.duration;
+            }, 0)
+          );
+        }
+
+        return total;
+      },
+      0
+    );
+
+    return totalPriceOfMonth;
+  };
+
   const handleBookingConfirmation = (phone: string) => {
     const month = format(currentMonth, "LLLL");
     const body = `Your booking for ${month} is now as follows:\n`;
@@ -733,6 +766,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               currentMonth={currentMonth}
               profit={profit}
               isTodoModalOpen={isTodoModalOpen}
+              getCurrentGuestBill={getCurrentGuestBill}
               setIsTodoModalOpen={setIsTodoModalOpen}
             />
             {isSyncModalOpen && (
