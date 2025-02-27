@@ -373,11 +373,17 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         );
       });
 
-      // Initialize a map to group Sets by room.id
+      // Initialize a map to group Sets by normalized room name
       const roomSets = new Map();
+
+      // Function to normalize room names (remove duplicate patterns)
+      const getBaseRoomName = (roomName: string) => {
+        return roomName.replace(/(.+?)\1+$/, "$1");
+      };
 
       // Iterate over each room in the state
       rooms.forEach((room) => {
+        const baseRoomName = getBaseRoomName(room.name); // Normalize name
         const roomId = room.id;
 
         // Filter the dayType objects by the room.id in their bookings
@@ -387,8 +393,13 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
           )
         );
 
-        // Add the Set to the Map
-        roomSets.set(room.name, roomSpecificSet);
+        // Add the Set to the Map (using base name as key)
+        if (!roomSets.has(baseRoomName)) {
+          roomSets.set(baseRoomName, new Set());
+        }
+
+        // Merge existing Set with the new room-specific Set
+        roomSpecificSet.forEach((day) => roomSets.get(baseRoomName).add(day));
       });
 
       // Total number of days in the current month
@@ -415,7 +426,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         roomSet.forEach((day: dayType) => {
           day.bookings.forEach((booking) => {
             if (
-              booking.room.name === roomName &&
+              getBaseRoomName(booking.room.name) === roomName && // Compare using base name
               booking.guest.name.toLowerCase() === "airbnb"
             ) {
               airbnbCount += 1;
@@ -431,7 +442,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       }
 
       // Calculate total occupancy percentage (excluding "Master")
-      const totalRooms = rooms.filter((room) => room.name !== "Master").length;
+      const totalRooms = [...roomSets.keys()].filter(
+        (name) => name !== "Master"
+      ).length;
       const totalOccupancy =
         (totalOccupiedDays / (totalRooms * daysInMonth)) * 100;
       const airbnbOccupancy =

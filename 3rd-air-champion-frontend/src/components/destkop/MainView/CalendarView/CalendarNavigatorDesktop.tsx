@@ -44,44 +44,54 @@ const CalendarNavigator = ({
     } else {
       setGuestBill(null);
     }
-  }, [currentGuest]);
+  }, [currentGuest, currentMonth]);
 
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
       {/* Date */}
-      <div className="flex h-full w-full items-center text-nowrap">
-        <div className="basis-2/3 flex justify-end w-full space-x-2">
-          <span className="font-bold text-xl text-gray-800">
-            {formattedDate}
-          </span>
-          {isSameMonth(new Date(), currentMonth) && !currentGuest && (
-            <button
-              type="button"
-              className={`text-white bg-black p-1 text-xs rounded-md ${
-                isTodoModalOpen &&
-                "drop-shadow-[0_4px_6px_rgba(59,130,246,0.5)]"
-              }`}
-              onClick={() => setIsTodoModalOpen(!isTodoModalOpen)}
-            >
-              To Do
-            </button>
-          )}
-        </div>
+      {!currentGuest ? (
+        <>
+          <div className="flex h-full w-full items-center text-nowrap">
+            <div className="basis-2/3 flex justify-end w-full space-x-2">
+              <span className="font-bold text-xl text-gray-800">
+                {formattedDate}
+              </span>
+              {isSameMonth(new Date(), currentMonth) && !currentGuest && (
+                <button
+                  type="button"
+                  className={`text-white bg-black p-1 text-xs rounded-md ${
+                    isTodoModalOpen &&
+                    "drop-shadow-[0_4px_6px_rgba(59,130,246,0.5)]"
+                  }`}
+                  onClick={() => setIsTodoModalOpen(!isTodoModalOpen)}
+                >
+                  To Do
+                </button>
+              )}
+            </div>
+            {/* PROFIT */}
+            <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
+              ${profit.total.toFixed(2)}
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex h-full w-full justify-between items-center">
+            {/* Guest */}
+            <span className="text-xl text-gray-800">{currentGuest}</span>
+            <span className="font-bold text-xl text-gray-800">
+              {formattedDate}
+            </span>
+            {/* PROFIT */}
+            <div className="text-xl font-bold">${guestBill?.toFixed(2)}</div>
+          </div>
+        </>
+      )}
 
-        {/* PROFIT */}
-        {!currentGuest ? (
-          <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
-            ${profit.total.toFixed(2)}
-          </div>
-        ) : (
-          <div className="basis-1/3 flex justify-end w-full text-xl font-bold">
-            ${guestBill?.toFixed(2)}
-          </div>
-        )}
-      </div>
       <div className="flex h-full w-full">
-        {!currentGuest ? (
-          showDetails ? (
+        {!currentGuest &&
+          (showDetails ? (
             <div
               onClick={() => setShowDetails(false)}
               className="basis-2/3 flex h-full w-full justify-end items-center cursor-pointer space-x-2 text-[0.85rem] text-nowrap"
@@ -134,12 +144,7 @@ const CalendarNavigator = ({
                 {Math.round(occupancy.airbnbOccupancy)}% (A)booking
               </span>
             </div>
-          )
-        ) : (
-          <span className="flex justify-center w-full font-bold text-xl text-gray-800">
-            {currentGuest}
-          </span>
-        )}
+          ))}
         {/* PROFIT */}
         {!currentGuest && (
           <div className="basis-1/3 flex justify-end w-full font-bold text-nowrap">

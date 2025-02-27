@@ -5,6 +5,7 @@ import {
   endOfMonth,
   getDay,
   isSameDay,
+  isSameMonth,
   isWithinInterval,
   startOfToday,
 } from "date-fns";
@@ -40,6 +41,8 @@ const CustomCalendar = ({
   const [tileWidth, setTileWidth] = useState<number | null>(null);
   const [useMonthMap, setUseMonthMap] =
     useState<Map<string, dayType>>(monthMap);
+  const [maxRooms, setMaxRooms] = useState<number>(rooms.length);
+  const [usedRooms, setUsedRooms] = useState<roomType[]>(rooms);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarWrapperRef = useRef<HTMLDivElement>(null); // Wrapper div ref
@@ -104,6 +107,44 @@ const CustomCalendar = ({
     }
   }, [currentGuest]);
 
+  useEffect(() => {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    let maxRooms = 0;
+    const roomsInMonth: roomType[] = [];
+    const usedRoomsInMonth = new Set<string>();
+
+    monthMap.forEach((dayEntry, dateString) => {
+      const localDate = toZonedTime(dateString.split("T")[0], timeZone);
+
+      if (isSameMonth(localDate, currentMonth)) {
+        dayEntry.bookings.map((booking) => {
+          if (!usedRoomsInMonth.has(booking.room.name))
+            roomsInMonth.push(booking.room);
+          usedRoomsInMonth.add(booking.room.name);
+        });
+        maxRooms = Math.max(maxRooms, dayEntry.bookings.length);
+      }
+    });
+
+    setMaxRooms(maxRooms);
+    setUsedRooms(roomsInMonth);
+  }, [currentMonth]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Select all calendar tiles and update their CSS variable
+      document
+        .querySelectorAll(".react-calendar__custom_tile")
+        .forEach((tile) => {
+          (tile as HTMLElement).style.setProperty(
+            "--max-rows",
+            (maxRooms + 1).toString()
+          );
+        });
+    }
+  }, [maxRooms, currentMonth]);
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
     const scrollTop = (e.target as HTMLElement).scrollTop;
     const calendarHeight = (e.target as HTMLElement).offsetHeight;
@@ -125,7 +166,10 @@ const CustomCalendar = ({
     if (day && day.isBlocked)
       className.push("react-calendar__custom_tile_blocked");
 
-    if (day && day.bookings.length === rooms.length)
+    const totalAvailableRooms = new Set(
+      usedRooms.map((room) => room.name.replace(/(.+?)\1+$/, "$1"))
+    ).size;
+    if (day && day.bookings.length >= totalAvailableRooms)
       className.push("react-calendar__custom_tile_full");
 
     // Add styling for non-booked days
@@ -180,22 +224,19 @@ const CustomCalendar = ({
 
       const day = useMonthMap.get(date.toISOString().split("T")[0]);
       if (day) {
-        day.bookings.sort((a, b) => {
-          return a.room.name.localeCompare(b.room.name);
+        const sortedUsedRooms = [...usedRooms].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+
+        // Initialize grid with empty placeholders
+        const gridContent: Record<string, JSX.Element> = {};
+        sortedUsedRooms.forEach((room) => {
+          gridContent[room.name] = (
+            <div key={room.name} className="row-span-1 h-full min-h-[16px]" />
+          );
         });
 
-        // Initialize placeholders for the three rows
-        const gridContent: {
-          red: JSX.Element;
-          blue: JSX.Element;
-          green: JSX.Element;
-        } = {
-          red: <div className="row-span-1 h-full min-h-[16px]" />, // Ensure full height
-          blue: <div className="row-span-1 h-full min-h-[16px]" />,
-          green: <div className="row-span-1 h-full min-h-[16px]" />,
-        };
-
-        // Fill the placeholders based on room name
+        // Fill placeholders with actual booking data
         day.bookings.forEach((booking) => {
           const startDate = toZonedTime(booking.startDate, timeZone);
           const endDate = toZonedTime(booking.endDate, timeZone);
@@ -238,64 +279,54 @@ const CustomCalendar = ({
             isSameDay(date, startDate) ? "rounded-l-lg" : ""
           } ${isSameDay(date, endDate) ? "rounded-r-lg" : ""}`;
 
-          if (booking.room.name === "Cozy") {
-            gridContent.red = (
-              <div
-                key="red"
-                className={`bg-red-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB"
-                    ? "text-white"
-                    : "text-black font-bold"
-                } justify-center
-               `}
-                style={{ fontSize: `${textSize}rem` }}
-              >
-                {content}
-              </div>
-            );
-          } else if (booking.room.name === "Cute") {
-            gridContent.blue = (
-              <div
-                key="blue"
-                className={`bg-blue-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB"
-                    ? "text-white"
-                    : "text-black font-bold"
-                } justify-center`}
-                style={{ fontSize: `${textSize}rem` }}
-              >
-                {content}
-              </div>
-            );
-          } else {
-            gridContent.green = (
-              <div
-                key="green"
-                className={`bg-green-500 ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
-                  booking.guest.name === "AirBnB"
-                    ? "text-white"
-                    : "text-black font-bold"
-                } justify-center`}
-                style={{ fontSize: `${textSize}rem` }}
-              >
-                {content}
-              </div>
-            );
-          }
+          const roomColor = getRoomColor(booking.room.name);
+
+          gridContent[booking.room.name] = (
+            <div
+              key={booking.room.name}
+              className={`${roomColor} ${roundedClass} relative text-nowrap h-full flex items-center pl-1 ${
+                booking.guest.name === "AirBnB"
+                  ? "text-white"
+                  : "text-black font-bold"
+              } justify-center`}
+              style={{ fontSize: `${textSize}rem` }}
+            >
+              {content}
+            </div>
+          );
         });
 
-        // Render the three grid rows
-        return (
-          <>
-            {gridContent.red}
-            {gridContent.blue}
-            {gridContent.green}
-          </>
-        );
+        // Render all rooms in order (even if unoccupied)
+        return <>{sortedUsedRooms.map((room) => gridContent[room.name])}</>;
       }
     }
 
     return null;
+  };
+
+  // Function to dynamically assign colors to rooms
+  const getRoomColor = (roomName: string) => {
+    if (roomName.toLowerCase().includes("master")) return "bg-red-500";
+    if (roomName.toLowerCase().includes("cute")) return "bg-blue-500";
+    if (roomName.toLowerCase().includes("cozy")) return "bg-green-500";
+
+    // Default dynamic colors for other rooms
+    const colors = [
+      "bg-yellow-500",
+      "bg-purple-500",
+      "bg-pink-500",
+      "bg-indigo-500",
+      "bg-gray-500",
+      "bg-teal-500",
+      "bg-orange-500",
+    ];
+
+    let hash = 0;
+    for (let i = 0; i < roomName.length; i++) {
+      hash = roomName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
   };
 
   const getDayContent = (date: Date) => {

@@ -11,13 +11,14 @@
 } */
 
 .react-calendar__custom_tile {
+  --max-rows: 4;
   --tw-border-opacity: 1;
   border-color: rgb(
     209 213 219 / var(--tw-border-opacity, 1)
   ); /* #d1d5db, corresponds to border-gray-300 */
   display: grid; /* corresponds to grid */
   grid-template-rows: repeat(
-    4,
+    var(--max-rows),
     minmax(0, 1fr)
   ); /* corresponds to grid-rows-4 */
   margin-bottom: 0.25rem; /* corresponds to mb-1 */
