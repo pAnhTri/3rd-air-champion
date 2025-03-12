@@ -307,8 +307,8 @@ const CustomCalendar = ({
   // Function to dynamically assign colors to rooms
   const getRoomColor = (roomName: string) => {
     if (roomName.toLowerCase().includes("master")) return "bg-red-500";
-    if (roomName.toLowerCase().includes("cute")) return "bg-blue-500";
-    if (roomName.toLowerCase().includes("cozy")) return "bg-green-500";
+    if (roomName.toLowerCase().includes("cozy")) return "bg-blue-500";
+    if (roomName.toLowerCase().includes("cute")) return "bg-green-500";
 
     // Default dynamic colors for other rooms
     const colors = [

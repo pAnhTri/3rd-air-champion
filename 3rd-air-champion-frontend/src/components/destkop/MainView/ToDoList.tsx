@@ -143,7 +143,7 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                         } Your room is ${booking.room.name} ${
                           roomCodes.get(booking.room.name.toLowerCase()) ||
                           "Code"
-                        }. The main entrance door code is 1268=. I wish you a pleasant day. Thanks!`
+                        }. The main entrance door code is 1268=. I wish you a pleasant stay. Thanks!`
                       );
                       window.location.href = `sms:${phone}?&body=${messageBody}`;
                       toggleTaskCompletion(taskId);
