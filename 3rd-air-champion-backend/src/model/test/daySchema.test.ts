@@ -32,23 +32,6 @@ describe("Day Schema - Test Suite", () => {
       await expect(day.save()).rejects.toThrow(mongoose.Error.ValidationError);
     });
 
-    it("should throw an error if the date is in the past", async () => {
-      const host = await createMockHost("anhtp5@uci.edu");
-      const calendar = await new Calendar({
-        host: host,
-      }).save();
-      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // Yesterday's date
-
-      const dayData = {
-        calendar: calendar._id,
-        date: pastDate,
-      };
-
-      const day = new Day(dayData);
-
-      await expect(day.save()).rejects.toThrow("Date cannot be in the past.");
-    });
-
     it("should throw an error if a blocked day has a guest assigned", async () => {
       const host = await createMockHost("anhtp5@uci.edu");
       const calendar = await new Calendar({
@@ -144,20 +127,6 @@ describe("Day Schema - Test Suite", () => {
       const day = new Day({}); // Missing calendar and date
 
       await expect(day.save()).rejects.toThrow(mongoose.Error.ValidationError);
-    });
-
-    it("should throw an error if the date is in the past", async () => {
-      const host = await createMockHost("host@example.com");
-      const calendar = await new Calendar({ host: host._id }).save();
-
-      const dayData = {
-        calendar: calendar._id,
-        date: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday's date
-      };
-
-      const day = new Day(dayData);
-
-      await expect(day.save()).rejects.toThrow("Date cannot be in the past.");
     });
 
     it("should throw an error if a blocked day has a guest assigned", async () => {
@@ -438,26 +407,6 @@ describe("Day Schema - Test Suite", () => {
       fetchedDays.forEach((day) => {
         expect(day.isBlocked).toBe(true);
       });
-    });
-
-    it("should throw an error when updating date to a past value", async () => {
-      const host = await createMockHost("host@example.com");
-      const calendar = await new Calendar({ host: host._id }).save();
-
-      const dayData = {
-        calendar: calendar._id,
-        date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow's date
-      };
-
-      const savedDay = await new Day(dayData).save();
-
-      await expect(
-        Day.findByIdAndUpdate(
-          savedDay._id,
-          { date: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // Yesterday's date
-          { new: true, runValidators: true }
-        )
-      ).rejects.toThrow("Date cannot be in the past.");
     });
   });
 

@@ -35,19 +35,6 @@ daySchema.index({ calendarId: 1, date: 1 }, { unique: true });
 daySchema.index({ isAirBnB: 1 });
 daySchema.index({ isBlocked: 1 });
 
-daySchema.pre("validate", function (next) {
-  // Check if day already exists
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const currentDate = startOfToday();
-  const inputDate = toZonedTime(this.date, timeZone);
-
-  if (isBefore(inputDate, currentDate)) {
-    return next(new Error("Date cannot be in the past."));
-  }
-
-  next();
-});
-
 daySchema.pre(
   ["updateOne", "updateMany", "findOneAndUpdate"],
   async function (next) {
@@ -65,17 +52,6 @@ daySchema.pre(
           return next(
             new Error("A blocked day cannot have a guest or a room assigned.")
           );
-      }
-
-      if ("date" in dayUpdate) {
-        // Check if day already exists
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const currentDate = startOfToday();
-        const inputDate = toZonedTime(dayUpdate.date, timeZone);
-
-        if (isBefore(inputDate, currentDate)) {
-          return next(new Error("Date cannot be in the past."));
-        }
       }
     }
   }

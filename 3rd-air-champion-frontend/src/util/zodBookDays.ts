@@ -1,7 +1,5 @@
 import { z } from "zod";
 import mongoose from "mongoose";
-import { isAfter, isSameDay, startOfToday } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
 
 export const bookDaysZodObject = z.object({
   room: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
@@ -10,20 +8,10 @@ export const bookDaysZodObject = z.object({
   guest: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
     message: "Invalid guest",
   }),
-  date: z.date().refine(
-    (val) => {
-      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const currentDate = startOfToday();
-      const localDate = toZonedTime(val.toISOString().split("T")[0], timeZone);
-
-      return (
-        isAfter(localDate, currentDate) || isSameDay(localDate, currentDate)
-      );
-    },
-    {
-      message: "Cannot book a date in the past",
-    }
-  ),
+  date: z.date({
+    required_error: "Please select a date and time",
+    invalid_type_error: "That's not a date!",
+  }),
   duration: z
     .number({ invalid_type_error: "Must be a number" })
     .min(1, { message: "Must stay for at least 1 day" }),

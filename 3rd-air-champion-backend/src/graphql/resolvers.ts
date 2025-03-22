@@ -504,10 +504,6 @@ const dayResolver = {
       const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const localDate = toZonedTime(date.split("T")[0], timeZone);
 
-      if (isBefore(localDate, startOfToday())) {
-        throw new Error("Cannot book past days");
-      }
-
       const dates: Date[] = [];
       for (let i = 0; i < duration; i++) {
         dates.push(addDays(localDate, i));
