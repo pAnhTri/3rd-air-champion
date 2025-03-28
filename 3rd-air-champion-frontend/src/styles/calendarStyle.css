@@ -46,12 +46,24 @@
   border-color: rgb(234 179 8 / var(--tw-border-opacity, 1)) /* #eab308 */;
 }
 
+.react-calendar__custom_tile_guest_date {
+  border-width: 2.25px !important;
+  border-style: solid;
+  border-radius: 0.375rem /* 6px */;
+  --tw-border-opacity: 1;
+  border-color: rgb(255 0 0 / var(--tw-border-opacity, 1)) /* #eab308 */;
+}
+
 .react-calendar__custom_tile_blocked {
   @apply bg-slate-700;
 }
 
 .react-calendar__custom_tile_full {
   @apply bg-slate-400;
+}
+
+.react-calendar__custom_tile_paid {
+  @apply bg-green-400;
 }
 
 /* Base styling for tiles without bookings */

@@ -144,7 +144,7 @@ const GuestView = ({
 
             {/* Action */}
             <div className="basis-1/5">
-              <div className="flex flex-col h-full justify-between p-2">
+              <div className={`grid grid-rows-3 gap-y-2 p-2`}>
                 {booking.description === "" ? (
                   <>
                     <input
@@ -158,15 +158,20 @@ const GuestView = ({
                         }
                       }}
                       checked={currentGuest === booking.guest.id}
+                      className="w-4 h-4 mx-auto"
                     />
-                    <button
-                      className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
-                      onClick={() =>
-                        handleBookingConfirmation(booking.guest.phone)
-                      }
-                    >
-                      Confirm Booking
-                    </button>
+                    {currentGuest && (
+                      <button
+                        className={`rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem] ${
+                          !currentGuest && "row-start-2"
+                        }`}
+                        onClick={() =>
+                          handleBookingConfirmation(booking.guest.phone)
+                        }
+                      >
+                        Confirm Booking
+                      </button>
+                    )}
                     <button
                       className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
                       onClick={() => {
@@ -180,7 +185,7 @@ const GuestView = ({
                   </>
                 ) : (
                   <button
-                    className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
+                    className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem] row-start-2"
                     onClick={() => {
                       const url = booking.description.match(
                         /https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/\S+/

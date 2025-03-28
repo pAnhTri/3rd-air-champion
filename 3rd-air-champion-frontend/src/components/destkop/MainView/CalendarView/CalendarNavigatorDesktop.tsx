@@ -13,11 +13,13 @@ interface CalendarNavigatorProps {
       occupancy: number;
     }[];
   };
+  paidDates: Date[];
   profit: {
     total: number;
     airbnb: number;
   };
   getCurrentGuestBill: (guest: string) => number;
+  getUnpaidCurrentGuestBill: (guest: string, totalBill: number) => number;
   setIsTodoModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -27,11 +29,14 @@ const CalendarNavigator = ({
   occupancy,
   isTodoModalOpen,
   profit,
+  paidDates,
   getCurrentGuestBill,
+  getUnpaidCurrentGuestBill,
   setIsTodoModalOpen,
 }: CalendarNavigatorProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [guestBill, setGuestBill] = useState<number | null>(null);
+  const [unpaidGuestBill, setUnpaidGuestBill] = useState<number>(0);
 
   const formattedDate = currentMonth.toLocaleDateString("en-US", {
     year: "numeric",
@@ -40,11 +45,18 @@ const CalendarNavigator = ({
 
   useEffect(() => {
     if (currentGuest) {
-      setGuestBill(getCurrentGuestBill(currentGuest));
+      const totalBill = getCurrentGuestBill(currentGuest);
+      setGuestBill(totalBill);
     } else {
       setGuestBill(null);
     }
   }, [currentGuest, currentMonth]);
+
+  useEffect(() => {
+    if (currentGuest && guestBill) {
+      setUnpaidGuestBill(getUnpaidCurrentGuestBill(currentGuest, guestBill));
+    }
+  }, [currentGuest, guestBill, paidDates]);
 
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
@@ -84,7 +96,14 @@ const CalendarNavigator = ({
               {formattedDate}
             </span>
             {/* PROFIT */}
-            <div className="text-xl font-bold">${guestBill?.toFixed(2)}</div>
+            <div className="text-xl font-bold">
+              ${guestBill?.toFixed(2)}
+              <span className="text-xs">(T)</span>
+            </div>
+            <div className="text-xl font-bold">
+              ${unpaidGuestBill?.toFixed(2)}
+              <span className="text-xs">(U)</span>
+            </div>
           </div>
         </>
       )}

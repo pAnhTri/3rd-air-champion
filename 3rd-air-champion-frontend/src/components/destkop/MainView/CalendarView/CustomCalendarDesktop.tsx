@@ -13,17 +13,20 @@ import { dayType } from "../../../../util/types/dayType";
 import { bookingType } from "../../../../util/types/bookingType";
 import { roomType } from "../../../../util/types/roomType";
 import { toZonedTime } from "date-fns-tz";
+import { useDoubleClick } from "../../../../util/useDoubleClick";
 
 interface CustomCalendarProps {
   currentMonth: Date;
   currentGuest: string | null;
   monthMap: Map<string, dayType>;
+  paidDates: Date[];
   rooms: roomType[];
   setCurrentBookings: React.Dispatch<
     React.SetStateAction<bookingType[] | null | undefined>
   >;
   setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
   setIsMobileModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setPaidDates: React.Dispatch<React.SetStateAction<Date[]>>;
   setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
 }
 
@@ -31,10 +34,12 @@ const CustomCalendar = ({
   currentMonth,
   currentGuest,
   monthMap,
+  paidDates,
   rooms,
   setCurrentBookings,
   setCurrentMonth,
   setIsMobileModalOpen,
+  setPaidDates,
   setSelectedDate,
 }: CustomCalendarProps) => {
   const [months, setMonths] = useState<Date[]>([]);
@@ -43,6 +48,9 @@ const CustomCalendar = ({
     useState<Map<string, dayType>>(monthMap);
   const [maxRooms, setMaxRooms] = useState<number>(rooms.length);
   const [usedRooms, setUsedRooms] = useState<roomType[]>(rooms);
+
+  // StoredDate for the modal to reopen
+  const [guestDate, setGuestDate] = useState<Date | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarWrapperRef = useRef<HTMLDivElement>(null); // Wrapper div ref
@@ -85,6 +93,7 @@ const CustomCalendar = ({
 
   useEffect(() => {
     if (currentGuest && useMonthMap.size > 0) {
+      setIsMobileModalOpen(false);
       const filteredMap = new Map<string, dayType>();
 
       monthMap.forEach((dayEntry, date) => {
@@ -99,10 +108,21 @@ const CustomCalendar = ({
           };
           filteredMap.set(date, filteredDayEntry);
         }
+
+        if (
+          guestBookings.some((booking) => booking.guest.id === currentGuest)
+        ) {
+          const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+          paidDates.push(toZonedTime(date, timeZone));
+        }
       });
 
       setUseMonthMap(filteredMap);
     } else {
+      setGuestDate(null);
+      setIsMobileModalOpen(false);
+      setPaidDates([]);
       setUseMonthMap(monthMap);
     }
   }, [currentGuest]);
@@ -155,11 +175,66 @@ const CustomCalendar = ({
     }
   };
 
+  const handlePaidDates = (date: Date) => {
+    let updatedPaidDates: Date[];
+
+    const foundDate = paidDates.find((paidDate) => isSameDay(date, paidDate));
+
+    if (foundDate) {
+      updatedPaidDates = paidDates.filter(
+        (paidDate) => !isSameDay(date, paidDate)
+      );
+    } else {
+      updatedPaidDates = [...paidDates, date];
+    }
+
+    setPaidDates(updatedPaidDates);
+  };
+
+  const onSingleClick = (date: Date) => {
+    let guestDateCondition = false;
+    if (guestDate) {
+      if (currentGuest && isSameDay(date, guestDate)) guestDateCondition = true;
+    }
+
+    if (!currentGuest || guestDateCondition) {
+      // select the date
+      setSelectedDate(date);
+      setIsMobileModalOpen(true);
+      setGuestDate(date);
+      const day = useMonthMap.get(date.toISOString().split("T")[0]);
+
+      if (day && day.bookings) {
+        setCurrentBookings(day.bookings);
+      } else setCurrentBookings(null);
+    }
+  };
+
+  const onDoubleClick = (date: Date) => {
+    if (currentGuest) {
+      const bookedDate = useMonthMap.get(date.toISOString().split("T")[0]);
+      if (bookedDate) handlePaidDates(date);
+    }
+  };
+
   const customTile = ({ date }: { date: Date }) => {
     const className = ["react-calendar__custom_tile"];
 
     if (isSameDay(date, startOfToday()))
       className.push("react-calendar__custom_tile_today");
+
+    if (guestDate) {
+      if (currentGuest && isSameDay(date, guestDate))
+        className.push("react-calendar__custom_tile_guest_date");
+    }
+
+    if (paidDates.length > 0) {
+      if (
+        currentGuest &&
+        paidDates.find((paidDate) => isSameDay(paidDate, date))
+      )
+        className.push("react-calendar__custom_tile_paid");
+    }
 
     const day = useMonthMap.get(date.toISOString().split("T")[0]);
 
@@ -329,16 +404,7 @@ const CustomCalendar = ({
     return colors[index];
   };
 
-  const getDayContent = (date: Date) => {
-    // select the date
-    setSelectedDate(date);
-    setIsMobileModalOpen(true);
-    const day = useMonthMap.get(date.toISOString().split("T")[0]);
-
-    if (day && day.bookings) {
-      setCurrentBookings(day.bookings);
-    } else setCurrentBookings(null);
-  };
+  const getDayContent = useDoubleClick<Date>(onSingleClick, onDoubleClick);
 
   return (
     <div

@@ -121,7 +121,10 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     total: 0,
     airbnb: 0,
   });
+
+  // Billing States
   const [currentGuest, setCurrentGuest] = useState<string | null>(null);
+  const [paidDates, setPaidDates] = useState<Date[]>([]);
 
   const onSync = () => {
     if (shouldCallOnSync) alert("Synchronizing with Airbnb");
@@ -678,6 +681,47 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     return totalPriceOfMonth;
   };
 
+  const getUnpaidCurrentGuestBill = (guest: string, totalBill: number) => {
+    let paidBill = 0;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const monthlyPaidDates = paidDates.filter((paidDate) => {
+      const localDate = toZonedTime(
+        paidDate.toISOString().split("T")[0],
+        timeZone
+      );
+      return isSameMonth(localDate, currentMonth);
+    });
+
+    monthlyPaidDates.map((paidDate) => {
+      // Assume that the date always maps correctly
+
+      const day = monthMap.get(paidDate.toISOString().split("T")[0]) as dayType;
+      console.log("Day:", day);
+
+      if (
+        day.bookings.some((booking) => {
+          const localStartDate = toZonedTime(
+            booking.startDate.split("T")[0],
+            timeZone
+          );
+          return !isSameMonth(localStartDate, currentMonth);
+        })
+      )
+        return;
+
+      const booking = day.bookings.find((booking) => {
+        return booking.guest.name === guest;
+      }) as bookingType;
+
+      paidBill +=
+        booking.guest.pricing.find((p) => p.room === booking.room.id)?.price ||
+        booking.price;
+    });
+
+    return totalBill - paidBill;
+  };
+
   const handleBookingConfirmation = (phone: string) => {
     const month = format(currentMonth, "LLLL");
     const body = `Your booking for ${month} is now as follows:\n`;
@@ -694,6 +738,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     );
 
     let totalPriceOfMonth = 0;
+    let totalPaidAmount = 0;
 
     // Process the sorted entries
     const bookingDetails = sortedEntries.reduce((acc, [dateStr, dayEntry]) => {
@@ -715,6 +760,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 booking.startDate.split("T")[0],
                 timeZone
               );
+
+              const isPaid = paidDates.some((paidDate) =>
+                isSameDay(toZonedTime(paidDate, timeZone), startDate)
+              );
+
               const weekday = format(startDate, "EEE"); // Mon, Tue, etc.
               const dateFormatted = format(startDate, "M/d"); // month/day format
               const duration = booking.duration;
@@ -725,10 +775,14 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 booking.guest.pricing.find((p) => p.room === booking.room.id)
                   ?.price || booking.price; // Fallback if pricing not found
 
+              if (isPaid) totalPaidAmount += pricePerNight;
+
               if (duration === 1) {
                 // Single-night booking format
                 totalPriceOfMonth += pricePerNight;
-                return `* ${weekday} ${dateFormatted}, 1 night, ${roomName}, $${pricePerNight}`;
+                return `* ${weekday} ${dateFormatted}, 1 night, ${roomName}, $${pricePerNight} ${
+                  isPaid ? "(paid)" : ""
+                }`;
               } else {
                 // Multi-night booking format
                 const endDate = addDays(startDate, duration - 1);
@@ -737,7 +791,10 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 const totalPrice = pricePerNight * duration;
 
                 totalPriceOfMonth += totalPrice;
-                return `* ${weekday} to ${endWeekday}, ${dateFormatted} - ${endDateFormatted}, ${duration} nights, ${roomName}, $${pricePerNight} * ${duration} = $${totalPrice}`;
+                if (isPaid) totalPaidAmount += totalPrice;
+                return `* ${weekday} to ${endWeekday}, ${dateFormatted} - ${endDateFormatted}, ${duration} nights, ${roomName}, $${pricePerNight} * ${duration} = $${totalPrice} ${
+                  isPaid ? "(paid)" : ""
+                }`;
               }
             })
             .join("\n");
@@ -750,7 +807,15 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       return acc; // Return accumulator unchanged if no match
     }, ""); // Initialize with an empty string
 
-    const fullBody = `${body}${bookingDetails}\nTotal amount = $${totalPriceOfMonth}\n\nCould you please confirm whether everything is in order?`;
+    const unpaid = totalPriceOfMonth - totalPaidAmount;
+
+    const fullBody = `${body}${bookingDetails}\nTotal price = $${totalPriceOfMonth}${
+      totalPaidAmount > 0 ? `\nTotal paid = $${totalPaidAmount}` : ""
+    }${
+      unpaid > 0
+        ? `\nTo pay = $${totalPriceOfMonth} - $${totalPaidAmount} = $${unpaid}`
+        : ""
+    }\n\nCould you please confirm whether everything is in order?`;
 
     window.location.href = `sms:${phone}?&body=${encodeURIComponent(fullBody)}`;
   };
@@ -777,9 +842,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               }
               occupancy={occupancy}
               currentMonth={currentMonth}
+              paidDates={paidDates}
               profit={profit}
               isTodoModalOpen={isTodoModalOpen}
               getCurrentGuestBill={getCurrentGuestBill}
+              getUnpaidCurrentGuestBill={getUnpaidCurrentGuestBill}
               setIsTodoModalOpen={setIsTodoModalOpen}
             />
             {isSyncModalOpen && (
@@ -791,14 +858,16 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               />
             )}
             <CustomCalendar
-              currentMonth={currentMonth}
               currentGuest={currentGuest}
+              currentMonth={currentMonth}
+              monthMap={monthMap}
+              paidDates={paidDates}
               rooms={rooms}
               setCurrentBookings={setCurrentBookings}
               setCurrentMonth={setCurrentMonth}
               setIsMobileModalOpen={setIsMobileModalOpen}
+              setPaidDates={setPaidDates}
               setSelectedDate={setSelectedDate}
-              monthMap={monthMap}
             />
             {isModalOpen && (
               <BookingModal
