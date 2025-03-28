@@ -14,6 +14,7 @@ import {
   isSameDay,
   isSameMonth,
   isWithinInterval,
+  startOfMonth,
   startOfToday,
 } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
@@ -685,34 +686,18 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     let paidBill = 0;
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const monthlyPaidDates = paidDates.filter((paidDate) => {
-      const localDate = toZonedTime(
-        paidDate.toISOString().split("T")[0],
-        timeZone
-      );
-      return isSameMonth(localDate, currentMonth);
-    });
-
-    monthlyPaidDates.map((paidDate) => {
+    paidDates.map((paidDate) => {
       // Assume that the date always maps correctly
 
       const day = monthMap.get(paidDate.toISOString().split("T")[0]) as dayType;
-      console.log("Day:", day);
-
-      if (
-        day.bookings.some((booking) => {
-          const localStartDate = toZonedTime(
-            booking.startDate.split("T")[0],
-            timeZone
-          );
-          return !isSameMonth(localStartDate, currentMonth);
-        })
-      )
-        return;
 
       const booking = day.bookings.find((booking) => {
         return booking.guest.name === guest;
       }) as bookingType;
+
+      const localStartDate = toZonedTime(booking.startDate, timeZone);
+
+      if (!isSameMonth(localStartDate, currentMonth)) return;
 
       paidBill +=
         booking.guest.pricing.find((p) => p.room === booking.room.id)?.price ||
@@ -722,11 +707,31 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     return totalBill - paidBill;
   };
 
-  const handleBookingConfirmation = (phone: string) => {
-    const month = format(currentMonth, "LLLL");
-    const body = `Your booking for ${month} is now as follows:\n`;
+  const formatListWithAnd = (items: string[]): string => {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} and ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+  };
 
+  const handleBookingConfirmation = (phone: string) => {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const uniqueMonths = new Set<string>(
+      paidDates.map(
+        (paidDate) => startOfMonth(paidDate).toISOString().split("T")[0]
+      )
+    );
+
+    const months = Array.from(uniqueMonths, (uniqueMonth) =>
+      toZonedTime(uniqueMonth, timeZone)
+    );
+
+    const monthStrings = months.map((month) => format(month, "LLLL"));
+
+    const body = `Your bookings for ${formatListWithAnd(
+      monthStrings
+    )} are now as follows:\n`;
 
     // Sort monthMap entries using date-fns compareAsc
     const sortedEntries = Array.from(monthMap.entries()).sort(
@@ -738,14 +743,13 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     );
 
     let totalPriceOfMonth = 0;
-    let totalPaidAmount = 0;
 
     // Process the sorted entries
     const bookingDetails = sortedEntries.reduce((acc, [dateStr, dayEntry]) => {
       const date = toZonedTime(dateStr, timeZone);
 
       // Check if the booking is within the current month
-      if (isSameMonth(date, currentMonth)) {
+      if (months.some((month) => isSameMonth(date, month))) {
         // Filter bookings that match the phone number and start date
         const matchingBookings = dayEntry.bookings.filter(
           (booking) =>
@@ -775,8 +779,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 booking.guest.pricing.find((p) => p.room === booking.room.id)
                   ?.price || booking.price; // Fallback if pricing not found
 
-              if (isPaid) totalPaidAmount += pricePerNight;
-
               if (duration === 1) {
                 // Single-night booking format
                 totalPriceOfMonth += pricePerNight;
@@ -791,7 +793,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                 const totalPrice = pricePerNight * duration;
 
                 totalPriceOfMonth += totalPrice;
-                if (isPaid) totalPaidAmount += totalPrice;
+
                 return `* ${weekday} to ${endWeekday}, ${dateFormatted} - ${endDateFormatted}, ${duration} nights, ${roomName}, $${pricePerNight} * ${duration} = $${totalPrice} ${
                   isPaid ? "(paid)" : ""
                 }`;
@@ -806,6 +808,22 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
       return acc; // Return accumulator unchanged if no match
     }, ""); // Initialize with an empty string
+
+    let totalPaidAmount = 0;
+
+    paidDates.map((paidDate) => {
+      // Assume that the date always maps correctly
+
+      const day = monthMap.get(paidDate.toISOString().split("T")[0]) as dayType;
+
+      const booking = day.bookings.find((booking) => {
+        return booking.guest.id === currentGuest;
+      }) as bookingType;
+
+      totalPaidAmount +=
+        booking.guest.pricing.find((p) => p.room === booking.room.id)?.price ||
+        booking.price;
+    });
 
     const unpaid = totalPriceOfMonth - totalPaidAmount;
 
@@ -840,6 +858,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                       ?.name as string)
                   : null
               }
+              monthMap={monthMap}
               occupancy={occupancy}
               currentMonth={currentMonth}
               paidDates={paidDates}
@@ -848,6 +867,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               getCurrentGuestBill={getCurrentGuestBill}
               getUnpaidCurrentGuestBill={getUnpaidCurrentGuestBill}
               setIsTodoModalOpen={setIsTodoModalOpen}
+              setPaidDates={setPaidDates}
             />
             {isSyncModalOpen && (
               <RoomLinkModal

@@ -1,10 +1,13 @@
-import { isSameMonth } from "date-fns";
+import { addDays, compareAsc, isSameDay, isSameMonth } from "date-fns";
 import { useEffect, useState } from "react";
+import { dayType } from "../../../../util/types/dayType";
+import { toZonedTime } from "date-fns-tz/toZonedTime";
 
 interface CalendarNavigatorProps {
   currentMonth: Date;
   currentGuest: string | null;
   isTodoModalOpen: boolean;
+  monthMap: Map<string, dayType>;
   occupancy: {
     totalOccupancy: number;
     airbnbOccupancy: number;
@@ -21,11 +24,13 @@ interface CalendarNavigatorProps {
   getCurrentGuestBill: (guest: string) => number;
   getUnpaidCurrentGuestBill: (guest: string, totalBill: number) => number;
   setIsTodoModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setPaidDates: React.Dispatch<React.SetStateAction<Date[]>>;
 }
 
 const CalendarNavigator = ({
   currentMonth,
   currentGuest,
+  monthMap,
   occupancy,
   isTodoModalOpen,
   profit,
@@ -33,6 +38,7 @@ const CalendarNavigator = ({
   getCurrentGuestBill,
   getUnpaidCurrentGuestBill,
   setIsTodoModalOpen,
+  setPaidDates,
 }: CalendarNavigatorProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [guestBill, setGuestBill] = useState<number | null>(null);
@@ -92,9 +98,55 @@ const CalendarNavigator = ({
           <div className="flex h-full w-full justify-between items-center">
             {/* Guest */}
             <span className="text-xl text-gray-800">{currentGuest}</span>
-            <span className="font-bold text-xl text-gray-800">
+            <div
+              className="font-bold text-xl text-gray-800"
+              onDoubleClick={() => {
+                const timeZone =
+                  Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+                const paidDatesSet = new Set<string>(
+                  paidDates.map(
+                    (paidDate) => paidDate.toISOString().split("T")[0]
+                  )
+                );
+
+                monthMap.forEach((day, dateKey) => {
+                  const booking = day.bookings.find(
+                    (booking) => booking.guest.name === currentGuest
+                  );
+
+                  if (booking) {
+                    const localDate = toZonedTime(dateKey, timeZone);
+                    const localStartDate = toZonedTime(
+                      booking.startDate,
+                      timeZone
+                    );
+                    if (
+                      isSameDay(localDate, localStartDate) &&
+                      isSameMonth(localStartDate, currentMonth)
+                    ) {
+                      for (let i = 0; i < booking.duration; i += 1) {
+                        paidDatesSet.add(
+                          toZonedTime(addDays(localStartDate, i), timeZone)
+                            .toISOString()
+                            .split("T")[0]
+                        );
+                      }
+                    }
+                  }
+                });
+
+                const updatedPaidDates = Array.from(paidDatesSet, (date) =>
+                  toZonedTime(date, timeZone)
+                ).sort((a, b) => {
+                  return compareAsc(a, b);
+                });
+
+                setPaidDates(updatedPaidDates);
+              }}
+            >
               {formattedDate}
-            </span>
+            </div>
             {/* PROFIT */}
             <div className="text-xl font-bold">
               ${guestBill?.toFixed(2)}

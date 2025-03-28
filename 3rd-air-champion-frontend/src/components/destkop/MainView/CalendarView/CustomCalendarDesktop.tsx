@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Calendar from "react-calendar";
 import "../../../../styles/calendarStyle.css";
 import {
+  addDays,
   endOfMonth,
   getDay,
   isSameDay,
@@ -48,9 +49,6 @@ const CustomCalendar = ({
     useState<Map<string, dayType>>(monthMap);
   const [maxRooms, setMaxRooms] = useState<number>(rooms.length);
   const [usedRooms, setUsedRooms] = useState<roomType[]>(rooms);
-
-  // StoredDate for the modal to reopen
-  const [guestDate, setGuestDate] = useState<Date | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const calendarWrapperRef = useRef<HTMLDivElement>(null); // Wrapper div ref
@@ -109,23 +107,63 @@ const CustomCalendar = ({
           filteredMap.set(date, filteredDayEntry);
         }
 
-        if (
-          guestBookings.some((booking) => booking.guest.id === currentGuest)
-        ) {
-          const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const booking = guestBookings.find(
+          (booking) => booking.guest.id === currentGuest
+        );
 
-          paidDates.push(toZonedTime(date, timeZone));
+        if (booking) {
+          const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const localDate = toZonedTime(date, timeZone);
+          const localStartDate = toZonedTime(booking.startDate, timeZone);
+
+          if (
+            isSameDay(localDate, localStartDate) &&
+            isSameMonth(localDate, currentMonth)
+          ) {
+            for (let i = 0; i < booking.duration; i += 1) {
+              paidDates.push(toZonedTime(addDays(localStartDate, i), timeZone));
+            }
+          }
         }
       });
 
       setUseMonthMap(filteredMap);
     } else {
-      setGuestDate(null);
       setIsMobileModalOpen(false);
       setPaidDates([]);
       setUseMonthMap(monthMap);
     }
   }, [currentGuest]);
+
+  // useEffect(() => {
+  //   if (currentGuest && paidDates.length > 0) {
+  //     if (paidDates.some((paidDate) => isSameMonth(paidDate, currentMonth)))
+  //       return;
+
+  //     // Turn the paidDates into a set to add to it
+  //     const paidDatesSet = new Set<Date>(paidDates);
+  //     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  //     for (const [dateKey, day] of useMonthMap.entries()) {
+  //       const localDateKey = toZonedTime(dateKey, timeZone);
+  //       const guestBooking = day.bookings.find(
+  //         (booking) => booking.guest.id === currentGuest
+  //       );
+
+  //       if (guestBooking) {
+  //         if (isSameDay(localDateKey, guestBooking.startDate)) {
+  //           for (let i = 0; i < guestBooking.duration; i += 1) {
+  //             paidDatesSet.add(addDays(localDateKey, i));
+  //           }
+  //         }
+  //       }
+  //     }
+
+  //     const updatedPaidDates = Array.from(paidDatesSet);
+
+  //     setPaidDates(updatedPaidDates);
+  //   }
+  // }, [currentGuest, currentMonth]);
 
   useEffect(() => {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -192,22 +230,14 @@ const CustomCalendar = ({
   };
 
   const onSingleClick = (date: Date) => {
-    let guestDateCondition = false;
-    if (guestDate) {
-      if (currentGuest && isSameDay(date, guestDate)) guestDateCondition = true;
-    }
+    // select the date
+    setSelectedDate(date);
+    setIsMobileModalOpen(true);
+    const day = useMonthMap.get(date.toISOString().split("T")[0]);
 
-    if (!currentGuest || guestDateCondition) {
-      // select the date
-      setSelectedDate(date);
-      setIsMobileModalOpen(true);
-      setGuestDate(date);
-      const day = useMonthMap.get(date.toISOString().split("T")[0]);
-
-      if (day && day.bookings) {
-        setCurrentBookings(day.bookings);
-      } else setCurrentBookings(null);
-    }
+    if (day && day.bookings) {
+      setCurrentBookings(day.bookings);
+    } else setCurrentBookings(null);
   };
 
   const onDoubleClick = (date: Date) => {
@@ -222,11 +252,6 @@ const CustomCalendar = ({
 
     if (isSameDay(date, startOfToday()))
       className.push("react-calendar__custom_tile_today");
-
-    if (guestDate) {
-      if (currentGuest && isSameDay(date, guestDate))
-        className.push("react-calendar__custom_tile_guest_date");
-    }
 
     if (paidDates.length > 0) {
       if (
