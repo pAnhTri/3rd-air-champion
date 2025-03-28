@@ -704,9 +704,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
     const monthStrings = months.map((month) => format(month, "LLLL"));
 
-    const body = `Your bookings for ${formatListWithAnd(
-      monthStrings
-    )} are now as follows:\n`;
+    const body = `Your bookings for ${
+      monthStrings.length > 0
+        ? formatListWithAnd(monthStrings)
+        : format(currentMonth, "LLLL")
+    } are now as follows:\n`;
 
     // Sort monthMap entries using date-fns compareAsc
     const sortedEntries = Array.from(monthMap.entries()).sort(
@@ -724,7 +726,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       const date = toZonedTime(dateStr, timeZone);
 
       // Check if the booking is within the current month
-      if (months.some((month) => isSameMonth(date, month))) {
+      if (
+        (months.length > 0 &&
+          months.some((month) => isSameMonth(date, month))) ||
+        isSameMonth(date, currentMonth)
+      ) {
         // Filter bookings that match the phone number and start date
         const matchingBookings = dayEntry.bookings.filter(
           (booking) =>
@@ -806,7 +812,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
       totalPaidAmount > 0 ? `\nTotal paid = $${totalPaidAmount}` : ""
     }${
       unpaid > 0
-        ? `\nTo pay = $${totalPriceOfMonth} - $${totalPaidAmount} = $${unpaid}`
+        ? `\nTo pay = ${
+            totalPaidAmount > 0
+              ? `$${totalPriceOfMonth} - $${totalPaidAmount} = $${unpaid}`
+              : `$${unpaid}`
+          }`
         : ""
     }\n\nCould you please confirm whether everything is in order?`;
 
