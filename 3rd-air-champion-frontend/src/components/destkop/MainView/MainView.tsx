@@ -682,31 +682,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     return totalPriceOfMonth;
   };
 
-  const getUnpaidCurrentGuestBill = (guest: string, totalBill: number) => {
-    let paidBill = 0;
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    paidDates.map((paidDate) => {
-      // Assume that the date always maps correctly
-
-      const day = monthMap.get(paidDate.toISOString().split("T")[0]) as dayType;
-
-      const booking = day.bookings.find((booking) => {
-        return booking.guest.name === guest;
-      }) as bookingType;
-
-      const localStartDate = toZonedTime(booking.startDate, timeZone);
-
-      if (!isSameMonth(localStartDate, currentMonth)) return;
-
-      paidBill +=
-        booking.guest.pricing.find((p) => p.room === booking.room.id)?.price ||
-        booking.price;
-    });
-
-    return totalBill - paidBill;
-  };
-
   const formatListWithAnd = (items: string[]): string => {
     if (items.length === 0) return "";
     if (items.length === 1) return items[0];
@@ -865,7 +840,6 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               profit={profit}
               isTodoModalOpen={isTodoModalOpen}
               getCurrentGuestBill={getCurrentGuestBill}
-              getUnpaidCurrentGuestBill={getUnpaidCurrentGuestBill}
               setIsTodoModalOpen={setIsTodoModalOpen}
               setPaidDates={setPaidDates}
             />

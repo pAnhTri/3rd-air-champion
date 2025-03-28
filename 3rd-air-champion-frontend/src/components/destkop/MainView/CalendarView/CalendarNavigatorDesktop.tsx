@@ -22,7 +22,6 @@ interface CalendarNavigatorProps {
     airbnb: number;
   };
   getCurrentGuestBill: (guest: string) => number;
-  getUnpaidCurrentGuestBill: (guest: string, totalBill: number) => number;
   setIsTodoModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPaidDates: React.Dispatch<React.SetStateAction<Date[]>>;
 }
@@ -36,13 +35,11 @@ const CalendarNavigator = ({
   profit,
   paidDates,
   getCurrentGuestBill,
-  getUnpaidCurrentGuestBill,
   setIsTodoModalOpen,
   setPaidDates,
 }: CalendarNavigatorProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [guestBill, setGuestBill] = useState<number | null>(null);
-  const [unpaidGuestBill, setUnpaidGuestBill] = useState<number>(0);
 
   const formattedDate = currentMonth.toLocaleDateString("en-US", {
     year: "numeric",
@@ -57,12 +54,6 @@ const CalendarNavigator = ({
       setGuestBill(null);
     }
   }, [currentGuest, currentMonth]);
-
-  useEffect(() => {
-    if (currentGuest && guestBill) {
-      setUnpaidGuestBill(getUnpaidCurrentGuestBill(currentGuest, guestBill));
-    }
-  }, [currentGuest, guestBill, paidDates]);
 
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
@@ -148,14 +139,7 @@ const CalendarNavigator = ({
               {formattedDate}
             </div>
             {/* PROFIT */}
-            <div className="text-xl font-bold">
-              ${guestBill?.toFixed(2)}
-              <span className="text-xs">(T)</span>
-            </div>
-            <div className="text-xl font-bold">
-              ${unpaidGuestBill?.toFixed(2)}
-              <span className="text-xs">(U)</span>
-            </div>
+            <div className="text-xl font-bold">${guestBill?.toFixed(2)}</div>
           </div>
         </>
       )}
