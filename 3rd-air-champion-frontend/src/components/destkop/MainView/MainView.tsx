@@ -720,6 +720,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     );
 
     let totalPriceOfMonth = 0;
+    let guestName = "";
 
     // Process the sorted entries
     const bookingDetails = sortedEntries.reduce((acc, [dateStr, dayEntry]) => {
@@ -741,6 +742,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         if (matchingBookings.length > 0) {
           const bookingText = matchingBookings
             .map((booking: bookingType) => {
+              guestName = booking.guest.name;
+
               const startDate = toZonedTime(
                 booking.startDate.split("T")[0],
                 timeZone
@@ -753,6 +756,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               const weekday = format(startDate, "EEE"); // Mon, Tue, etc.
               const dateFormatted = format(startDate, "M/d"); // month/day format
               const duration = booking.duration;
+              const endDate = addDays(startDate, duration);
+              const endWeekday = format(endDate, "EEE");
+              const endDateFormatted = format(endDate, "M/d");
 
               // Get the room name and price
               const roomName = booking.room.name;
@@ -763,19 +769,15 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
               if (duration === 1) {
                 // Single-night booking format
                 totalPriceOfMonth += pricePerNight;
-                return `* ${weekday} ${dateFormatted}, 1 night, ${roomName}, $${pricePerNight} ${
+                return `* ${weekday} to ${endWeekday} morning, ${dateFormatted} - ${endDateFormatted} morning, 1 night, ${roomName}, $${pricePerNight} ${
                   isPaid ? "(paid)" : ""
                 }`;
               } else {
-                // Multi-night booking format
-                const endDate = addDays(startDate, duration - 1);
-                const endWeekday = format(endDate, "EEE");
-                const endDateFormatted = format(endDate, "M/d");
                 const totalPrice = pricePerNight * duration;
 
                 totalPriceOfMonth += totalPrice;
 
-                return `* ${weekday} to ${endWeekday}, ${dateFormatted} - ${endDateFormatted}, ${duration} nights, ${roomName}, $${pricePerNight} * ${duration} = $${totalPrice} ${
+                return `* ${weekday} to ${endWeekday} morning, ${dateFormatted} - ${endDateFormatted} morning, ${duration} nights, ${roomName}, $${pricePerNight} * ${duration} = $${totalPrice} ${
                   isPaid ? "(paid)" : ""
                 }`;
               }
@@ -808,7 +810,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
     const unpaid = totalPriceOfMonth - totalPaidAmount;
 
-    const fullBody = `${body}${bookingDetails}\nTotal price = $${totalPriceOfMonth}${
+    const fullBody = `${
+      guestName === "" ? "" : `Hi ${guestName},`
+    }\n${body}${bookingDetails}\nTotal price = $${totalPriceOfMonth}${
       totalPaidAmount > 0 ? `\nTotal paid = $${totalPaidAmount}` : ""
     }${
       unpaid > 0
