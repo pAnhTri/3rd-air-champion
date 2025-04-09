@@ -382,7 +382,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
       // Function to normalize room names (remove duplicate patterns)
       const getBaseRoomName = (roomName: string) => {
-        return roomName.replace(/(.+?)\1+$/, "$1");
+        return roomName.replace(/^(.+)\1$/, "$1");
       };
 
       // Iterate over each room in the state
