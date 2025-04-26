@@ -129,6 +129,11 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
     airbnb: 0,
   });
 
+  //AirBnB Display States
+  const [currentAirBnBGuest, setCurrentAirBnBGuest] = useState<string | null>(
+    null
+  );
+
   // Billing States
   const [currentGuest, setCurrentGuest] = useState<string | null>(null);
   const [paidDates, setPaidDates] = useState<Date[]>([]);
@@ -866,6 +871,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                       ?.name as string)
                   : null
               }
+              currentAirBnBGuest={currentAirBnBGuest}
               monthMap={monthMap}
               occupancy={occupancy}
               currentMonth={currentMonth}
@@ -886,6 +892,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             )}
             <CustomCalendar
               currentGuest={currentGuest}
+              currentAirBnBGuest={currentAirBnBGuest}
               currentMonth={currentMonth}
               monthMap={monthMap}
               paidDates={paidDates}
@@ -980,12 +987,14 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             airBnBPrices={airBnBPrices}
             airBnBBookingCount={airBnBBookingCount}
             currentBookings={currentBookings}
+            currentAirBnBGuest={currentAirBnBGuest}
             currentGuest={currentGuest}
             rooms={rooms}
             handleBookingConfirmation={handleBookingConfirmation}
             onPricingUpdate={onPricingUpdate}
             setAirBnBPrices={setAirBnBPrices}
             setCurrentGuest={setCurrentGuest}
+            setCurrentAirBnBGuest={setCurrentAirBnBGuest}
             setSelectedBooking={
               setSelectedBooking as React.Dispatch<
                 React.SetStateAction<bookingType>
@@ -1049,11 +1058,13 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
             airBnBPrices={airBnBPrices}
             airBnBBookingCount={airBnBBookingCount}
             currentBookings={currentBookings}
+            currentAirBnBGuest={currentAirBnBGuest}
             currentGuest={currentGuest}
             rooms={rooms}
             handleBookingConfirmation={handleBookingConfirmation}
             onPricingUpdate={onPricingUpdate}
             setAirBnBPrices={setAirBnBPrices}
+            setCurrentAirBnBGuest={setCurrentAirBnBGuest}
             setCurrentGuest={setCurrentGuest}
             setIsMobileModalOpen={setIsMobileModalOpen}
             setSelectedBooking={

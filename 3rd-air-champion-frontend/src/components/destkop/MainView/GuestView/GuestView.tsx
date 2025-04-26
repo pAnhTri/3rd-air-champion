@@ -17,6 +17,7 @@ interface GuestViewProps {
   }[];
   children: JSX.Element;
   currentBookings: bookingType[];
+  currentAirBnBGuest: string | null;
   currentGuest: string | null;
   rooms: roomType[];
   handleBookingConfirmation: (phone: string) => void;
@@ -30,6 +31,7 @@ interface GuestViewProps {
   setAirBnBPrices: React.Dispatch<
     React.SetStateAction<Map<string, number> | undefined>
   >;
+  setCurrentAirBnBGuest: React.Dispatch<React.SetStateAction<string | null>>;
   setCurrentGuest: React.Dispatch<React.SetStateAction<string | null>>;
   setIsMobileModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedBooking: React.Dispatch<React.SetStateAction<bookingType>>;
@@ -41,6 +43,7 @@ const GuestView = ({
   airBnBPrices,
   children,
   currentBookings,
+  currentAirBnBGuest,
   currentGuest,
   rooms,
   setAirBnBPrices,
@@ -48,6 +51,7 @@ const GuestView = ({
   airBnBBookingCount,
   handleBookingConfirmation,
   setIsMobileModalOpen,
+  setCurrentAirBnBGuest,
   setCurrentGuest,
   setSelectedBooking,
   setSelectedModifyBooking,
@@ -119,10 +123,12 @@ const GuestView = ({
                     {formatDate(booking.startDate)} -{" "}
                     {formatDate(booking.endDate)}
                   </p>
-                  <RebookCount
-                    booking={booking}
-                    airBnBBookingCount={airBnBBookingCount}
-                  />
+                  {booking.guest.name === "AirBnB" && (
+                    <RebookCount
+                      booking={booking}
+                      airBnBBookingCount={airBnBBookingCount}
+                    />
+                  )}
                 </div>
 
                 <div className="flex flex-col h-full justify-center">
@@ -195,21 +201,38 @@ const GuestView = ({
                     </button>
                   </>
                 ) : (
-                  <button
-                    className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem] row-start-2"
-                    onClick={() => {
-                      const url = booking.description.match(
-                        /https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/\S+/
-                      )?.[0]; // Safely access the matched URL
-                      if (url) {
-                        window.open(url, "_blank", "noopener,noreferrer");
-                      } else {
-                        alert("No valid URL found in the description.");
-                      }
-                    }}
-                  >
-                    Booking Details
-                  </button>
+                  <>
+                    {booking.alias !== "" && (
+                      <input
+                        type="checkbox"
+                        value={booking.alias}
+                        onChange={(event) => {
+                          if (currentAirBnBGuest == event.target.value) {
+                            setCurrentAirBnBGuest(null);
+                          } else {
+                            setCurrentAirBnBGuest(event.target.value);
+                          }
+                        }}
+                        checked={currentAirBnBGuest === booking.alias}
+                        className="w-4 h-4 mx-auto"
+                      />
+                    )}
+                    <button
+                      className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem] row-start-2"
+                      onClick={() => {
+                        const url = booking.description.match(
+                          /https:\/\/www\.airbnb\.com\/hosting\/reservations\/details\/\S+/
+                        )?.[0]; // Safely access the matched URL
+                        if (url) {
+                          window.open(url, "_blank", "noopener,noreferrer");
+                        } else {
+                          alert("No valid URL found in the description.");
+                        }
+                      }}
+                    >
+                      Booking Details
+                    </button>
+                  </>
                 )}
               </div>
             </div>

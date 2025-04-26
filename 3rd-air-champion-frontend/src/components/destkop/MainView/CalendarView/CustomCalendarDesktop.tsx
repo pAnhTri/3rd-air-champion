@@ -18,6 +18,7 @@ import { useDoubleClick } from "../../../../util/useDoubleClick";
 
 interface CustomCalendarProps {
   currentMonth: Date;
+  currentAirBnBGuest: string | null;
   currentGuest: string | null;
   monthMap: Map<string, dayType>;
   paidDates: Date[];
@@ -33,6 +34,7 @@ interface CustomCalendarProps {
 
 const CustomCalendar = ({
   currentMonth,
+  currentAirBnBGuest,
   currentGuest,
   monthMap,
   paidDates,
@@ -90,7 +92,7 @@ const CustomCalendar = ({
   }, [currentMonth]);
 
   useEffect(() => {
-    if (currentGuest && useMonthMap.size > 0) {
+    if (currentGuest && !currentAirBnBGuest && useMonthMap.size > 0) {
       setIsMobileModalOpen(false);
       const filteredMap = new Map<string, dayType>();
 
@@ -128,12 +130,31 @@ const CustomCalendar = ({
       });
 
       setUseMonthMap(filteredMap);
+    } else if (currentAirBnBGuest && useMonthMap.size > 0) {
+      setIsMobileModalOpen(false);
+      const filteredMap = new Map<string, dayType>();
+
+      monthMap.forEach((dayEntry, date) => {
+        const airbnbBookings = dayEntry.bookings.filter(
+          (booking) => booking.alias === currentAirBnBGuest
+        );
+
+        if (airbnbBookings.length > 0) {
+          const filteredDayEntry: dayType = {
+            ...dayEntry,
+            bookings: airbnbBookings,
+          };
+          filteredMap.set(date, filteredDayEntry);
+        }
+
+        setUseMonthMap(filteredMap);
+      });
     } else {
       setIsMobileModalOpen(false);
       setPaidDates([]);
       setUseMonthMap(monthMap);
     }
-  }, [currentGuest]);
+  }, [currentGuest, currentAirBnBGuest]);
 
   // useEffect(() => {
   //   if (currentGuest && paidDates.length > 0) {

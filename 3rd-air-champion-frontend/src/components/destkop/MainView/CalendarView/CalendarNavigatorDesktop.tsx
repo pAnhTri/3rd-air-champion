@@ -5,6 +5,7 @@ import { toZonedTime } from "date-fns-tz/toZonedTime";
 
 interface CalendarNavigatorProps {
   currentMonth: Date;
+  currentAirBnBGuest: string | null;
   currentGuest: string | null;
   isTodoModalOpen: boolean;
   monthMap: Map<string, dayType>;
@@ -28,6 +29,7 @@ interface CalendarNavigatorProps {
 
 const CalendarNavigator = ({
   currentMonth,
+  currentAirBnBGuest,
   currentGuest,
   monthMap,
   occupancy,
@@ -58,7 +60,7 @@ const CalendarNavigator = ({
   return (
     <div className="flex flex-col justify-between h-full max-h-[80px] bg-white drop-shadow-sm p-2 sm:max-h-[120px]">
       {/* Date */}
-      {!currentGuest ? (
+      {!currentGuest && !currentAirBnBGuest ? (
         <>
           <div className="flex h-full w-full items-center text-nowrap">
             <div className="basis-2/3 flex justify-end w-full space-x-2">
@@ -84,7 +86,7 @@ const CalendarNavigator = ({
             </div>
           </div>
         </>
-      ) : (
+      ) : currentGuest ? (
         <>
           <div className="flex h-full w-full justify-between items-center">
             {/* Guest */}
@@ -142,10 +144,22 @@ const CalendarNavigator = ({
             <div className="text-xl font-bold">${guestBill?.toFixed(2)}</div>
           </div>
         </>
+      ) : (
+        <>
+          <div className="flex h-full w-full items-center">
+            <span className="text-xl text-gray-800">
+              {currentAirBnBGuest} (A)
+            </span>
+            <span className="font-bold text-xl text-gray-800 mx-auto">
+              {formattedDate}
+            </span>
+          </div>
+        </>
       )}
 
       <div className="flex h-full w-full">
         {!currentGuest &&
+          !currentAirBnBGuest &&
           (showDetails ? (
             <div
               onClick={() => setShowDetails(false)}
@@ -201,7 +215,7 @@ const CalendarNavigator = ({
             </div>
           ))}
         {/* PROFIT */}
-        {!currentGuest && (
+        {!currentGuest && !currentAirBnBGuest && (
           <div className="basis-1/3 flex justify-end w-full font-bold text-nowrap">
             (A) ${profit.airbnb.toFixed(2)}
           </div>
