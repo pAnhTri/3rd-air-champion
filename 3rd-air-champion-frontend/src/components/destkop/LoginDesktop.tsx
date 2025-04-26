@@ -104,24 +104,22 @@ const Login = ({ listings, setIsLogin }: LoginProps) => {
         </div>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
         <div className="flex mt-2 space-x-1">
-          <span>Two listings on AirBnB:</span>
-          <a
-            href={listings[0].url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 underline hover:text-blue-700"
-          >
-            Cozy
-          </a>
-          <span>and</span>
-          <a
-            href={listings[1].url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 underline hover:text-blue-700"
-          >
-            Cute
-          </a>
+          <span>Three listings on AirBnB: </span>
+          {listings.map((listing, index) => (
+            <>
+              <a
+                href={listing.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline hover:text-blue-700"
+              >
+                {listing.label}
+              </a>
+              {index <= listings.length - 2 && (
+                <span>{index === listings.length - 2 ? " , and " : ", "}</span>
+              )}
+            </>
+          ))}
           <span>rooms.</span>
         </div>
       </form>

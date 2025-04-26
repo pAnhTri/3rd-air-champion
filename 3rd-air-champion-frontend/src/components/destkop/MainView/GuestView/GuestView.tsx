@@ -6,9 +6,15 @@ import { CiCalendar } from "react-icons/ci";
 import Pricing from "./Pricing";
 import React, { useState } from "react";
 import AirBnBPricing from "./AirBnBPricing";
+import RebookCount from "./RebookCount";
 
 interface GuestViewProps {
   airBnBPrices: Map<string, number> | undefined;
+  airBnBBookingCount: {
+    Alias: string;
+    Room: string;
+    DistinctStartDateCount: number;
+  }[];
   children: JSX.Element;
   currentBookings: bookingType[];
   currentGuest: string | null;
@@ -39,6 +45,7 @@ const GuestView = ({
   rooms,
   setAirBnBPrices,
   onPricingUpdate,
+  airBnBBookingCount,
   handleBookingConfirmation,
   setIsMobileModalOpen,
   setCurrentGuest,
@@ -112,6 +119,10 @@ const GuestView = ({
                     {formatDate(booking.startDate)} -{" "}
                     {formatDate(booking.endDate)}
                   </p>
+                  <RebookCount
+                    booking={booking}
+                    airBnBBookingCount={airBnBBookingCount}
+                  />
                 </div>
 
                 <div className="flex flex-col h-full justify-center">

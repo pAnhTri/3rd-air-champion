@@ -2,7 +2,10 @@ import { useContext, useEffect, useState } from "react";
 import CalendarNavigator from "./CalendarView/CalendarNavigatorDesktop";
 import CustomCalendar from "./CalendarView/CustomCalendarDesktop";
 import { dayType } from "../../../util/types/dayType";
-import { fetchDays } from "../../../util/dayOperations";
+import {
+  fetchAirBnBBookingCount,
+  fetchDays,
+} from "../../../util/dayOperations";
 import BookingModal from "../BookingModal/BookingModal";
 import { bookingType } from "../../../util/types/bookingType";
 import {
@@ -87,6 +90,9 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
   const [days, setDays] = useState<dayType[]>([]);
   const [guests, setGuests] = useState<guestType[]>([]);
   const [rooms, setRooms] = useState<roomType[]>([]);
+  const [airBnBBookingCount, setAirBnBBookingCount] = useState<
+    { Alias: string; Room: string; DistinctStartDateCount: number }[]
+  >([]);
 
   const [isCalendarLoading, setIsCalendarLoading] = useState(true); // Track loading state
   const [calendarErrorMessage, setCalendarErrorMessage] = useState<string>(""); // Track errors
@@ -207,6 +213,19 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         });
     }
   }, [isCalendarLoading]);
+
+  useEffect(() => {
+    if (guests.length > 0) {
+      const guestId = guests.find((guest) => guest.name === "AirBnB")?.id;
+      fetchAirBnBBookingCount(guestId as string, token as string)
+        .then((result) => {
+          setAirBnBBookingCount(result);
+        })
+        .catch((err) => {
+          console.error("Error fetching airbnb booking count:", err);
+        });
+    }
+  }, [guests]);
 
   const onAddGuest = (guestObject: { name: string; phone: string }) => {
     createGuest(guestObject, token as string)
@@ -959,6 +978,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         ) : currentBookings && currentBookings.length > 0 ? (
           <GuestView
             airBnBPrices={airBnBPrices}
+            airBnBBookingCount={airBnBBookingCount}
             currentBookings={currentBookings}
             currentGuest={currentGuest}
             rooms={rooms}
@@ -1027,6 +1047,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
         {currentBookings && currentBookings.length > 0 ? (
           <GuestView
             airBnBPrices={airBnBPrices}
+            airBnBBookingCount={airBnBBookingCount}
             currentBookings={currentBookings}
             currentGuest={currentGuest}
             rooms={rooms}

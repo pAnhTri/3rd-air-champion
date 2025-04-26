@@ -122,8 +122,9 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                     className="rounded-full shadow-md bg-black text-white font-semibold h-[64px] w-[64px] text-[0.6rem]"
                     onClick={() => {
                       const roomCodes = new Map([
-                        ["cute", "(2005#)"],
+                        ["chill", "(0205#)"],
                         ["cozy", "(0106#)"],
+                        ["cute", "(2005#)"],
                         ["master", "(0209#)"],
                       ]);
                       const phone = booking.guest.phone;

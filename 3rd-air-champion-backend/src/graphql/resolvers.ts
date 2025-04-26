@@ -293,6 +293,51 @@ const dayResolver = {
         .populate("bookings.room")
         .populate("blockedRooms");
     },
+    airBnBBookingCount: async (_: unknown, { guest }: any) => {
+      return await Day.aggregate([
+        {
+          $unwind: "$bookings",
+        },
+        {
+          $match: {
+            "bookings.guest":
+              mongoose.Types.ObjectId.createFromHexString(guest),
+            "bookings.alias": { $nin: ["", null] },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              alias: "$bookings.alias",
+              room: "$bookings.room",
+              startDate: "$bookings.startDate",
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              alias: "$_id.alias",
+              room: "$_id.room",
+            },
+            DistinctStartDateCount: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            Alias: "$_id.alias",
+            RoomObjectId: "$_id.room",
+            DistinctStartDateCount: 1,
+          },
+        },
+        {
+          $sort: {
+            Alias: 1,
+          },
+        },
+      ]);
+    },
   },
   Mutation: {
     blockDay: async (_: unknown, { calendar, date }: any) => {

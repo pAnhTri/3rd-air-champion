@@ -8,11 +8,15 @@ const Authorization = () => {
   const listings = [
     {
       url: "https://www.airbnb.com/rooms/1177648203505001777",
-      label: "Airbnb Listing 1",
+      label: "Cozy",
     },
     {
       url: "https://www.airbnb.com/rooms/1144526275550691711",
-      label: "Airbnb Listing 2",
+      label: "Cute",
+    },
+    {
+      url: "https://www.airbnb.com/rooms/1400962263132112124",
+      label: "Chill",
     },
   ];
 
