@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import NavBarDesktop from "./components/destkop/NavBar/NavBarDesktop";
 import MainView from "./components/destkop/MainView/MainView";
 import About from "./components/About";
+import Footer from "./components/destkop/Footer/Footer";
 
 interface SyncModalContextType {
   isSyncModalOpen: boolean;
@@ -132,6 +133,8 @@ function App() {
                 airbnbsync={host.airbnbsync}
               ></MainView>
             </div>
+
+            <Footer />
           </div>
         </AddPaneContext.Provider>
       </isSyncModalOpenContext.Provider>

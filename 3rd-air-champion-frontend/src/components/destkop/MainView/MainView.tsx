@@ -745,6 +745,7 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
     let totalPriceOfMonth = 0;
     let guestName = "";
+    let numberOfNights = 0;
 
     // Process the sorted entries
     const bookingDetails = sortedEntries.reduce((acc, [dateStr, dayEntry]) => {
@@ -805,6 +806,8 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
                   isPaid ? "(paid)" : ""
                 }`;
               }
+
+              numberOfNights += duration;
             })
             .join("\n");
 
@@ -834,9 +837,17 @@ const MainView = ({ calendarId, hostId, airbnbsync }: MainViewProps) => {
 
     const unpaid = totalPriceOfMonth - totalPaidAmount;
 
+    const politePreface = `Many thanks for your ${
+      numberOfNights === 1 ? "inquiry" : "inquiries"
+    }!`;
+
+    const accomodationPreface = `${
+      numberOfNights > 3 ? "I do my best to accomodate you. " : ""
+    }Unfortunately, not all of your requested days are available.`;
+
     const fullBody = `${
       guestName === "" ? "" : `Hi ${guestName},`
-    }\n${body}${bookingDetails}\nTotal price = $${totalPriceOfMonth}${
+    }\n${politePreface}\n${accomodationPreface}\n${body}${bookingDetails}\nTotal price = $${totalPriceOfMonth}${
       totalPaidAmount > 0 ? `\nTotal paid = $${totalPaidAmount}` : ""
     }${
       unpaid > 0

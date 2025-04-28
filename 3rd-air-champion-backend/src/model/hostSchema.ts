@@ -165,6 +165,4 @@ hostSchema.methods.comparePassword = async function (
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-hostSchema.index({ email: 1 });
-
 export default mongoose.model("Host", hostSchema);

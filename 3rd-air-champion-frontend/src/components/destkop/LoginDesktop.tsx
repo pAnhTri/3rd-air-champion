@@ -103,7 +103,7 @@ const Login = ({ listings, setIsLogin }: LoginProps) => {
           </button>
         </div>
         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-        <div className="flex mt-2 space-x-1">
+        <div className="flex flex-wrap justify-center mt-2 gap-x-1">
           <span>Three listings on AirBnB: </span>
           {listings.map((listing, index) => (
             <>
@@ -116,7 +116,7 @@ const Login = ({ listings, setIsLogin }: LoginProps) => {
                 {listing.label}
               </a>
               {index <= listings.length - 2 && (
-                <span>{index === listings.length - 2 ? " , and " : ", "}</span>
+                <span>{index === listings.length - 2 ? ", and " : ", "}</span>
               )}
             </>
           ))}

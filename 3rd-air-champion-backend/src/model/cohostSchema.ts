@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import Host from "./hostSchema";
-import { query } from "express";
 
 const SALT_ROUNDS = 10;
 
