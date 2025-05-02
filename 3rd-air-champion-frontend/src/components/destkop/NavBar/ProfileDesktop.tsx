@@ -4,12 +4,19 @@ import DropDownMenu from "./DropDown/DropDownMenu";
 interface ProfileDesktopProps {
   handleLogout: () => void;
   children: string;
+  name: string;
 }
 
-const ProfileDesktop = ({ children, handleLogout }: ProfileDesktopProps) => {
+const ProfileDesktop = ({
+  children,
+  handleLogout,
+  name,
+}: ProfileDesktopProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  console.log(name);
 
   return (
     <div className="relative">
@@ -28,7 +35,7 @@ const ProfileDesktop = ({ children, handleLogout }: ProfileDesktopProps) => {
           {/* Profile Image Container */}
           <div className="h-full w-full rounded-full border border-solid border-black overflow-hidden">
             <img
-              src="./DemoProfile.jpg" // Update this path with the correct URL
+              src={`./${name}.jpg`}
               alt="Profile"
               className="h-full w-full object-cover"
             />

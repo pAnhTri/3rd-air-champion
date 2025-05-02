@@ -196,7 +196,6 @@ guestSchema.index(
     },
   }
 );
-guestSchema.index({ phone: 1, host: 1 }, { unique: true });
 guestSchema.index({ returning: 1 });
 guestSchema.index({ notes: 1 }, { sparse: true });
 

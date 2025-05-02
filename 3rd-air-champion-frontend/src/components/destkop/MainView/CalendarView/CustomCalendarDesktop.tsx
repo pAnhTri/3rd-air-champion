@@ -390,6 +390,7 @@ const CustomCalendar = ({
                 maxWidth: `${availableTileWidth - maxDuration * 3}px`,
               }}
             >
+              {booking.numberOfGuests > 1 ? `(${booking.numberOfGuests})` : ""}{" "}
               {name}
             </span>
           ) : (

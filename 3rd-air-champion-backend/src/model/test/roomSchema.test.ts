@@ -78,29 +78,6 @@ describe("Room Schema - Test Suite", () => {
         );
       }
     );
-
-    it("should enforce unique constraint on host and name", async () => {
-      const host = new mongoose.Types.ObjectId();
-
-      const roomData = {
-        host,
-        name: "Deluxe Room",
-        price: 120,
-      };
-
-      const duplicateRoomData = {
-        host,
-        name: "Deluxe Room",
-        price: 150,
-      };
-
-      const room1 = new Room(roomData);
-      await room1.save();
-
-      const room2 = new Room(duplicateRoomData);
-
-      await expect(room2.save()).rejects.toThrow();
-    });
   });
 
   describe("Room Schema - CRUD - CREATE", () => {
@@ -118,29 +95,6 @@ describe("Room Schema - Test Suite", () => {
       expect(savedRoom.host.toString()).toBe(roomData.host.toString());
       expect(savedRoom.name).toBe(roomData.name);
       expect(savedRoom.price).toBe(roomData.price);
-    });
-
-    it("should throw an error for duplicate host and name", async () => {
-      const host = new mongoose.Types.ObjectId();
-
-      const roomData = {
-        host,
-        name: "Deluxe Room",
-        price: 120,
-      };
-
-      const duplicateRoomData = {
-        host,
-        name: "Deluxe Room", // Same name, same host
-        price: 150,
-      };
-
-      const room1 = new Room(roomData);
-      await room1.save();
-
-      const room2 = new Room(duplicateRoomData);
-
-      await expect(room2.save()).rejects.toThrow();
     });
 
     it("should throw an error when required fields are missing", async () => {
@@ -375,32 +329,6 @@ describe("Room Schema - Test Suite", () => {
 
       expect(updatedRoom).toBeDefined();
       expect(updatedRoom?.price).toBe(150);
-    });
-
-    it("should throw an error when updating with a duplicate name for the same host", async () => {
-      const hostId = new mongoose.Types.ObjectId();
-
-      const room1 = new Room({
-        host: hostId,
-        name: "Deluxe Room",
-        price: 120,
-      });
-      const room2 = new Room({
-        host: hostId,
-        name: "Premium Room",
-        price: 200,
-      });
-
-      await room1.save();
-      await room2.save();
-
-      await expect(
-        Room.findByIdAndUpdate(
-          room2._id,
-          { name: "Deluxe Room" },
-          { new: true, runValidators: true }
-        )
-      ).rejects.toThrow();
     });
 
     it("should throw an error for invalid price update", async () => {

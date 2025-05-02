@@ -73,6 +73,4 @@ calendarSchema.post("findOneAndUpdate", async function (doc) {
   }
 });
 
-calendarSchema.index({ host: 1 }, { unique: true });
-
 export default mongoose.model("Calendar", calendarSchema);

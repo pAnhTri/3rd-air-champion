@@ -184,6 +184,4 @@ roomSchema.post("updateMany", async function () {
   }
 });
 
-roomSchema.index({ hostId: 1, name: 1 }, { unique: true });
-
 export default mongoose.model("Room", roomSchema);

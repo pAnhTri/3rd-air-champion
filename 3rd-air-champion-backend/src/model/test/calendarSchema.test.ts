@@ -64,18 +64,6 @@ describe("Calendar Schema - Invalid", () => {
 
     await expect(calendar.save()).rejects.toThrow("Host does not exist");
   });
-
-  it("should fail to save duplicate calendars for the same host", async () => {
-    const host = await createMockHost("anhtp5@uci.edu");
-
-    const calendarData = { host: host._id };
-
-    const calendar1 = new Calendar(calendarData);
-    await calendar1.save();
-
-    const calendar2 = new Calendar(calendarData);
-    await expect(calendar2.save()).rejects.toThrow();
-  });
 });
 
 describe("Calendar Schema - Deletion", () => {

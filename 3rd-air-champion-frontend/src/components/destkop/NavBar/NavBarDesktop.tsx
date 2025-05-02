@@ -15,7 +15,9 @@ const NavBarDesktop = ({
     <div className="px-1 flex items-center justify-between w-full h-[80px] bg-white drop-shadow-md z-50 lg:h-[120px]">
       {/* Profile Section */}
       <div className="">
-        <ProfileDesktop handleLogout={handleLogout}>{name}</ProfileDesktop>
+        <ProfileDesktop handleLogout={handleLogout} name={name}>
+          {name}
+        </ProfileDesktop>
       </div>
 
       {/* Centered Navigation Buttons */}

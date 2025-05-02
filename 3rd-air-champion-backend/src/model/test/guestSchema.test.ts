@@ -384,29 +384,6 @@ describe("Guest Schema - Invalid", () => {
     }
   );
 
-  it("should fail to save on duplicate phone numbers", async () => {
-    const host = await createMockHost("anhtp5@uci.edu");
-
-    const guestData = {
-      name: "John Doe",
-      email: "john.Doe@gmail.com",
-      phone: "4086096660",
-      numberOfGuests: 1,
-      host: host._id,
-    };
-
-    const guest = new Guest(guestData);
-    await guest.save();
-
-    const guestDataDuplicatePhone = {
-      ...guestData,
-      email: "john.Doe2@gmail.com",
-    };
-
-    const guestDuplicatePhone = new Guest(guestDataDuplicatePhone);
-    await expect(guestDuplicatePhone.save()).rejects.toThrow();
-  });
-
   it("should fail to save on duplicate emails", async () => {
     const host = await createMockHost("anhtp5@uci.edu");
 
