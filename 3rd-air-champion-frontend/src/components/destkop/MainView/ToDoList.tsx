@@ -128,7 +128,29 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                         ["master", "(0209#)"],
                       ]);
                       const phone = booking.guest.phone;
-                      const messageBody = encodeURIComponent(
+
+                      // Regular message
+                      // const messageBody = encodeURIComponent(
+                      //   `Hello ${
+                      //     booking.guest.name
+                      //   }, I would like to remind you that you will stay at TT house AirBnB for ${
+                      //     booking.duration > 1
+                      //       ? `${booking.duration} nights, starting ${
+                      //           reminderType === "48-hour"
+                      //             ? "in 2 days"
+                      //             : "tomorrow"
+                      //         }.`
+                      //       : reminderType === "48-hour"
+                      //       ? "the day after tomorrow."
+                      //       : "tomorrow night."
+                      //   } Your room is ${booking.room.name} ${
+                      //     roomCodes.get(booking.room.name.toLowerCase()) ||
+                      //     "Code"
+                      //   }. The main entrance door code is 1268=. I wish you a pleasant stay. Thanks!`
+                      // );
+
+                      // Construction message
+                      const constructionMessage = encodeURIComponent(
                         `Hello ${
                           booking.guest.name
                         }, I would like to remind you that you will stay at TT house AirBnB for ${
@@ -141,12 +163,13 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                             : reminderType === "48-hour"
                             ? "the day after tomorrow."
                             : "tomorrow night."
-                        } Your room is ${booking.room.name} ${
+                        }. Your room is ${booking.room.name} ${
                           roomCodes.get(booking.room.name.toLowerCase()) ||
                           "Code"
-                        }. The main entrance door code is 1268=. I wish you a pleasant stay. Thanks!`
+                        }. During the construction, please use the garage door to enter the house. The garage door opener code is 1268Enter. Many thanks for staying at TT House. I wish you a pleasant stay!`
                       );
-                      window.location.href = `sms:${phone}?&body=${messageBody}`;
+
+                      window.location.href = `sms:${phone}?&body=${constructionMessage}`;
                       toggleTaskCompletion(taskId);
                     }}
                     disabled={isCompleted}
