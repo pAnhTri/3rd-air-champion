@@ -15,7 +15,7 @@ interface GuestViewProps {
     Room: string;
     DistinctStartDateCount: number;
   }[];
-  children: JSX.Element;
+  children: React.ReactNode;
   currentBookings: bookingType[];
   currentAirBnBGuest: string | null;
   currentGuest: string | null;
@@ -251,7 +251,15 @@ const GuestView = ({
             className="flex flex-col items-center justify-center border-b border-solid h-full w-full space-y-2"
           >
             <p>{room.name}</p>
-            {React.cloneElement(children, { room: room })}
+            {React.Children.map(children, (child) => {
+              if (React.isValidElement(child)) {
+                return React.cloneElement(
+                  child as React.ReactElement<{ room?: roomType }>,
+                  { room: room }
+                );
+              }
+              return child;
+            })}
           </div>
         ))}
     </div>
