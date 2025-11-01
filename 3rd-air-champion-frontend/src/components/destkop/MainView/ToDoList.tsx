@@ -166,7 +166,7 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                         }. Your room is ${booking.room.name} ${
                           roomCodes.get(booking.room.name.toLowerCase()) ||
                           "Code"
-                        }. During the construction, please use the garage door to enter the house. The garage door opener code is 1268Enter. Many thanks for staying at TT House. I wish you a pleasant stay!`
+                        }. The main entrance door code is 1268=. Many thanks for staying at TT House. I wish you a pleasant stay!`
                       );
 
                       window.location.href = `sms:${phone}?&body=${constructionMessage}`;
