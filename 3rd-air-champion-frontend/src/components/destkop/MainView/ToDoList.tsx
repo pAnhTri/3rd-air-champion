@@ -163,7 +163,7 @@ const ToDoList = ({ monthMap }: ToDoListProps) => {
                             : reminderType === "48-hour"
                             ? "the day after tomorrow."
                             : "tomorrow night."
-                        }. Your room is ${booking.room.name} ${
+                        } Your room is ${booking.room.name} ${
                           roomCodes.get(booking.room.name.toLowerCase()) ||
                           "Code"
                         }. The main entrance door code is 1268=. Many thanks for staying at TT House. I wish you a pleasant stay!`
