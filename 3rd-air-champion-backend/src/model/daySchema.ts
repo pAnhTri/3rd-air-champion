@@ -16,6 +16,8 @@ const daySchema = new mongoose.Schema(
       {
         alias: { type: String, default: "" },
         notes: { type: String, default: "" },
+        earlyCheckin: { type: Boolean, default: false },
+        lateCheckout: { type: Boolean, default: false },
         room: { type: mongoose.Schema.ObjectId, ref: "Room" },
         guest: { type: mongoose.Schema.ObjectId, ref: "Guest" },
         price: { type: Number, default: "0" },
@@ -25,6 +27,7 @@ const daySchema = new mongoose.Schema(
         numberOfGuests: { type: Number, default: 0 },
         startDate: { type: Date },
         endDate: { type: Date },
+        airbnbBlocked: { type: Boolean, default: false },
       },
     ],
     blockedRooms: [{ type: mongoose.Schema.ObjectId, ref: "Room" }],

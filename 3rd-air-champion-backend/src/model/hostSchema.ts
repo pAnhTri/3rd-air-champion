@@ -27,6 +27,17 @@ const hostSchema = new mongoose.Schema(
         link: { type: String, default: "" },
       },
     ],
+    doorCode: { type: String, default: "" },
+    airbnbName: { type: String, default: "" },
+    airbnbAddress: { type: String, default: "" },
+    airbnbRating: { type: Number },
+    airbnbReviewCount: { type: Number },
+    airbnbSuperhost: { type: Boolean, default: false },
+    highlights: [{ type: String }],
+    houseRules: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    contactEmail: { type: String, default: "" },
+    licenseNumber: { type: String, default: "" },
   },
   { timestamps: true }
 );
@@ -69,21 +80,23 @@ hostSchema.pre(
     const update = this.getUpdate();
 
     if (update && typeof update === "object" && !Array.isArray(update)) {
-      if ("name" in update) {
+      const fields = (update as any).$set ?? update;
+
+      if ("name" in fields) {
         // Name validation
         const specialCharRegex = /[`!@#$%^&*()_+=\[\]{};:"\\|,<>\/?~]/;
 
-        if (specialCharRegex.test(update.name))
+        if (specialCharRegex.test(fields.name))
           return next(new Error("Name cannot contain special characters"));
       }
 
-      if ("email" in update) {
-        update.email = update.email.toLowerCase();
+      if ("email" in fields) {
+        fields.email = fields.email.toLowerCase();
       }
 
-      if ("password" in update) {
+      if ("password" in fields) {
         const salt = await bcrypt.genSalt(SALT_ROUNDS);
-        update.password = await bcrypt.hash(update.password, salt);
+        fields.password = await bcrypt.hash(fields.password, salt);
       }
     }
 

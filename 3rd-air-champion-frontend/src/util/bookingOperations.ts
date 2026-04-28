@@ -1,6 +1,41 @@
 import axios from "axios";
 const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || "";
 
+export const getAvailableRooms = async (
+  request: {
+    calendar: string;
+    date: string;
+    duration: number;
+  },
+  token: string
+) => {
+  const params = new URLSearchParams({
+    calendar: request.calendar,
+    date: request.date,
+    duration: String(request.duration),
+  });
+  return axios
+    .get(`${BACKEND_ENDPOINT}/day/available-rooms?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then(
+      (result) =>
+        result.data as {
+          id: string;
+          name: string;
+          price: number;
+          roomCode: string;
+          color?: string;
+        }[]
+    )
+    .catch((err) => {
+      if (err.response && err.response.data && err.response.data.errors) {
+        throw err.response.data.errors;
+      }
+      throw "An unexpected error occurred. Please try again.";
+    });
+};
+
 export const postBooking = async (
   request: {
     calendar: string;
@@ -33,6 +68,8 @@ export const updateBookingGuest = async (
   request: {
     id: string;
     notes?: string;
+    earlyCheckin?: boolean;
+    lateCheckout?: boolean;
     numberOfGuests?: number;
     alias?: string;
   },
@@ -66,6 +103,23 @@ export const updateBookingAirbnbPrice = async (
       headers: {
         Authorization: `Bearer ${token}`,
       },
+    })
+    .then((result) => result.data)
+    .catch((err) => {
+      if (err.response && err.response.data && err.response.data.errors) {
+        throw err.response.data.errors;
+      }
+      throw "An unexpected error occurred. Please try again.";
+    });
+};
+
+export const markAirBnBBlocked = async (
+  request: { id: string; blocked: boolean },
+  token: string
+) => {
+  return axios
+    .post(`${BACKEND_ENDPOINT}/day/update/booking/airbnb-blocked`, request, {
+      headers: { Authorization: `Bearer ${token}` },
     })
     .then((result) => result.data)
     .catch((err) => {

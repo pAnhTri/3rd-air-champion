@@ -7,4 +7,12 @@ export interface hostType {
   name: string;
   cohosts?: string[];
   calendar: string;
+  doorCode?: string;
+  airbnbName?: string;
+  airbnbAddress?: string;
+  airbnbRating?: number;
+  airbnbReviewCount?: number;
+  airbnbSuperhost?: boolean;
+  highlights?: string[];
+  houseRules?: string;
 }

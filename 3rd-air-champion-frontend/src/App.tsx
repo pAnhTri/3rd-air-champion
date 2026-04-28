@@ -1,41 +1,29 @@
-import { createContext, useEffect, useState } from "react";
-import { fetchHost, getHost } from "./util/hostOperations";
+import { useEffect, useState } from "react";
+import { fetchHost, getHost, getCohostName } from "./util/hostOperations";
 import { hostType } from "./util/types/hostType";
 import { useNavigate } from "react-router";
 import NavBarDesktop from "./components/destkop/NavBar/NavBarDesktop";
 import MainView from "./components/destkop/MainView/MainView";
 import About from "./components/About";
-import Footer from "./components/destkop/Footer/Footer";
+import {
+  isSyncModalOpenContext,
+  AddPaneContext,
+  FooterContext,
+  GuestModeContext,
+} from "./context";
 
-interface SyncModalContextType {
-  isSyncModalOpen: boolean;
-  setIsSyncModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  shouldCallOnSync: boolean;
-  setShouldCallOnSync: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-interface AddPaneContextType {
-  showAddPane: "guest" | "room" | null;
-  setShowAddPane: React.Dispatch<React.SetStateAction<"guest" | "room" | null>>;
-  guestErrorMessage: string;
-  setGuestErrorMessage: React.Dispatch<React.SetStateAction<string>>;
-  roomErrorMessage: string;
-  setRoomErrorMessage: React.Dispatch<React.SetStateAction<string>>;
-}
-
-interface FooterContextType {
-  isFooterVisible: boolean;
-  setIsFooterVisible: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const isSyncModalOpenContext =
-  createContext<SyncModalContextType | null>(null);
-
-export const AddPaneContext = createContext<AddPaneContextType | null>(null);
-
-export const FooterContext = createContext<FooterContextType | null>(null);
+const formatPhone = (raw: string) => {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10)
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length === 11 && digits[0] === "1")
+    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  return raw;
+};
 
 function App() {
+  useEffect(() => { document.title = "TiMag"; }, []);
+
   const [host, setHost] = useState<hostType | null>(null); // Track host data
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [isLoading, setIsLoading] = useState(true); // Track loading state
@@ -49,8 +37,41 @@ function App() {
   const [showAddPane, setShowAddPane] = useState<"guest" | "room" | null>(null);
   const [guestErrorMessage, setGuestErrorMessage] = useState("");
   const [roomErrorMessage, setRoomErrorMessage] = useState("");
+  const [isEditRoomOpen, setIsEditRoomOpen] = useState(false);
+  const [isManageGuestOpen, setIsManageGuestOpen] = useState(false);
 
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const [currentGuest, setCurrentGuest] = useState<string | null>(null);
+  const [currentAirBnBGuest, setCurrentAirBnBGuest] = useState<string | null>(
+    null,
+  );
+
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
+  const [isTodoModalOpen, setIsTodoModalOpen] = useState(true);
+  const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [isAvailabilitiesModalOpen, setIsAvailabilitiesModalOpen] =
+    useState(false);
+  const [isBlockAirBnBModalOpen, setIsBlockAirBnBModalOpen] = useState(false);
+  const [isBlockRoomsModalOpen, setIsBlockRoomsModalOpen] = useState(false);
+  const [airbnbPendingCount, setAirbnbPendingCount] = useState(0);
+  const [availableNightsCount, setAvailableNightsCount] = useState(0);
+  const [todoCleanCount, setTodoCleanCount] = useState(0);
+  const [isRequestManagerOpen, setIsRequestManagerOpen] = useState(false);
+  const [bookingRequestPendingCount, setBookingRequestPendingCount] =
+    useState(0);
+
+  const [airBnBInfo, setAirBnBInfo] = useState({
+    doorCode: "",
+    airbnbName: "",
+    airbnbAddress: "",
+    airbnbRating: "" as number | "",
+    airbnbReviewCount: "" as number | "",
+    airbnbSuperhost: false,
+    highlights: "",
+    houseRules: "",
+    phone: "",
+    contactEmail: "",
+    licenseNumber: "",
+  });
 
   const navigate = useNavigate();
 
@@ -67,6 +88,19 @@ function App() {
     fetchHost(hostId, token as string)
       .then((result) => {
         setHost({ ...result, id: hostId });
+        setAirBnBInfo({
+          doorCode: result.doorCode ?? "",
+          airbnbName: result.airbnbName ?? "",
+          airbnbAddress: result.airbnbAddress ?? "",
+          airbnbRating: result.airbnbRating ?? "",
+          airbnbReviewCount: result.airbnbReviewCount ?? "",
+          airbnbSuperhost: result.airbnbSuperhost ?? false,
+          highlights: (result.highlights ?? []).join(", "),
+          houseRules: result.houseRules ?? "",
+          phone: result.phone ?? "",
+          contactEmail: result.contactEmail ?? "",
+          licenseNumber: result.licenseNumber ?? "",
+        });
         setIsLoading(false); // Data fetched, stop loading
       })
       .catch((err) => {
@@ -103,57 +137,148 @@ function App() {
   // Render the host data once it's fetched
   return (
     host && (
-      <isSyncModalOpenContext.Provider
+      <GuestModeContext.Provider
         value={{
-          isSyncModalOpen,
-          setIsSyncModalOpen,
-          shouldCallOnSync,
-          setShouldCallOnSync,
+          currentGuest,
+          setCurrentGuest,
+          currentAirBnBGuest,
+          setCurrentAirBnBGuest,
         }}
       >
-        <AddPaneContext.Provider
+        <FooterContext.Provider
           value={{
-            showAddPane,
-            setShowAddPane,
-            guestErrorMessage,
-            setGuestErrorMessage,
-            roomErrorMessage,
-            setRoomErrorMessage,
+            isFooterVisible,
+            setIsFooterVisible,
+            phone: airBnBInfo.phone,
+            contactEmail: airBnBInfo.contactEmail,
+            licenseNumber: airBnBInfo.licenseNumber,
+            airbnbAddress: airBnBInfo.airbnbAddress,
           }}
         >
-          <FooterContext.Provider
+          <isSyncModalOpenContext.Provider
             value={{
-              isFooterVisible,
-              setIsFooterVisible,
+              isSyncModalOpen,
+              setIsSyncModalOpen,
+              shouldCallOnSync,
+              setShouldCallOnSync,
             }}
           >
-            <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
-              {/* Navbar */}
-              <NavBarDesktop
-                handleLogout={handleLogout}
-                name={host?.name}
-                setIsAboutModalOpen={setIsAboutModalOpen}
-              />
+            <AddPaneContext.Provider
+              value={{
+                showAddPane,
+                setShowAddPane,
+                guestErrorMessage,
+                setGuestErrorMessage,
+                roomErrorMessage,
+                setRoomErrorMessage,
+                isEditRoomOpen,
+                setIsEditRoomOpen,
+                isManageGuestOpen,
+                setIsManageGuestOpen,
+              }}
+            >
+              <div className="grid grid-rows-[80px_1fr] h-screen lg:grid-rows-[120px_1fr]">
+                {/* Navbar */}
+                <NavBarDesktop
+                  handleLogout={handleLogout}
+                  name={getCohostName() ?? host?.name}
+                  setIsAboutModalOpen={setIsAboutModalOpen}
+                  airBnBInfo={airBnBInfo}
+                  onAirBnBInfoSaved={setAirBnBInfo}
+                  isFooterVisible={isFooterVisible}
+                  onToggleFooter={() => setIsFooterVisible((v) => !v)}
+                  isTodoModalOpen={isTodoModalOpen}
+                  setIsTodoModalOpen={setIsTodoModalOpen}
+                  isBookModalOpen={isBookModalOpen}
+                  setIsBookModalOpen={setIsBookModalOpen}
+                  isAvailabilitiesModalOpen={isAvailabilitiesModalOpen}
+                  setIsAvailabilitiesModalOpen={setIsAvailabilitiesModalOpen}
+                  isBlockAirBnBModalOpen={isBlockAirBnBModalOpen}
+                  setIsBlockAirBnBModalOpen={setIsBlockAirBnBModalOpen}
+                  isBlockRoomsModalOpen={isBlockRoomsModalOpen}
+                  setIsBlockRoomsModalOpen={setIsBlockRoomsModalOpen}
+                  airbnbPendingCount={airbnbPendingCount}
+                  availableNightsCount={availableNightsCount}
+                  todoCleanCount={todoCleanCount}
+                  isRequestManagerOpen={isRequestManagerOpen}
+                  setIsRequestManagerOpen={setIsRequestManagerOpen}
+                  bookingRequestPendingCount={bookingRequestPendingCount}
+                />
 
-              {/* About Modal */}
-              {isAboutModalOpen && (
-                <About setIsAboutModalOpen={setIsAboutModalOpen} />
-              )}
+                {/* About Modal */}
+                {isAboutModalOpen && (
+                  <About setIsAboutModalOpen={setIsAboutModalOpen} />
+                )}
 
-              {/* Main Content Area */}
-              <div className="grid grid-cols-5 overflow-hidden">
-                <MainView
-                  calendarId={host.calendar}
-                  hostId={host.id}
-                  airbnbsync={host.airbnbsync}
-                ></MainView>
+                {/* Content */}
+                <div className="overflow-hidden grid grid-cols-5 min-h-0">
+                  <MainView
+                    calendarId={host.calendar}
+                    hostId={host.id}
+                    airbnbsync={host.airbnbsync}
+                    doorCode={airBnBInfo.doorCode}
+                    airbnbName={airBnBInfo.airbnbName}
+                    airbnbAddress={airBnBInfo.airbnbAddress}
+                    isTodoModalOpen={isTodoModalOpen}
+                    setIsTodoModalOpen={setIsTodoModalOpen}
+                    isModalOpen={isBookModalOpen}
+                    setIsModalOpen={setIsBookModalOpen}
+                    isAvailabilitiesModalOpen={isAvailabilitiesModalOpen}
+                    setIsAvailabilitiesModalOpen={setIsAvailabilitiesModalOpen}
+                    isBlockAirBnBModalOpen={isBlockAirBnBModalOpen}
+                    setIsBlockAirBnBModalOpen={setIsBlockAirBnBModalOpen}
+                    isBlockRoomsModalOpen={isBlockRoomsModalOpen}
+                    setIsBlockRoomsModalOpen={setIsBlockRoomsModalOpen}
+                    setAirbnbPendingCount={setAirbnbPendingCount}
+                    setAvailableNightsCount={setAvailableNightsCount}
+                    setTodoCleanCount={setTodoCleanCount}
+                    isRequestManagerOpen={isRequestManagerOpen}
+                    setIsRequestManagerOpen={setIsRequestManagerOpen}
+                    setBookingRequestPendingCount={
+                      setBookingRequestPendingCount
+                    }
+                  ></MainView>
+                </div>
+
+                <footer
+                  className={`fixed bottom-0 left-0 right-0 z-40 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-2 transition-transform duration-300 ${isFooterVisible ? "translate-y-0" : "translate-y-full"}`}
+                >
+                  <p className="text-xs text-center leading-relaxed">
+                    {airBnBInfo.licenseNumber && (
+                      <>
+                        {airBnBInfo.airbnbName} is permitted for STR. License#{" "}
+                        {airBnBInfo.licenseNumber}
+                        {airBnBInfo.phone ||
+                        airBnBInfo.contactEmail ||
+                        airBnBInfo.airbnbAddress
+                          ? "  |  "
+                          : ""}
+                      </>
+                    )}
+                    {airBnBInfo.phone && (
+                      <>
+                        {formatPhone(airBnBInfo.phone)}
+                        {airBnBInfo.contactEmail || airBnBInfo.airbnbAddress
+                          ? "  |  "
+                          : ""}
+                      </>
+                    )}
+                    {airBnBInfo.contactEmail && (
+                      <>
+                        {airBnBInfo.contactEmail}
+                        {airBnBInfo.airbnbAddress ? "  |  " : ""}
+                      </>
+                    )}
+                    {airBnBInfo.airbnbAddress && (
+                      <>{airBnBInfo.airbnbAddress.replace("\n", ", ")}</>
+                    )}
+                  </p>
+                </footer>
               </div>
-
-              <Footer />
-            </div>
-          </FooterContext.Provider>
-        </AddPaneContext.Provider>
-      </isSyncModalOpenContext.Provider>
+            </AddPaneContext.Provider>
+          </isSyncModalOpenContext.Provider>
+        </FooterContext.Provider>
+      </GuestModeContext.Provider>
     )
   );
 }

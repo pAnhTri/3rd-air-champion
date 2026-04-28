@@ -1,12 +1,68 @@
 @import "tailwindcss";
 
-.react-calendar__month-view__weekdays {
+.main-calendar-wrapper .react-calendar__month-view__weekdays {
   display: none !important;
 }
 
-/* .react-calendar__custom_tile {
-  @apply hover:bg-slate-500 border-gray-300 grid grid-rows-4 mb-1 max-h-[120px] max-w-full overflow-hidden;
-} */
+.react-calendar__month-view__weekdays__weekday {
+  text-align: center;
+}
+
+.react-calendar__month-view__days {
+  align-items: flex-start;
+}
+
+.react-calendar__month-view__days__day {
+  text-align: center;
+}
+
+/* Horizontal navigation bar */
+.react-calendar__navigation {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Larger navigation buttons in the DatePickerModal calendar */
+.react-calendar__navigation__arrow {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.react-calendar__navigation__arrow:hover {
+  background-color: #f3f4f6;
+}
+
+.react-calendar__navigation__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+  min-height: 44px;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.react-calendar__navigation__label:hover {
+  background-color: #f3f4f6;
+}
+
+/* Highlight today in the DatePickerModal calendar */
+.react-calendar__tile--now:not(.react-calendar__custom_tile) {
+  background-color: #dbeafe !important; /* blue-100 */
+  border-radius: 0.375rem;
+  font-weight: 700 !important;
+}
+
+.react-calendar__month-view__days__day--neighboringMonth abbr {
+  visibility: hidden;
+}
 
 .react-calendar__custom_tile {
   --max-rows: 4;
@@ -14,15 +70,18 @@
   border-color: rgb(
     209 213 219 / var(--tw-border-opacity, 1)
   ); /* #d1d5db, corresponds to border-gray-300 */
+  border-right-width: 1px;
+  border-bottom-width: 1px;
   display: grid; /* corresponds to grid */
   grid-template-rows: repeat(
     var(--max-rows),
     minmax(0, 1fr)
   ); /* corresponds to grid-rows-4 */
-  margin-bottom: 0.25rem; /* corresponds to mb-1 */
-  max-height: 120px; /* corresponds to max-h-[120px] */
+  height: 100%; /* fills the CSS-grid cell controlled by the outer grid */
+  width: 100%;
   max-width: 100%; /* corresponds to max-w-full */
   overflow: visible !important;
+  position: relative; /* needed for absolutely-positioned overlays (e.g. paid background) */
 }
 
 .react-calendar__custom_tile:hover {
@@ -33,37 +92,88 @@
 }
 
 .react-calendar__custom_tile > abbr {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* Outside-month cells (previous/next month overflow days) — dimmed overlay */
+.react-calendar__custom_tile_outside::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.18);
+  z-index: 5;
+  pointer-events: none;
 }
 
 .react-calendar__custom_tile_today {
-  border-width: 2.25px !important;
-  border-style: solid;
-  border-radius: 0.375rem /* 6px */;
-  --tw-border-opacity: 1;
-  border-color: rgb(234 179 8 / var(--tw-border-opacity, 1)) /* #eab308 */;
+  border-width: 1px !important;
+  position: relative;
+}
+
+.react-calendar__custom_tile_today::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 5px solid rgb(15 23 42); /* #0f172a slate-950 */
+  border-radius: 0.625rem /* 10px */;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .react-calendar__custom_tile_blocked {
   @apply bg-slate-700;
 }
 
-.react-calendar__custom_tile_full {
-  @apply bg-slate-400;
+.react-calendar__room_blocked_bar {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(100, 116, 139, 0.45) 0px,
+    rgba(100, 116, 139, 0.45) 3px,
+    transparent 3px,
+    transparent 7px
+  );
+  background-color: rgba(148, 163, 184, 0.15);
 }
 
-.react-calendar__custom_tile_paid {
-  @apply bg-green-400;
+.react-calendar__custom_tile_full {
+}
+
+/* Paid state — bold red day number */
+.react-calendar__custom_tile_paid > abbr {
+  color: rgb(220 38 38); /* red-600 */
+  font-weight: bold;
+  font-size: 1rem;
 }
 
 /* Base styling for tiles without bookings */
 .react-calendar__custom_tile_no_booking {
-  @apply border;
+}
+
+/* Future empty dates — booking opportunity highlight */
+.react-calendar__custom_tile_opportunity {
+  background-color: #fffbeb; /* amber-50 */
+  border: 1px dashed #f59e0b !important; /* amber-400 */
+}
+
+/* Empty room row on a future partially-booked date */
+.react-calendar__opportunity_row {
+  background-color: #fffbeb; /* amber-50 */
+  border-top: 1px dashed #f59e0b; /* amber-400 */
+  border-bottom: 1px dashed #f59e0b;
+  border-left: 1px dashed #f59e0b;
+  /* no right border — the box extends into the next day; a right border would create a double-line artifact where adjacent days' caps meet */
+}
+
+/* PM half of a checkout day with no incoming guest */
+.react-calendar__opportunity_pm {
+  background-color: #fffbeb; /* amber-50 */
+  border-top: 1px dashed #f59e0b;
+  border-bottom: 1px dashed #f59e0b;
+  /* no left border — adjacent to the AM checkout bar; no right border — same reason as opportunity_row */
 }
 
 /* Base styles for tiles with bookings */
 .react-calendar__custom_tile_booking {
-  @apply border-y;
 }
 
 /* Start date styles */

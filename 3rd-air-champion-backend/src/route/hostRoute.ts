@@ -3,6 +3,30 @@ import { sendGraphQLRequest } from "./util/sendToGraphQL";
 
 const router = express.Router();
 
+router.post("/get", async (req: Request, res: any) => {
+    const query = `
+              query Hosts {
+                hosts {
+                  id
+                  name
+                  }
+              }
+      `;
+  
+    sendGraphQLRequest(query)
+      .then((result: any) => {
+        if (result.errors) {
+          return res.status(400).json({ errors: result.errors[0].message });
+        }
+        // Send the successful login response
+        res.status(200).json(result.data.hosts);
+      })
+      .catch((error: any) => {
+        // Handle errors from the helper function
+        res.status(500).json({ error: error.message });
+      });
+});
+
 router.post("/get/one", async (req: Request, res: any) => {
   const { id } = req.body;
 
@@ -19,6 +43,17 @@ router.post("/get/one", async (req: Request, res: any) => {
                     name
                     cohosts
                     calendar
+                    doorCode
+                    airbnbName
+                    airbnbAddress
+                    airbnbRating
+                    airbnbReviewCount
+                    airbnbSuperhost
+                    highlights
+                    houseRules
+                    phone
+                    contactEmail
+                    licenseNumber
                 }
             }
     `;
@@ -94,6 +129,61 @@ router.post("/update/sync", async (req: Request, res: any) => {
     })
     .catch((error: any) => {
       // Handle errors from the helper function
+      res.status(500).json({ error: error.message });
+    });
+});
+
+router.put("/update/doorcode", async (req: Request, res: any) => {
+  const { id, doorCode } = req.body;
+
+  const query = `
+            mutation UpdateHost($id: String!, $doorCode: String) {
+              updateHost(_id: $id, doorCode: $doorCode) {
+                doorCode
+              }
+            }`;
+
+  sendGraphQLRequest(query, { id, doorCode })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      res.status(200).json(result.data.updateHost);
+    })
+    .catch((error: any) => {
+      res.status(500).json({ error: error.message });
+    });
+});
+
+
+router.put('/update/airbnbinfo', async (req: Request, res: any) => {
+  const { id, doorCode, airbnbName, airbnbAddress, airbnbRating, airbnbReviewCount, airbnbSuperhost, highlights, houseRules, phone, contactEmail, licenseNumber } = req.body;
+
+  const query = `
+    mutation UpdateHost($id: String!, $doorCode: String, $airbnbName: String, $airbnbAddress: String, $airbnbRating: Float, $airbnbReviewCount: Int, $airbnbSuperhost: Boolean, $highlights: [String], $houseRules: String, $phone: String, $contactEmail: String, $licenseNumber: String) {
+      updateHost(_id: $id, doorCode: $doorCode, airbnbName: $airbnbName, airbnbAddress: $airbnbAddress, airbnbRating: $airbnbRating, airbnbReviewCount: $airbnbReviewCount, airbnbSuperhost: $airbnbSuperhost, highlights: $highlights, houseRules: $houseRules, phone: $phone, contactEmail: $contactEmail, licenseNumber: $licenseNumber) {
+        doorCode
+        airbnbName
+        airbnbAddress
+        airbnbRating
+        airbnbReviewCount
+        airbnbSuperhost
+        highlights
+        houseRules
+        phone
+        contactEmail
+        licenseNumber
+      }
+    }`;
+
+  sendGraphQLRequest(query, { id, doorCode, airbnbName, airbnbAddress, airbnbRating, airbnbReviewCount, airbnbSuperhost, highlights, houseRules, phone, contactEmail, licenseNumber })
+    .then((result: any) => {
+      if (result.errors) {
+        return res.status(400).json({ errors: result.errors[0].message });
+      }
+      res.status(200).json(result.data.updateHost);
+    })
+    .catch((error: any) => {
       res.status(500).json({ error: error.message });
     });
 });

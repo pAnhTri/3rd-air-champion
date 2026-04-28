@@ -7,6 +7,8 @@ export interface bookingType {
   price: number;
   airbnbPrice: number;
   notes: string;
+  earlyCheckin: boolean;
+  lateCheckout: boolean;
   guest: guestType;
   room: roomType;
   description: string;
@@ -14,4 +16,5 @@ export interface bookingType {
   numberOfGuests: number;
   startDate: string;
   endDate: string;
+  airbnbBlocked: boolean;
 }

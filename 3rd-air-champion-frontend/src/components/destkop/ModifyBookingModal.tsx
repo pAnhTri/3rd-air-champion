@@ -3,7 +3,7 @@ import { bookingType } from "../../util/types/bookingType";
 import {
   modifyBookingObject,
   modifyBookingSchema,
-} from "../../util/zodModifyBooking";
+} from "./zodModifyBooking";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays, differenceInDays, format, isAfter } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
@@ -78,8 +78,6 @@ const ModifyBookingModal = ({
   }, [watchedStartDate, watchedDuration, monthMap, selectedModifyBooking]);
 
   const onSubmit: SubmitHandler<modifyBookingSchema> = (data) => {
-    console.log(data);
-
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const bookingIds = new Set<string>();
@@ -256,6 +254,15 @@ const ModifyBookingModal = ({
         className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md sm:w-auto sm:max-w-lg"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
+        <div className="flex justify-center mb-1">
+          <button
+            type="button"
+            className="text-gray-500 font-bold text-[1.5rem] leading-none px-6 py-0.5 rounded hover:bg-gray-100"
+            onClick={() => setSelectedModifyBooking(null)}
+          >
+            &times;
+          </button>
+        </div>
         <h2 className="text-lg font-bold mb-4">
           {selectedModifyBooking?.alias || selectedModifyBooking?.guest.name} (
           {selectedModifyBooking?.room.name})
@@ -355,14 +362,7 @@ const ModifyBookingModal = ({
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-between">
-            <button
-              type="button"
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              onClick={() => setSelectedModifyBooking(null)}
-            >
-              Close
-            </button>
+          <div className="flex justify-end">
             <button
               type="submit"
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
