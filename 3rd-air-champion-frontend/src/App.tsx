@@ -22,6 +22,8 @@ const formatPhone = (raw: string) => {
 };
 
 function App() {
+  useEffect(() => { document.title = "TiMag"; }, []);
+
   const [host, setHost] = useState<hostType | null>(null); // Track host data
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [isLoading, setIsLoading] = useState(true); // Track loading state
@@ -61,6 +63,10 @@ function App() {
     doorCode: "",
     airbnbName: "",
     airbnbAddress: "",
+    airbnbRating: "" as number | "",
+    airbnbReviewCount: "" as number | "",
+    airbnbSuperhost: false,
+    highlights: "",
     houseRules: "",
     phone: "",
     contactEmail: "",
@@ -86,6 +92,10 @@ function App() {
           doorCode: result.doorCode ?? "",
           airbnbName: result.airbnbName ?? "",
           airbnbAddress: result.airbnbAddress ?? "",
+          airbnbRating: result.airbnbRating ?? "",
+          airbnbReviewCount: result.airbnbReviewCount ?? "",
+          airbnbSuperhost: result.airbnbSuperhost ?? false,
+          highlights: (result.highlights ?? []).join(", "),
           houseRules: result.houseRules ?? "",
           phone: result.phone ?? "",
           contactEmail: result.contactEmail ?? "",
